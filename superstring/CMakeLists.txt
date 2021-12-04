@@ -17,5 +17,6 @@ target_sources(superstring_core PRIVATE
   src/core/libmba-diff.cc
 )
 target_include_directories(superstring_core PRIVATE vendor/libcxx)
+target_include_directories(superstring_core INTERFACE src/core)
 
 add_subdirectory(vendor/pcre)

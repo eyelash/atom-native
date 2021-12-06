@@ -1,0 +1,8 @@
+node_modules/
+.DS_Store
+npm-debug.log
+*.swp
+.coffee
+api.json
+dist
+package-lock.json

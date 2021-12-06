@@ -1,5 +1,5 @@
 #include "text-slice.h"
-#include "text-buffer.h"
+#include "native-text-buffer.h"
 #include "regex.h"
 #include <algorithm>
 #include <cassert>
@@ -16,13 +16,13 @@ using std::u16string;
 using std::vector;
 using MatchOptions = Regex::MatchOptions;
 using MatchResult = Regex::MatchResult;
-using SubsequenceMatch = TextBuffer::SubsequenceMatch;
+using SubsequenceMatch = NativeTextBuffer::SubsequenceMatch;
 
-uint32_t TextBuffer::MAX_CHUNK_SIZE_TO_COPY = 1024;
+uint32_t NativeTextBuffer::MAX_CHUNK_SIZE_TO_COPY = 1024;
 
 static Text EMPTY_TEXT;
 
-struct TextBuffer::Layer {
+struct NativeTextBuffer::Layer {
   Layer *previous_layer;
   Patch patch;
   optional<Text> text;
@@ -670,15 +670,15 @@ struct TextBuffer::Layer {
   }
 };
 
-TextBuffer::TextBuffer(u16string &&text) :
+NativeTextBuffer::NativeTextBuffer(u16string &&text) :
   base_layer{new Layer(move(text))},
   top_layer{base_layer} {}
 
-TextBuffer::TextBuffer() :
+NativeTextBuffer::NativeTextBuffer() :
   base_layer{new Layer(Text{})},
   top_layer{base_layer} {}
 
-TextBuffer::~TextBuffer() {
+NativeTextBuffer::~NativeTextBuffer() {
   Layer *layer = top_layer;
   while (layer) {
     Layer *previous_layer = layer->previous_layer;
@@ -687,10 +687,10 @@ TextBuffer::~TextBuffer() {
   }
 }
 
-TextBuffer::TextBuffer(const std::u16string &text) :
-  TextBuffer{u16string{text.begin(), text.end()}} {}
+NativeTextBuffer::NativeTextBuffer(const std::u16string &text) :
+  NativeTextBuffer{u16string{text.begin(), text.end()}} {}
 
-void TextBuffer::reset(Text &&new_base_text) {
+void NativeTextBuffer::reset(Text &&new_base_text) {
   bool has_snapshot = false;
   auto layer = top_layer;
   while (layer) {
@@ -723,7 +723,7 @@ void TextBuffer::reset(Text &&new_base_text) {
   top_layer->previous_layer = nullptr;
 }
 
-Patch TextBuffer::get_inverted_changes(const Snapshot *snapshot) const {
+Patch NativeTextBuffer::get_inverted_changes(const Snapshot *snapshot) const {
   vector<const Patch *> patches;
   Layer *layer = top_layer;
   while (layer != &snapshot->base_layer) {
@@ -753,7 +753,7 @@ Patch TextBuffer::get_inverted_changes(const Snapshot *snapshot) const {
   return result;
 }
 
-void TextBuffer::serialize_changes(Serializer &serializer) {
+void NativeTextBuffer::serialize_changes(Serializer &serializer) {
   serializer.append(top_layer->size_);
   top_layer->extent_.serialize(serializer);
   if (top_layer == base_layer) {
@@ -782,7 +782,7 @@ void TextBuffer::serialize_changes(Serializer &serializer) {
   combination.serialize(serializer);
 }
 
-bool TextBuffer::deserialize_changes(Deserializer &deserializer) {
+bool NativeTextBuffer::deserialize_changes(Deserializer &deserializer) {
   if (top_layer != base_layer || base_layer->previous_layer) return false;
   top_layer = new Layer(base_layer);
   top_layer->size_ = deserializer.read<uint32_t>();
@@ -791,24 +791,24 @@ bool TextBuffer::deserialize_changes(Deserializer &deserializer) {
   return true;
 }
 
-const Text &TextBuffer::base_text() const {
+const Text &NativeTextBuffer::base_text() const {
   return *base_layer->text;
 }
 
-Point TextBuffer::extent() const {
+Point NativeTextBuffer::extent() const {
   return top_layer->extent();
 }
 
-uint32_t TextBuffer::size() const {
+uint32_t NativeTextBuffer::size() const {
   return top_layer->size();
 }
 
-optional<uint32_t> TextBuffer::line_length_for_row(uint32_t row) {
+optional<uint32_t> NativeTextBuffer::line_length_for_row(uint32_t row) {
   if (row > extent().row) return optional<uint32_t>{};
   return top_layer->clip_position(Point{row, UINT32_MAX}, true).position.column;
 }
 
-const uint16_t *TextBuffer::line_ending_for_row(uint32_t row) {
+const uint16_t *NativeTextBuffer::line_ending_for_row(uint32_t row) {
   if (row > extent().row) return nullptr;
 
   static uint16_t LF[] = {'\n', 0};
@@ -828,7 +828,7 @@ const uint16_t *TextBuffer::line_ending_for_row(uint32_t row) {
   return result;
 }
 
-void TextBuffer::with_line_for_row(uint32_t row, const std::function<void(const char16_t *, uint32_t)> &callback) {
+void NativeTextBuffer::with_line_for_row(uint32_t row, const std::function<void(const char16_t *, uint32_t)> &callback) {
   u16string result;
   uint32_t column = 0;
   uint32_t slice_count = 0;
@@ -852,44 +852,44 @@ void TextBuffer::with_line_for_row(uint32_t row, const std::function<void(const 
   }
 }
 
-optional<u16string> TextBuffer::line_for_row(uint32_t row) {
+optional<u16string> NativeTextBuffer::line_for_row(uint32_t row) {
   if (row > extent().row) return optional<u16string>{};
   return text_in_range({{row, 0}, {row, UINT32_MAX}});
 }
 
-ClipResult TextBuffer::clip_position(Point position) {
+ClipResult NativeTextBuffer::clip_position(Point position) {
   return top_layer->clip_position(position, true);
 }
 
-Point TextBuffer::position_for_offset(uint32_t offset) {
+Point NativeTextBuffer::position_for_offset(uint32_t offset) {
   return top_layer->position_for_offset(offset);
 }
 
-u16string TextBuffer::text() {
+u16string NativeTextBuffer::text() {
   return top_layer->text_in_range(Range{Point(), extent()});
 }
 
-uint16_t TextBuffer::character_at(Point position) const {
+uint16_t NativeTextBuffer::character_at(Point position) const {
   return top_layer->character_at(position);
 }
 
-u16string TextBuffer::text_in_range(Range range) {
+u16string NativeTextBuffer::text_in_range(Range range) {
   return top_layer->text_in_range(range, true);
 }
 
-vector<TextSlice> TextBuffer::chunks() const {
+vector<TextSlice> NativeTextBuffer::chunks() const {
   return top_layer->chunks_in_range({{0, 0}, extent()});
 }
 
-void TextBuffer::set_text(u16string &&new_text) {
+void NativeTextBuffer::set_text(u16string &&new_text) {
   set_text_in_range(Range{Point(0, 0), extent()}, move(new_text));
 }
 
-void TextBuffer::set_text(const u16string &new_text) {
+void NativeTextBuffer::set_text(const u16string &new_text) {
   set_text_in_range(Range{Point(0, 0), extent()}, u16string(new_text));
 }
 
-void TextBuffer::set_text_in_range(Range old_range, u16string &&string) {
+void NativeTextBuffer::set_text_in_range(Range old_range, u16string &&string) {
   if (top_layer == base_layer || top_layer->snapshot_count > 0) {
     top_layer = new Layer(top_layer);
   }
@@ -934,20 +934,20 @@ void TextBuffer::set_text_in_range(Range old_range, u16string &&string) {
   }
 }
 
-optional<Range> TextBuffer::find(const Regex &regex, Range range) const {
+optional<Range> NativeTextBuffer::find(const Regex &regex, Range range) const {
   return top_layer->find_in_range(regex, range, false);
 }
 
-vector<Range> TextBuffer::find_all(const Regex &regex, Range range) const {
+vector<Range> NativeTextBuffer::find_all(const Regex &regex, Range range) const {
   return top_layer->find_all_in_range(regex, range, false);
 }
 
-unsigned TextBuffer::find_and_mark_all(MarkerIndex &index, MarkerIndex::MarkerId next_id,
+unsigned NativeTextBuffer::find_and_mark_all(MarkerIndex &index, MarkerIndex::MarkerId next_id,
                                        bool exclusive, const Regex &regex, Range range) const {
   return top_layer->find_and_mark_all_in_range(index, next_id, exclusive, regex, range, false);
 }
 
-bool TextBuffer::SubsequenceMatch::operator==(const SubsequenceMatch &other) const {
+bool NativeTextBuffer::SubsequenceMatch::operator==(const SubsequenceMatch &other) const {
   return (
     word == other.word &&
     positions == other.positions &&
@@ -956,23 +956,23 @@ bool TextBuffer::SubsequenceMatch::operator==(const SubsequenceMatch &other) con
   );
 }
 
-vector<SubsequenceMatch> TextBuffer::find_words_with_subsequence_in_range(const u16string &query, const u16string &non_word_characters, Range range) const {
+vector<SubsequenceMatch> NativeTextBuffer::find_words_with_subsequence_in_range(const u16string &query, const u16string &non_word_characters, Range range) const {
   return top_layer->find_words_with_subsequence_in_range(query, non_word_characters, range);
 }
 
-bool TextBuffer::is_modified() const {
+bool NativeTextBuffer::is_modified() const {
   return top_layer->is_modified(base_layer);
 }
 
-bool TextBuffer::has_astral() {
+bool NativeTextBuffer::has_astral() {
   return top_layer->has_astral();
 }
 
-bool TextBuffer::is_modified(const Snapshot *snapshot) const {
+bool NativeTextBuffer::is_modified(const Snapshot *snapshot) const {
   return top_layer->is_modified(&snapshot->base_layer);
 }
 
-string TextBuffer::get_dot_graph() const {
+string NativeTextBuffer::get_dot_graph() const {
   Layer *layer = top_layer;
   vector<Layer *> layers;
   while (layer) {
@@ -996,7 +996,7 @@ string TextBuffer::get_dot_graph() const {
   return result.str();
 }
 
-size_t TextBuffer::layer_count() const {
+size_t NativeTextBuffer::layer_count() const {
   size_t result = 1;
   const Layer *layer = top_layer;
   while (layer->previous_layer) {
@@ -1006,13 +1006,13 @@ size_t TextBuffer::layer_count() const {
   return result;
 }
 
-TextBuffer::Snapshot *TextBuffer::create_snapshot() {
+NativeTextBuffer::Snapshot *NativeTextBuffer::create_snapshot() {
   top_layer->snapshot_count++;
   base_layer->snapshot_count++;
   return new Snapshot(*this, *top_layer, *base_layer);
 }
 
-void TextBuffer::flush_changes() {
+void NativeTextBuffer::flush_changes() {
   if (!top_layer->text) {
     top_layer->text = Text{text()};
     base_layer = top_layer;
@@ -1020,59 +1020,59 @@ void TextBuffer::flush_changes() {
   }
 }
 
-uint32_t TextBuffer::Snapshot::size() const {
+uint32_t NativeTextBuffer::Snapshot::size() const {
   return layer.size();
 }
 
-Point TextBuffer::Snapshot::extent() const {
+Point NativeTextBuffer::Snapshot::extent() const {
   return layer.extent();
 }
 
-uint32_t TextBuffer::Snapshot::line_length_for_row(uint32_t row) const {
+uint32_t NativeTextBuffer::Snapshot::line_length_for_row(uint32_t row) const {
   return layer.clip_position(Point{row, UINT32_MAX}).position.column;
 }
 
-u16string TextBuffer::Snapshot::text_in_range(Range range) const {
+u16string NativeTextBuffer::Snapshot::text_in_range(Range range) const {
   return layer.text_in_range(range);
 }
 
-u16string TextBuffer::Snapshot::text() const {
+u16string NativeTextBuffer::Snapshot::text() const {
   return layer.text_in_range({{0, 0}, extent()});
 }
 
-vector<TextSlice> TextBuffer::Snapshot::chunks_in_range(Range range) const {
+vector<TextSlice> NativeTextBuffer::Snapshot::chunks_in_range(Range range) const {
   return layer.chunks_in_range(range);
 }
 
-vector<TextSlice> TextBuffer::Snapshot::chunks() const {
+vector<TextSlice> NativeTextBuffer::Snapshot::chunks() const {
   return layer.chunks_in_range({{0, 0}, extent()});
 }
 
-vector<pair<const char16_t *, uint32_t>> TextBuffer::Snapshot::primitive_chunks() const {
+vector<pair<const char16_t *, uint32_t>> NativeTextBuffer::Snapshot::primitive_chunks() const {
   return layer.primitive_chunks();
 }
 
-optional<Range> TextBuffer::Snapshot::find(const Regex &regex, Range range) const {
+optional<Range> NativeTextBuffer::Snapshot::find(const Regex &regex, Range range) const {
   return layer.find_in_range(regex, range, false);
 }
 
-vector<Range> TextBuffer::Snapshot::find_all(const Regex &regex, Range range) const {
+vector<Range> NativeTextBuffer::Snapshot::find_all(const Regex &regex, Range range) const {
   return layer.find_all_in_range(regex, range, false);
 }
 
-vector<SubsequenceMatch> TextBuffer::Snapshot::find_words_with_subsequence_in_range(std::u16string query, const std::u16string &extra_word_characters, Range range) const {
+vector<SubsequenceMatch> NativeTextBuffer::Snapshot::find_words_with_subsequence_in_range(std::u16string query, const std::u16string &extra_word_characters, Range range) const {
   return layer.find_words_with_subsequence_in_range(query, extra_word_characters, range);
 }
 
-const Text &TextBuffer::Snapshot::base_text() const {
+const Text &NativeTextBuffer::Snapshot::base_text() const {
   return *base_layer.text;
 }
 
-TextBuffer::Snapshot::Snapshot(TextBuffer &buffer, TextBuffer::Layer &layer,
-                               TextBuffer::Layer &base_layer)
+NativeTextBuffer::Snapshot::Snapshot(NativeTextBuffer &buffer, NativeTextBuffer::Layer &layer,
+                               NativeTextBuffer::Layer &base_layer)
   : buffer{buffer}, layer{layer}, base_layer{base_layer} {}
 
-void TextBuffer::Snapshot::flush_preceding_changes() {
+void NativeTextBuffer::Snapshot::flush_preceding_changes() {
   if (!layer.text) {
     layer.text = Text{text()};
     if (layer.is_above_layer(buffer.base_layer)) buffer.base_layer = &layer;
@@ -1080,7 +1080,7 @@ void TextBuffer::Snapshot::flush_preceding_changes() {
   }
 }
 
-TextBuffer::Snapshot::~Snapshot() {
+NativeTextBuffer::Snapshot::~Snapshot() {
   assert(layer.snapshot_count > 0);
   layer.snapshot_count--;
   base_layer.snapshot_count--;
@@ -1089,7 +1089,7 @@ TextBuffer::Snapshot::~Snapshot() {
   }
 }
 
-void TextBuffer::consolidate_layers() {
+void NativeTextBuffer::consolidate_layers() {
   Layer *layer = top_layer;
   vector<Layer *> mutable_layers;
   bool needed_by_layer_above = false;
@@ -1116,7 +1116,7 @@ void TextBuffer::consolidate_layers() {
   squash_layers(mutable_layers);
 }
 
-void TextBuffer::squash_layers(const vector<Layer *> &layers) {
+void NativeTextBuffer::squash_layers(const vector<Layer *> &layers) {
   size_t layer_index = 0;
   size_t layer_count = layers.size();
   if (layer_count < 2) return;

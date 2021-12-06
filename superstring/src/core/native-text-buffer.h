@@ -10,7 +10,7 @@
 #include "regex.h"
 #include "marker-index.h"
 
-class TextBuffer {
+class NativeTextBuffer {
   struct Layer;
   Layer *base_layer;
   Layer *top_layer;
@@ -20,10 +20,10 @@ class TextBuffer {
 public:
   static uint32_t MAX_CHUNK_SIZE_TO_COPY;
 
-  TextBuffer();
-  TextBuffer(std::u16string &&);
-  TextBuffer(const std::u16string &text);
-  ~TextBuffer();
+  NativeTextBuffer();
+  NativeTextBuffer(std::u16string &&);
+  NativeTextBuffer(const std::u16string &text);
+  ~NativeTextBuffer();
 
   uint32_t size() const;
   Point extent() const;
@@ -67,12 +67,12 @@ public:
   std::vector<SubsequenceMatch> find_words_with_subsequence_in_range(const std::u16string &, const std::u16string &, Range) const;
 
   class Snapshot {
-    friend class TextBuffer;
-    TextBuffer &buffer;
+    friend class NativeTextBuffer;
+    NativeTextBuffer &buffer;
     Layer &layer;
     Layer &base_layer;
 
-    Snapshot(TextBuffer &, Layer &, Layer &);
+    Snapshot(NativeTextBuffer &, Layer &, Layer &);
 
   public:
     ~Snapshot();

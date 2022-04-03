@@ -40,13 +40,35 @@ std::size_t MarkerLayer::getMarkerCount() {
 }
 
 Marker *MarkerLayer::markRange(Range range) {
-  // TODO: clip
-  return this->createMarker(range);
+  return this->createMarker(this->delegate->clipRange(range));
 }
 
 Marker *MarkerLayer::markPosition(Point position) {
-  // TODO: clip
+  position = this->delegate->clipPosition(position);
   return this->createMarker(Range{position, position});
+}
+
+void MarkerLayer::splice(Point start, Point oldExtent, Point newExtent) {
+  auto invalidated = this->index->splice(start, oldExtent, newExtent);
+  // TODO: destroy invalidated markers
+}
+
+Range MarkerLayer::getMarkerRange(unsigned id) {
+  return this->index->get_range(id);
+}
+
+Point MarkerLayer::getMarkerStartPosition(unsigned id) {
+  return this->index->get_start(id);
+}
+
+Point MarkerLayer::getMarkerEndPosition(unsigned id) {
+  return this->index->get_end(id);
+}
+
+void MarkerLayer::setMarkerRange(unsigned id, Range range) {
+  // TODO: clip
+  this->index->remove(id);
+  this->index->insert(id, range.start, range.end);
 }
 
 Marker *MarkerLayer::createMarker(Range range) {

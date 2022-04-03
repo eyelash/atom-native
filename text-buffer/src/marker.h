@@ -13,6 +13,11 @@ public:
   Marker(unsigned, MarkerLayer *, Range);
   ~Marker();
 
+  Range getRange();
+  bool setRange(Range);
+
+private:
+  bool update(Range, Range);
 };
 
 #endif  // MARKER_H_

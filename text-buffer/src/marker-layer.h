@@ -2,7 +2,6 @@
 #define MARKER_LAYER_H_
 
 #include <marker-index.h>
-//#include <range.h>
 #include <vector>
 #include <unordered_map>
 
@@ -26,6 +25,11 @@ public:
   std::size_t getMarkerCount();
   Marker *markRange(Range);
   Marker *markPosition(Point);
+  void splice(Point, Point, Point);
+  Range getMarkerRange(unsigned);
+  Point getMarkerStartPosition(unsigned);
+  Point getMarkerEndPosition(unsigned);
+  void setMarkerRange(unsigned, Range);
 
 private:
   Marker *createMarker(Range);

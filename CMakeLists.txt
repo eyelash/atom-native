@@ -5,3 +5,6 @@ add_subdirectory(superstring)
 add_subdirectory(event-kit)
 add_subdirectory(text-buffer)
 add_subdirectory(atom)
+
+add_executable(main main.cc)
+target_link_libraries(main atom)

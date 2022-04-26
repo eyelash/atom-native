@@ -7,8 +7,8 @@ target_sources(text-buffer PRIVATE
   #src/display-layer.cc
   #src/display-marker-layer.cc
   #src/display-marker.cc
-  #src/marker-layer.cc
-  #src/marker.cc
+  src/marker-layer.cc
+  src/marker.cc
   src/point.cc
   src/point-helpers.cc
   src/range.cc

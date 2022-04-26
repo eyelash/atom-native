@@ -1,7 +1,7 @@
 #ifndef MARKER_LAYER_H_
 #define MARKER_LAYER_H_
 
-#include "point.h"
+#include "range.h"
 #include <marker-index.h>
 #include <vector>
 #include <unordered_map>
@@ -30,6 +30,7 @@ public:
   Range getMarkerRange(unsigned);
   Point getMarkerStartPosition(unsigned);
   Point getMarkerEndPosition(unsigned);
+  int compareMarkers(unsigned, unsigned);
   void setMarkerRange(unsigned, Range);
 
 private:

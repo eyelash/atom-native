@@ -65,6 +65,10 @@ Point MarkerLayer::getMarkerEndPosition(unsigned id) {
   return this->index->get_end(id);
 }
 
+int MarkerLayer::compareMarkers(unsigned id1, unsigned id2) {
+  return this->index->compare(id1, id2);
+}
+
 void MarkerLayer::setMarkerRange(unsigned id, Range range) {
   // TODO: clip
   this->index->remove(id);

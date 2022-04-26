@@ -10,13 +10,13 @@
 #include <random>
 #include "range.h"
 #include "text.h"
-#include "text-buffer.h"
+#include "native-text-buffer.h"
 #include <iostream>
 
 using std::cout;
 using std::cerr;
 
-class TextBuffer;
+class NativeTextBuffer;
 
 class Generator {
   std::default_random_engine engine;
@@ -32,7 +32,7 @@ std::unique_ptr<Text> get_text(const std::u16string content);
 std::u16string get_random_string(Generator &, uint32_t character_count = 20);
 Text get_random_text(Generator &);
 Range get_random_range(Generator &, const Text &);
-Range get_random_range(Generator &, TextBuffer &);
+Range get_random_range(Generator &, NativeTextBuffer &);
 
 namespace std {
   inline std::ostream &operator<<(std::ostream &stream, const std::u16string &text) {
@@ -50,7 +50,7 @@ namespace std {
     return stream;
   }
 
-  inline std::ostream &operator<<(std::ostream &stream, const TextBuffer::SubsequenceMatch &match) {
+  inline std::ostream &operator<<(std::ostream &stream, const NativeTextBuffer::SubsequenceMatch &match) {
     stream << "SubsequenceMatch{ word: " <<  match.word << ", positions: [";
 
     for (size_t i = 0; i < match.positions.size(); i++) {

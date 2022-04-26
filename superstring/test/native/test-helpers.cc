@@ -1,7 +1,7 @@
 #include "test-helpers.h"
 #include "patch.h"
 #include "range.h"
-#include "text-buffer.h"
+#include "native-text-buffer.h"
 #include <catch.hpp>
 #include <cstring>
 #include <memory>
@@ -36,7 +36,7 @@ std::unique_ptr<Text> get_text(const u16string content) {
 std::u16string get_random_string(Generator &rand, uint32_t character_count) {
   u16string content;
   content.reserve(character_count);
-  for (uint i = 0; i < character_count; i++) {
+  for (unsigned int i = 0; i < character_count; i++) {
     if (rand() % 20 < 1) {
       content.push_back('\n');
     } else if (rand() % 20 < 1) {
@@ -70,6 +70,6 @@ Range get_random_range(Generator &rand, const Text &text) {
   return {start, end};
 }
 
-Range get_random_range(Generator &rand, TextBuffer &buffer) {
+Range get_random_range(Generator &rand, NativeTextBuffer &buffer) {
   return get_random_range(rand, buffer.text());
 }

@@ -24,14 +24,14 @@ TEST_CASE("MarkerIndex::insert") {
   srand(0);
   MarkerIndex marker_index;
   vector<Range> ranges;
-  uint count = 20000;
+  unsigned int count = 20000;
 
-  for (uint i = 0; i < count; i++) {
+  for (unsigned int i = 0; i < count; i++) {
     ranges.push_back(get_random_range());
   }
 
   milliseconds start = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
-  for (uint i = 0; i < count; i++) {
+  for (unsigned int i = 0; i < count; i++) {
     marker_index.insert(i, ranges[i].start, ranges[i].end);
   }
   milliseconds end = duration_cast<milliseconds>(system_clock::now().time_since_epoch());

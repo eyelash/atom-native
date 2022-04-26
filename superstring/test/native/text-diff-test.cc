@@ -106,7 +106,7 @@ TEST_CASE("text_diff - old text is a suffix of new text") {
 
 TEST_CASE("text_diff - randomized changes") {
   auto t = time(nullptr);
-  for (uint i = 0; i < 100; i++) {
+  for (unsigned int i = 0; i < 100; i++) {
     uint32_t seed = t * 1000 + i;
     Generator rand(seed);
     cout << "seed: " << seed << "\n";
@@ -116,7 +116,7 @@ TEST_CASE("text_diff - randomized changes") {
 
     // cout << "extent: " << new_text.extent() << " text:\n" << new_text << "\n\n";
 
-    for (uint j = 0; j < 1 + rand() % 10; j++) {
+    for (unsigned int j = 0; j < 1 + rand() % 10; j++) {
       // cout << "j: " << j << "\n";
 
       Range deleted_range = get_random_range(rand, new_text);

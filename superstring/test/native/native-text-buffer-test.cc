@@ -1,10 +1,10 @@
 #include "test-helpers.h"
 #include <sstream>
-#include "text-buffer.h"
+#include "native-text-buffer.h"
 #include "text-slice.h"
 #include "regex.h"
 #include <future>
-#include <unistd.h>
+#include <thread>
 
 using std::move;
 using std::pair;
@@ -13,10 +13,10 @@ using std::stringstream;
 using std::vector;
 using std::u16string;
 using MatchResult = Regex::MatchResult;
-using SubsequenceMatch = TextBuffer::SubsequenceMatch;
+using SubsequenceMatch = NativeTextBuffer::SubsequenceMatch;
 
-TEST_CASE("TextBuffer::set_text_in_range - basic") {
-  TextBuffer buffer{u"abc\ndef\nghi"};
+TEST_CASE("NativeTextBuffer::set_text_in_range - basic") {
+  NativeTextBuffer buffer{u"abc\ndef\nghi"};
   REQUIRE(buffer.text_in_range({{0, 1}, {0, UINT32_MAX}}) == u"bc");
 
   buffer.set_text_in_range({{0, 2}, {2, 1}}, u"jkl\nmno");
@@ -28,14 +28,14 @@ TEST_CASE("TextBuffer::set_text_in_range - basic") {
   REQUIRE(buffer.text_in_range(Range {{0, 1}, {10, 1}}) == u"z");
 }
 
-TEST_CASE("TextBuffer::line_length_for_row - basic") {
-  TextBuffer buffer{u"a\n\nb\r\rc\r\n\r\n"};
+TEST_CASE("NativeTextBuffer::line_length_for_row - basic") {
+  NativeTextBuffer buffer{u"a\n\nb\r\rc\r\n\r\n"};
   REQUIRE(*buffer.line_length_for_row(0) == 1);
   REQUIRE(*buffer.line_length_for_row(1) == 0);
 }
 
-TEST_CASE("TextBuffer::position_for_offset") {
-  TextBuffer buffer{u"ab\ndef\r\nhijk"};
+TEST_CASE("NativeTextBuffer::position_for_offset") {
+  NativeTextBuffer buffer{u"ab\ndef\r\nhijk"};
   buffer.set_text_in_range({{0, 2}, {0, 2}}, u"c");
   buffer.set_text_in_range({{1, 3}, {1, 3}}, u"g");
   REQUIRE(buffer.position_for_offset(0) == Point(0, 0));
@@ -50,8 +50,8 @@ TEST_CASE("TextBuffer::position_for_offset") {
   REQUIRE(buffer.position_for_offset(10) == Point(2, 0));
 }
 
-TEST_CASE("TextBuffer::create_snapshot") {
-  TextBuffer buffer{u"ab\ndef"};
+TEST_CASE("NativeTextBuffer::create_snapshot") {
+  NativeTextBuffer buffer{u"ab\ndef"};
   buffer.set_text_in_range({{0, 2}, {0, 2}}, u"c");
   REQUIRE(buffer.text() == u"abc\ndef");
   REQUIRE(*buffer.line_length_for_row(0) == 3);
@@ -97,8 +97,8 @@ TEST_CASE("TextBuffer::create_snapshot") {
   }
 }
 
-TEST_CASE("TextBuffer::chunks()") {
-  TextBuffer buffer{u"abc"};
+TEST_CASE("NativeTextBuffer::chunks()") {
+  NativeTextBuffer buffer{u"abc"};
   buffer.set_text_in_range({{0, 2}, {0, 2}}, u"1");
 
   {
@@ -129,8 +129,8 @@ TEST_CASE("TextBuffer::chunks()") {
   }
 }
 
-TEST_CASE("TextBuffer::get_inverted_changes") {
-  TextBuffer buffer{u"ab\ndef"};
+TEST_CASE("NativeTextBuffer::get_inverted_changes") {
+  NativeTextBuffer buffer{u"ab\ndef"};
   auto snapshot1 = buffer.create_snapshot();
 
   // This range gets clipped. The ::get_inverted_changes method is one of the
@@ -153,8 +153,8 @@ TEST_CASE("TextBuffer::get_inverted_changes") {
   delete snapshot1;
 }
 
-TEST_CASE("TextBuffer::is_modified") {
-  TextBuffer buffer{u"abcdef"};
+TEST_CASE("NativeTextBuffer::is_modified") {
+  NativeTextBuffer buffer{u"abcdef"};
   REQUIRE(!buffer.is_modified());
 
   buffer.set_text_in_range({{0, 1}, {0, 2}}, u"BBB");
@@ -197,8 +197,8 @@ TEST_CASE("TextBuffer::is_modified") {
   }
 }
 
-TEST_CASE("TextBuffer::flush_changes") {
-  TextBuffer buffer{u"abcdef"};
+TEST_CASE("NativeTextBuffer::flush_changes") {
+  NativeTextBuffer buffer{u"abcdef"};
   REQUIRE(buffer.layer_count() == 1);
 
   buffer.set_text_in_range({{0, 1}, {0, 2}}, u"B");
@@ -233,7 +233,7 @@ TEST_CASE("TextBuffer::flush_changes") {
 }
 
 TEST_CASE("Snapshot::flush_preceding_changes") {
-  TextBuffer buffer{u"abcdef"};
+  NativeTextBuffer buffer{u"abcdef"};
   REQUIRE(buffer.layer_count() == 1);
 
   buffer.set_text_in_range({{0, 1}, {0, 2}}, u"B");
@@ -259,7 +259,7 @@ TEST_CASE("Snapshot::flush_preceding_changes") {
     REQUIRE(snapshot2->text() == u"aBCdef");
     REQUIRE(!buffer.is_modified());
 
-    TextBuffer copy_buffer{buffer.base_text().content};
+    NativeTextBuffer copy_buffer{buffer.base_text().content};
     Serializer serializer(bytes);
     buffer.serialize_changes(serializer);
     Deserializer deserializer(bytes);
@@ -283,7 +283,7 @@ TEST_CASE("Snapshot::flush_preceding_changes") {
     REQUIRE(snapshot2->text() == u"aBCdef");
     REQUIRE(buffer.is_modified());
 
-    TextBuffer copy_buffer{buffer.base_text().content};
+    NativeTextBuffer copy_buffer{buffer.base_text().content};
     Serializer serializer(bytes);
     buffer.serialize_changes(serializer);
     Deserializer deserializer(bytes);
@@ -299,8 +299,8 @@ TEST_CASE("Snapshot::flush_preceding_changes") {
   }
 }
 
-TEST_CASE("TextBuffer::reset") {
-  TextBuffer buffer{u"abcdef"};
+TEST_CASE("NativeTextBuffer::reset") {
+  NativeTextBuffer buffer{u"abcdef"};
   auto snapshot1 = buffer.create_snapshot();
 
   buffer.set_text_in_range({{0, 1}, {0, 2}}, u"B");
@@ -331,15 +331,15 @@ TEST_CASE("TextBuffer::reset") {
   REQUIRE(buffer.text() == u"456");
 }
 
-TEST_CASE("TextBuffer::find") {
-  TextBuffer buffer{u"abcd\nef"};
+TEST_CASE("NativeTextBuffer::find") {
+  NativeTextBuffer buffer{u"abcd\nef"};
 
   u16string error_message;
   Regex(u"(", &error_message);
   REQUIRE(error_message == u"missing closing parenthesis");
 
   REQUIRE(buffer.find(Regex(u"", nullptr)) == (Range{{0, 0}, {0, 0}}));
-  REQUIRE(TextBuffer().find(Regex(u"", nullptr)) == (Range{{0, 0}, {0, 0}}));
+  REQUIRE(NativeTextBuffer().find(Regex(u"", nullptr)) == (Range{{0, 0}, {0, 0}}));
 
   REQUIRE(buffer.find(Regex(u"ef*", nullptr)) == (Range{{1, 0}, {1, 2}}));
   REQUIRE(buffer.find(Regex(u"x", nullptr)) == optional<Range>{});
@@ -354,8 +354,8 @@ TEST_CASE("TextBuffer::find") {
   REQUIRE(buffer.find(Regex(u"\\d", nullptr)) == (Range{{0, 1}, {0, 2}}));
 }
 
-TEST_CASE("TextBuffer::find - spanning edits") {
-  TextBuffer buffer{u"abcd"};
+TEST_CASE("NativeTextBuffer::find - spanning edits") {
+  NativeTextBuffer buffer{u"abcd"};
   buffer.set_text_in_range({{0, 2}, {0, 2}}, u"12345");
   buffer.set_text_in_range({{0, 9}, {0, 9}}, u"67890");
 
@@ -374,13 +374,13 @@ TEST_CASE("TextBuffer::find - spanning edits") {
   REQUIRE(buffer.find(Regex(u"bc", nullptr)) == optional<Range>{});
 }
 
-TEST_CASE("TextBuffer::find - partial matches at EOF") {
-  TextBuffer buffer{u"abc\r\ndef\r\nghi\r\n"};
+TEST_CASE("NativeTextBuffer::find - partial matches at EOF") {
+  NativeTextBuffer buffer{u"abc\r\ndef\r\nghi\r\n"};
   REQUIRE(buffer.find(Regex(u"[^\r]\n", nullptr)) == optional<Range>());
 }
 
-TEST_CASE("TextBuffer::find_all") {
-  TextBuffer buffer{u"abc\ndefg\nhijkl"};
+TEST_CASE("NativeTextBuffer::find_all") {
+  NativeTextBuffer buffer{u"abc\ndefg\nhijkl"};
   REQUIRE(buffer.find_all(Regex(u"\\w+", nullptr)) == vector<Range>({
     Range{Point{0, 0}, Point{0, 3}},
     Range{Point{1, 0}, Point{1, 4}},
@@ -404,8 +404,8 @@ TEST_CASE("TextBuffer::find_all") {
   }));
 }
 
-TEST_CASE("TextBuffer::find_all - empty matches") {
-  TextBuffer buffer{u"aab\nab\nb\n"};
+TEST_CASE("NativeTextBuffer::find_all - empty matches") {
+  NativeTextBuffer buffer{u"aab\nab\nb\n"};
   REQUIRE(buffer.find_all(Regex(u"^a*", nullptr)) == vector<Range>({
     Range{Point{0, 0}, Point{0, 2}},
     Range{Point{1, 0}, Point{1, 1}},
@@ -427,9 +427,9 @@ TEST_CASE("TextBuffer::find_all - empty matches") {
   }));
 }
 
-TEST_CASE("TextBuffer::find_words_with_subsequence_in_range") {
+TEST_CASE("NativeTextBuffer::find_words_with_subsequence_in_range") {
   {
-    TextBuffer buffer{u"banana band bandana banana"};
+    NativeTextBuffer buffer{u"banana band bandana banana"};
 
     REQUIRE(buffer.find_words_with_subsequence_in_range(u"bna", u"", Range{Point{0, 0}, Point{0, UINT32_MAX}}) == vector<SubsequenceMatch>({
       {u"banana", {Point{0, 0}, Point{0, 20}}, {0, 2, 3}, 12},
@@ -438,7 +438,7 @@ TEST_CASE("TextBuffer::find_words_with_subsequence_in_range") {
   }
 
   {
-    TextBuffer buffer{u"a_b_c abc aBc"};
+    NativeTextBuffer buffer{u"a_b_c abc aBc"};
 
     REQUIRE(buffer.find_words_with_subsequence_in_range(u"abc", u"_", Range{Point{0, 0}, Point{0, UINT32_MAX}}) == vector<SubsequenceMatch>({
       {u"aBc", {Point{0, 10}}, {0, 1, 2}, 29},
@@ -448,7 +448,7 @@ TEST_CASE("TextBuffer::find_words_with_subsequence_in_range") {
   }
 
   {
-    TextBuffer buffer{u"abc Abc"};
+    NativeTextBuffer buffer{u"abc Abc"};
 
     REQUIRE(buffer.find_words_with_subsequence_in_range(u"Abc", u"", Range{Point{0, 0}, Point{0, UINT32_MAX}}) == vector<SubsequenceMatch>({
       {u"Abc", {Point{0, 4}}, {0, 1, 2}, 20},
@@ -458,16 +458,16 @@ TEST_CASE("TextBuffer::find_words_with_subsequence_in_range") {
 
   {
     // Does not match words longer than 80 characters
-    TextBuffer buffer{u"eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uLy4uL2xpYi9jb252ZXJ0LmpzIl0sIm5hbWVzIjpbImxzi"};
+    NativeTextBuffer buffer{u"eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uLy4uL2xpYi9jb252ZXJ0LmpzIl0sIm5hbWVzIjpbImxzi"};
 
     REQUIRE(buffer.find_words_with_subsequence_in_range(u"eyJ", u"", Range{Point{0, 0}, Point{0, UINT32_MAX}}) == vector<SubsequenceMatch>({
     }));
   }
 }
 
-TEST_CASE("TextBuffer::has_astral") {
-  REQUIRE(TextBuffer{u"ab" "\xd83d" "\xde01" "cd"}.has_astral());
-  REQUIRE(!TextBuffer{u"abcd"}.has_astral());
+TEST_CASE("NativeTextBuffer::has_astral") {
+  REQUIRE(NativeTextBuffer{u"ab" u"\xd83d" u"\xde01" u"cd"}.has_astral());
+  REQUIRE(!NativeTextBuffer{u"abcd"}.has_astral());
 }
 
 struct SnapshotData {
@@ -478,13 +478,13 @@ struct SnapshotData {
 };
 
 struct SnapshotTask {
-  TextBuffer::Snapshot *snapshot;
+  NativeTextBuffer::Snapshot *snapshot;
   Text base_text;
   Text mutated_text;
   std::future<vector<SnapshotData>> future;
 };
 
-void query_random_ranges(TextBuffer &buffer, Generator &rand, Text &mutated_text) {
+void query_random_ranges(NativeTextBuffer &buffer, Generator &rand, Text &mutated_text) {
   for (uint32_t k = 0; k < 5; k++) {
     Range range = get_random_range(rand, buffer);
     // cout << "query random range " << range << "\n";
@@ -497,17 +497,17 @@ void query_random_ranges(TextBuffer &buffer, Generator &rand, Text &mutated_text
   }
 }
 
-TEST_CASE("TextBuffer - random edits and queries") {
-  TextBuffer::MAX_CHUNK_SIZE_TO_COPY = 2;
+TEST_CASE("NativeTextBuffer - random edits and queries") {
+  NativeTextBuffer::MAX_CHUNK_SIZE_TO_COPY = 2;
 
   auto t = time(nullptr);
-  for (uint i = 0; i < 100; i++) {
+  for (unsigned int i = 0; i < 100; i++) {
     uint32_t seed = t * 1000 + i;
     Generator rand(seed);
     cout << "seed: " << seed << "\n";
 
     Text original_text = get_random_text(rand);
-    TextBuffer buffer{original_text.content};
+    NativeTextBuffer buffer{original_text.content};
     vector<SnapshotTask> snapshot_tasks;
     Text mutated_text(original_text);
 
@@ -516,7 +516,7 @@ TEST_CASE("TextBuffer - random edits and queries") {
     // cout << "edit: " << i << "\n";
     // cout << "extent: " << original_text.extent() << "\ntext: " << original_text << "\n";
 
-    for (uint j = 0; j < 15; j++) {
+    for (unsigned int j = 0; j < 15; j++) {
       // cout << "iteration: " << j << "\n";
 
       Text mutated_text = buffer.text();
@@ -535,7 +535,7 @@ TEST_CASE("TextBuffer - random edits and queries") {
             Generator rand(seed);
             vector<SnapshotData> results;
             for (uint32_t k = 0; k < 5; k++) {
-              usleep(rand() % 1000);
+              std::this_thread::sleep_for(std::chrono::microseconds(rand() % 1000));
               vector<Point> line_ending_positions;
               for (uint32_t row = 0; row < snapshot->extent().row; row++) {
                 line_ending_positions.push_back({row, snapshot->line_length_for_row(row)});

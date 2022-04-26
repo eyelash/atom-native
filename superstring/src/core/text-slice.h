@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "native-point.h"
-#include "range.h"
+#include "native-range.h"
 #include "text.h"
 
 class TextSlice {
@@ -23,7 +23,7 @@ class TextSlice {
   TextSlice prefix(NativePoint) const;
   TextSlice prefix(uint32_t) const;
   TextSlice suffix(NativePoint) const;
-  TextSlice slice(Range range) const;
+  TextSlice slice(NativeRange range) const;
   NativePoint position_for_offset(uint32_t offset, uint32_t min_row = 0) const;
   NativePoint extent() const;
   uint16_t front() const;

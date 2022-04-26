@@ -6,7 +6,7 @@
 #include "text.h"
 #include "patch.h"
 #include "native-point.h"
-#include "range.h"
+#include "native-range.h"
 #include "regex.h"
 #include "marker-index.h"
 
@@ -36,11 +36,11 @@ public:
   NativePoint position_for_offset(uint32_t offset);
   std::u16string text();
   uint16_t character_at(NativePoint position) const;
-  std::u16string text_in_range(Range range);
+  std::u16string text_in_range(NativeRange range);
   void set_text(std::u16string &&);
   void set_text(const std::u16string &);
-  void set_text_in_range(Range old_range, std::u16string &&);
-  void set_text_in_range(Range old_range, const std::u16string &);
+  void set_text_in_range(NativeRange old_range, std::u16string &&);
+  void set_text_in_range(NativeRange old_range, const std::u16string &);
   bool is_modified() const;
   bool has_astral();
   std::vector<TextSlice> chunks() const;
@@ -51,10 +51,10 @@ public:
   bool deserialize_changes(Deserializer &);
   const Text &base_text() const;
 
-  optional<Range> find(const Regex &, Range range = Range::all_inclusive()) const;
-  std::vector<Range> find_all(const Regex &, Range range = Range::all_inclusive()) const;
+  optional<NativeRange> find(const Regex &, NativeRange range = NativeRange::all_inclusive()) const;
+  std::vector<NativeRange> find_all(const Regex &, NativeRange range = NativeRange::all_inclusive()) const;
   unsigned find_and_mark_all(MarkerIndex &, MarkerIndex::MarkerId, bool exclusive,
-                             const Regex &, Range range = Range::all_inclusive()) const;
+                             const Regex &, NativeRange range = NativeRange::all_inclusive()) const;
 
   struct SubsequenceMatch {
     std::u16string word;
@@ -64,7 +64,7 @@ public:
     bool operator==(const SubsequenceMatch &) const;
   };
 
-  std::vector<SubsequenceMatch> find_words_with_subsequence_in_range(const std::u16string &, const std::u16string &, Range) const;
+  std::vector<SubsequenceMatch> find_words_with_subsequence_in_range(const std::u16string &, const std::u16string &, NativeRange) const;
 
   class Snapshot {
     friend class NativeTextBuffer;
@@ -82,14 +82,14 @@ public:
     NativePoint extent() const;
     uint32_t line_length_for_row(uint32_t) const;
     std::vector<TextSlice> chunks() const;
-    std::vector<TextSlice> chunks_in_range(Range) const;
+    std::vector<TextSlice> chunks_in_range(NativeRange) const;
     std::vector<std::pair<const char16_t *, uint32_t>> primitive_chunks() const;
     std::u16string text() const;
-    std::u16string text_in_range(Range) const;
+    std::u16string text_in_range(NativeRange) const;
     const Text &base_text() const;
-    optional<Range> find(const Regex &, Range range = Range::all_inclusive()) const;
-    std::vector<Range> find_all(const Regex &, Range range = Range::all_inclusive()) const;
-    std::vector<SubsequenceMatch> find_words_with_subsequence_in_range(std::u16string query, const std::u16string &extra_word_characters, Range range) const;
+    optional<NativeRange> find(const Regex &, NativeRange range = NativeRange::all_inclusive()) const;
+    std::vector<NativeRange> find_all(const Regex &, NativeRange range = NativeRange::all_inclusive()) const;
+    std::vector<SubsequenceMatch> find_words_with_subsequence_in_range(std::u16string query, const std::u16string &extra_word_characters, NativeRange range) const;
   };
 
   friend class Snapshot;

@@ -226,7 +226,7 @@ struct NativeTextBuffer::Layer {
 
   uint32_t size() const { return size_; }
 
-  u16string text_in_range(Range range, bool splay = false) {
+  u16string text_in_range(NativeRange range, bool splay = false) {
     u16string result;
     for_each_chunk_in_range(
       clip_position(range.start).position,
@@ -240,7 +240,7 @@ struct NativeTextBuffer::Layer {
     return result;
   }
 
-  vector<TextSlice> chunks_in_range(Range range) {
+  vector<TextSlice> chunks_in_range(NativeRange range) {
     vector<TextSlice> result;
     for_each_chunk_in_range(
       clip_position(range.start).position,
@@ -266,13 +266,13 @@ struct NativeTextBuffer::Layer {
   }
 
   template <typename Callback>
-  void scan_in_range(const Regex &regex, Range range, const Callback &callback, bool splay = false) {
+  void scan_in_range(const Regex &regex, NativeRange range, const Callback &callback, bool splay = false) {
     Regex::MatchData match_data(regex);
     range.start = clip_position(range.start).position;
     range.end = clip_position(range.end).position;
 
     uint32_t minimum_match_row = range.start.row;
-    Range last_match{NativePoint::max(), NativePoint::max()};
+    NativeRange last_match{NativePoint::max(), NativePoint::max()};
     bool last_match_is_pending = false;
     bool done = false;
     Text chunk_continuation;
@@ -368,7 +368,7 @@ struct NativeTextBuffer::Layer {
               match_result.end_offset,
               minimum_match_row - slice_to_search_start_position.row
             );
-            last_match = Range{
+            last_match = NativeRange{
               slice_to_search_start_position.traverse(match_start_position),
               slice_to_search_start_position.traverse(match_end_position)
             };
@@ -419,23 +419,23 @@ struct NativeTextBuffer::Layer {
       }
       MatchResult match_result = regex.match(EMPTY, 0, match_data, options);
       if (match_result.type == MatchResult::Partial || match_result.type == MatchResult::Full) {
-        callback(Range{range.end, range.end});
+        callback(NativeRange{range.end, range.end});
       }
     }
   }
 
-  optional<Range> find_in_range(const Regex &regex, Range range, bool splay = false) {
-    optional<Range> result;
-    scan_in_range(regex, range, [&result](Range match_range) -> bool {
+  optional<NativeRange> find_in_range(const Regex &regex, NativeRange range, bool splay = false) {
+    optional<NativeRange> result;
+    scan_in_range(regex, range, [&result](NativeRange match_range) -> bool {
       result = match_range;
       return true;
     }, splay);
     return result;
   }
 
-  vector<Range> find_all_in_range(const Regex &regex, Range range, bool splay = false) {
-    vector<Range> result;
-    scan_in_range(regex, range, [&result](Range match_range) -> bool {
+  vector<NativeRange> find_all_in_range(const Regex &regex, NativeRange range, bool splay = false) {
+    vector<NativeRange> result;
+    scan_in_range(regex, range, [&result](NativeRange match_range) -> bool {
       result.push_back(match_range);
       return false;
     }, splay);
@@ -443,9 +443,9 @@ struct NativeTextBuffer::Layer {
   }
 
   unsigned find_and_mark_all_in_range(MarkerIndex &index, MarkerIndex::MarkerId first_id,
-                                      bool exclusive, const Regex &regex, Range range, bool splay = false) {
+                                      bool exclusive, const Regex &regex, NativeRange range, bool splay = false) {
     unsigned id = first_id;
-    scan_in_range(regex, range, [&index, &id, exclusive](Range match_range) -> bool {
+    scan_in_range(regex, range, [&index, &id, exclusive](NativeRange match_range) -> bool {
       index.insert(id, match_range.start, match_range.end);
       index.set_exclusive(id, exclusive);
       id++;
@@ -464,7 +464,7 @@ struct NativeTextBuffer::Layer {
     }
   };
 
-  vector<SubsequenceMatch> find_words_with_subsequence_in_range(u16string query, const u16string &extra_word_characters, Range range) {
+  vector<SubsequenceMatch> find_words_with_subsequence_in_range(u16string query, const u16string &extra_word_characters, NativeRange range) {
     const size_t MAX_WORD_LENGTH = 80;
     size_t query_index = 0;
     NativePoint position;
@@ -866,14 +866,14 @@ NativePoint NativeTextBuffer::position_for_offset(uint32_t offset) {
 }
 
 u16string NativeTextBuffer::text() {
-  return top_layer->text_in_range(Range{NativePoint(), extent()});
+  return top_layer->text_in_range(NativeRange{NativePoint(), extent()});
 }
 
 uint16_t NativeTextBuffer::character_at(NativePoint position) const {
   return top_layer->character_at(position);
 }
 
-u16string NativeTextBuffer::text_in_range(Range range) {
+u16string NativeTextBuffer::text_in_range(NativeRange range) {
   return top_layer->text_in_range(range, true);
 }
 
@@ -882,14 +882,14 @@ vector<TextSlice> NativeTextBuffer::chunks() const {
 }
 
 void NativeTextBuffer::set_text(u16string &&new_text) {
-  set_text_in_range(Range{NativePoint(0, 0), extent()}, move(new_text));
+  set_text_in_range(NativeRange{NativePoint(0, 0), extent()}, move(new_text));
 }
 
 void NativeTextBuffer::set_text(const u16string &new_text) {
-  set_text_in_range(Range{NativePoint(0, 0), extent()}, u16string(new_text));
+  set_text_in_range(NativeRange{NativePoint(0, 0), extent()}, u16string(new_text));
 }
 
-void NativeTextBuffer::set_text_in_range(Range old_range, u16string &&string) {
+void NativeTextBuffer::set_text_in_range(NativeRange old_range, u16string &&string) {
   if (top_layer == base_layer || top_layer->snapshot_count > 0) {
     top_layer = new Layer(top_layer);
   }
@@ -934,16 +934,16 @@ void NativeTextBuffer::set_text_in_range(Range old_range, u16string &&string) {
   }
 }
 
-optional<Range> NativeTextBuffer::find(const Regex &regex, Range range) const {
+optional<NativeRange> NativeTextBuffer::find(const Regex &regex, NativeRange range) const {
   return top_layer->find_in_range(regex, range, false);
 }
 
-vector<Range> NativeTextBuffer::find_all(const Regex &regex, Range range) const {
+vector<NativeRange> NativeTextBuffer::find_all(const Regex &regex, NativeRange range) const {
   return top_layer->find_all_in_range(regex, range, false);
 }
 
 unsigned NativeTextBuffer::find_and_mark_all(MarkerIndex &index, MarkerIndex::MarkerId next_id,
-                                       bool exclusive, const Regex &regex, Range range) const {
+                                       bool exclusive, const Regex &regex, NativeRange range) const {
   return top_layer->find_and_mark_all_in_range(index, next_id, exclusive, regex, range, false);
 }
 
@@ -956,7 +956,7 @@ bool NativeTextBuffer::SubsequenceMatch::operator==(const SubsequenceMatch &othe
   );
 }
 
-vector<SubsequenceMatch> NativeTextBuffer::find_words_with_subsequence_in_range(const u16string &query, const u16string &non_word_characters, Range range) const {
+vector<SubsequenceMatch> NativeTextBuffer::find_words_with_subsequence_in_range(const u16string &query, const u16string &non_word_characters, NativeRange range) const {
   return top_layer->find_words_with_subsequence_in_range(query, non_word_characters, range);
 }
 
@@ -1032,7 +1032,7 @@ uint32_t NativeTextBuffer::Snapshot::line_length_for_row(uint32_t row) const {
   return layer.clip_position(NativePoint{row, UINT32_MAX}).position.column;
 }
 
-u16string NativeTextBuffer::Snapshot::text_in_range(Range range) const {
+u16string NativeTextBuffer::Snapshot::text_in_range(NativeRange range) const {
   return layer.text_in_range(range);
 }
 
@@ -1040,7 +1040,7 @@ u16string NativeTextBuffer::Snapshot::text() const {
   return layer.text_in_range({{0, 0}, extent()});
 }
 
-vector<TextSlice> NativeTextBuffer::Snapshot::chunks_in_range(Range range) const {
+vector<TextSlice> NativeTextBuffer::Snapshot::chunks_in_range(NativeRange range) const {
   return layer.chunks_in_range(range);
 }
 
@@ -1052,15 +1052,15 @@ vector<pair<const char16_t *, uint32_t>> NativeTextBuffer::Snapshot::primitive_c
   return layer.primitive_chunks();
 }
 
-optional<Range> NativeTextBuffer::Snapshot::find(const Regex &regex, Range range) const {
+optional<NativeRange> NativeTextBuffer::Snapshot::find(const Regex &regex, NativeRange range) const {
   return layer.find_in_range(regex, range, false);
 }
 
-vector<Range> NativeTextBuffer::Snapshot::find_all(const Regex &regex, Range range) const {
+vector<NativeRange> NativeTextBuffer::Snapshot::find_all(const Regex &regex, NativeRange range) const {
   return layer.find_all_in_range(regex, range, false);
 }
 
-vector<SubsequenceMatch> NativeTextBuffer::Snapshot::find_words_with_subsequence_in_range(std::u16string query, const std::u16string &extra_word_characters, Range range) const {
+vector<SubsequenceMatch> NativeTextBuffer::Snapshot::find_words_with_subsequence_in_range(std::u16string query, const std::u16string &extra_word_characters, NativeRange range) const {
   return layer.find_words_with_subsequence_in_range(query, extra_word_characters, range);
 }
 

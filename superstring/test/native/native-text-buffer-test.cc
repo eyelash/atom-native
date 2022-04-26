@@ -21,11 +21,11 @@ TEST_CASE("NativeTextBuffer::set_text_in_range - basic") {
 
   buffer.set_text_in_range({{0, 2}, {2, 1}}, u"jkl\nmno");
   REQUIRE(buffer.text() == u"abjkl\nmnohi");
-  REQUIRE(buffer.text_in_range(Range {{0, 1}, {1, 4}}) == u"bjkl\nmnoh");
+  REQUIRE(buffer.text_in_range(NativeRange {{0, 1}, {1, 4}}) == u"bjkl\nmnoh");
 
-  buffer.set_text_in_range(Range {{0, 0}, {10, 1}}, u"yz");
+  buffer.set_text_in_range(NativeRange {{0, 0}, {10, 1}}, u"yz");
   REQUIRE(buffer.text() == u"yz");
-  REQUIRE(buffer.text_in_range(Range {{0, 1}, {10, 1}}) == u"z");
+  REQUIRE(buffer.text_in_range(NativeRange {{0, 1}, {10, 1}}) == u"z");
 }
 
 TEST_CASE("NativeTextBuffer::line_length_for_row - basic") {
@@ -338,20 +338,20 @@ TEST_CASE("NativeTextBuffer::find") {
   Regex(u"(", &error_message);
   REQUIRE(error_message == u"missing closing parenthesis");
 
-  REQUIRE(buffer.find(Regex(u"", nullptr)) == (Range{{0, 0}, {0, 0}}));
-  REQUIRE(NativeTextBuffer().find(Regex(u"", nullptr)) == (Range{{0, 0}, {0, 0}}));
+  REQUIRE(buffer.find(Regex(u"", nullptr)) == (NativeRange{{0, 0}, {0, 0}}));
+  REQUIRE(NativeTextBuffer().find(Regex(u"", nullptr)) == (NativeRange{{0, 0}, {0, 0}}));
 
-  REQUIRE(buffer.find(Regex(u"ef*", nullptr)) == (Range{{1, 0}, {1, 2}}));
-  REQUIRE(buffer.find(Regex(u"x", nullptr)) == optional<Range>{});
-  REQUIRE(buffer.find(Regex(u"c.", nullptr)) == (Range{{0, 2}, {0, 4}}));
-  REQUIRE(buffer.find(Regex(u"d", nullptr)) == (Range{{0, 3}, {0, 4}}));
-  REQUIRE(buffer.find(Regex(u"\\n", nullptr)) == (Range{{0, 4}, {1, 0}}));
-  REQUIRE(buffer.find(Regex(u"\\be", nullptr)) == (Range{{1, 0}, {1, 1}}));
-  REQUIRE(buffer.find(Regex(u"^e", nullptr)) == (Range{{1, 0}, {1, 1}}));
-  REQUIRE(buffer.find(Regex(u"^(e|d)g?", nullptr)) == (Range{{1, 0}, {1, 1}}));
+  REQUIRE(buffer.find(Regex(u"ef*", nullptr)) == (NativeRange{{1, 0}, {1, 2}}));
+  REQUIRE(buffer.find(Regex(u"x", nullptr)) == optional<NativeRange>{});
+  REQUIRE(buffer.find(Regex(u"c.", nullptr)) == (NativeRange{{0, 2}, {0, 4}}));
+  REQUIRE(buffer.find(Regex(u"d", nullptr)) == (NativeRange{{0, 3}, {0, 4}}));
+  REQUIRE(buffer.find(Regex(u"\\n", nullptr)) == (NativeRange{{0, 4}, {1, 0}}));
+  REQUIRE(buffer.find(Regex(u"\\be", nullptr)) == (NativeRange{{1, 0}, {1, 1}}));
+  REQUIRE(buffer.find(Regex(u"^e", nullptr)) == (NativeRange{{1, 0}, {1, 1}}));
+  REQUIRE(buffer.find(Regex(u"^(e|d)g?", nullptr)) == (NativeRange{{1, 0}, {1, 1}}));
 
   buffer.reset(Text{u"a1b"});
-  REQUIRE(buffer.find(Regex(u"\\d", nullptr)) == (Range{{0, 1}, {0, 2}}));
+  REQUIRE(buffer.find(Regex(u"\\d", nullptr)) == (NativeRange{{0, 1}, {0, 2}}));
 }
 
 TEST_CASE("NativeTextBuffer::find - spanning edits") {
@@ -360,70 +360,70 @@ TEST_CASE("NativeTextBuffer::find - spanning edits") {
   buffer.set_text_in_range({{0, 9}, {0, 9}}, u"67890");
 
   REQUIRE(buffer.text() == u"ab12345cd67890");
-  REQUIRE(buffer.find(Regex(u"b1234", nullptr)) == (Range{{0, 1}, {0, 6}}));
-  REQUIRE(buffer.find(Regex(u"b12345c", nullptr)) == (Range{{0, 1}, {0, 8}}));
-  REQUIRE(buffer.find(Regex(u"b12345cd6", nullptr)) == (Range{{0, 1}, {0, 10}}));
-  REQUIRE(buffer.find(Regex(u"345[a-z][a-z]", nullptr)) == (Range{{0, 4}, {0, 9}}));
-  REQUIRE(buffer.find(Regex(u"5cd6", nullptr)) == (Range{{0, 6}, {0, 10}}));
+  REQUIRE(buffer.find(Regex(u"b1234", nullptr)) == (NativeRange{{0, 1}, {0, 6}}));
+  REQUIRE(buffer.find(Regex(u"b12345c", nullptr)) == (NativeRange{{0, 1}, {0, 8}}));
+  REQUIRE(buffer.find(Regex(u"b12345cd6", nullptr)) == (NativeRange{{0, 1}, {0, 10}}));
+  REQUIRE(buffer.find(Regex(u"345[a-z][a-z]", nullptr)) == (NativeRange{{0, 4}, {0, 9}}));
+  REQUIRE(buffer.find(Regex(u"5cd6", nullptr)) == (NativeRange{{0, 6}, {0, 10}}));
 
   buffer.reset(Text{u"abcdef"});
   buffer.set_text_in_range({{0, 2}, {0, 4}}, u"");
   REQUIRE(buffer.text() == u"abef");
-  REQUIRE(buffer.find(Regex(u"abe", nullptr)) == (Range{{0, 0}, {0, 3}}));
-  REQUIRE(buffer.find(Regex(u"bef", nullptr)) == (Range{{0, 1}, {0, 4}}));
-  REQUIRE(buffer.find(Regex(u"bc", nullptr)) == optional<Range>{});
+  REQUIRE(buffer.find(Regex(u"abe", nullptr)) == (NativeRange{{0, 0}, {0, 3}}));
+  REQUIRE(buffer.find(Regex(u"bef", nullptr)) == (NativeRange{{0, 1}, {0, 4}}));
+  REQUIRE(buffer.find(Regex(u"bc", nullptr)) == optional<NativeRange>{});
 }
 
 TEST_CASE("NativeTextBuffer::find - partial matches at EOF") {
   NativeTextBuffer buffer{u"abc\r\ndef\r\nghi\r\n"};
-  REQUIRE(buffer.find(Regex(u"[^\r]\n", nullptr)) == optional<Range>());
+  REQUIRE(buffer.find(Regex(u"[^\r]\n", nullptr)) == optional<NativeRange>());
 }
 
 TEST_CASE("NativeTextBuffer::find_all") {
   NativeTextBuffer buffer{u"abc\ndefg\nhijkl"};
-  REQUIRE(buffer.find_all(Regex(u"\\w+", nullptr)) == vector<Range>({
-    Range{NativePoint{0, 0}, NativePoint{0, 3}},
-    Range{NativePoint{1, 0}, NativePoint{1, 4}},
-    Range{NativePoint{2, 0}, NativePoint{2, 5}},
+  REQUIRE(buffer.find_all(Regex(u"\\w+", nullptr)) == vector<NativeRange>({
+    NativeRange{NativePoint{0, 0}, NativePoint{0, 3}},
+    NativeRange{NativePoint{1, 0}, NativePoint{1, 4}},
+    NativeRange{NativePoint{2, 0}, NativePoint{2, 5}},
   }));
 
   buffer.set_text_in_range({{1, 3}, {1, 3}}, u"34");
   buffer.set_text_in_range({{1, 1}, {1, 1}}, u"12");
   REQUIRE(buffer.text() == u"abc\nd12ef34g\nhijkl");
 
-  REQUIRE(buffer.find_all(Regex(u"\\w+", nullptr)) == vector<Range>({
-    Range{NativePoint{0, 0}, NativePoint{0, 3}},
-    Range{NativePoint{1, 0}, NativePoint{1, 8}},
-    Range{NativePoint{2, 0}, NativePoint{2, 5}},
+  REQUIRE(buffer.find_all(Regex(u"\\w+", nullptr)) == vector<NativeRange>({
+    NativeRange{NativePoint{0, 0}, NativePoint{0, 3}},
+    NativeRange{NativePoint{1, 0}, NativePoint{1, 8}},
+    NativeRange{NativePoint{2, 0}, NativePoint{2, 5}},
   }));
 
-  REQUIRE(buffer.find_all(Regex(u"^\\w", nullptr)) == vector<Range>({
-    Range{NativePoint{0, 0}, NativePoint{0, 1}},
-    Range{NativePoint{1, 0}, NativePoint{1, 1}},
-    Range{NativePoint{2, 0}, NativePoint{2, 1}},
+  REQUIRE(buffer.find_all(Regex(u"^\\w", nullptr)) == vector<NativeRange>({
+    NativeRange{NativePoint{0, 0}, NativePoint{0, 1}},
+    NativeRange{NativePoint{1, 0}, NativePoint{1, 1}},
+    NativeRange{NativePoint{2, 0}, NativePoint{2, 1}},
   }));
 }
 
 TEST_CASE("NativeTextBuffer::find_all - empty matches") {
   NativeTextBuffer buffer{u"aab\nab\nb\n"};
-  REQUIRE(buffer.find_all(Regex(u"^a*", nullptr)) == vector<Range>({
-    Range{NativePoint{0, 0}, NativePoint{0, 2}},
-    Range{NativePoint{1, 0}, NativePoint{1, 1}},
-    Range{NativePoint{2, 0}, NativePoint{2, 0}},
-    Range{NativePoint{3, 0}, NativePoint{3, 0}},
+  REQUIRE(buffer.find_all(Regex(u"^a*", nullptr)) == vector<NativeRange>({
+    NativeRange{NativePoint{0, 0}, NativePoint{0, 2}},
+    NativeRange{NativePoint{1, 0}, NativePoint{1, 1}},
+    NativeRange{NativePoint{2, 0}, NativePoint{2, 0}},
+    NativeRange{NativePoint{3, 0}, NativePoint{3, 0}},
   }));
 
-  REQUIRE(buffer.find_all(Regex(u"^a*", nullptr), {{1, 0}, {2, 0}}) == vector<Range>({
-    Range{NativePoint{1, 0}, NativePoint{1, 1}},
-    Range{NativePoint{2, 0}, NativePoint{2, 0}},
+  REQUIRE(buffer.find_all(Regex(u"^a*", nullptr), {{1, 0}, {2, 0}}) == vector<NativeRange>({
+    NativeRange{NativePoint{1, 0}, NativePoint{1, 1}},
+    NativeRange{NativePoint{2, 0}, NativePoint{2, 0}},
   }));
 
   buffer.set_text(u"abc");
-  REQUIRE(buffer.find_all(Regex(u"", nullptr)) == vector<Range>({
-    Range{NativePoint{0, 0}, NativePoint{0, 0}},
-    Range{NativePoint{0, 1}, NativePoint{0, 1}},
-    Range{NativePoint{0, 2}, NativePoint{0, 2}},
-    Range{NativePoint{0, 3}, NativePoint{0, 3}},
+  REQUIRE(buffer.find_all(Regex(u"", nullptr)) == vector<NativeRange>({
+    NativeRange{NativePoint{0, 0}, NativePoint{0, 0}},
+    NativeRange{NativePoint{0, 1}, NativePoint{0, 1}},
+    NativeRange{NativePoint{0, 2}, NativePoint{0, 2}},
+    NativeRange{NativePoint{0, 3}, NativePoint{0, 3}},
   }));
 }
 
@@ -431,7 +431,7 @@ TEST_CASE("NativeTextBuffer::find_words_with_subsequence_in_range") {
   {
     NativeTextBuffer buffer{u"banana band bandana banana"};
 
-    REQUIRE(buffer.find_words_with_subsequence_in_range(u"bna", u"", Range{NativePoint{0, 0}, NativePoint{0, UINT32_MAX}}) == vector<SubsequenceMatch>({
+    REQUIRE(buffer.find_words_with_subsequence_in_range(u"bna", u"", NativeRange{NativePoint{0, 0}, NativePoint{0, UINT32_MAX}}) == vector<SubsequenceMatch>({
       {u"banana", {NativePoint{0, 0}, NativePoint{0, 20}}, {0, 2, 3}, 12},
       {u"bandana", {NativePoint{0, 12}}, {0, 5, 6}, 7}
     }));
@@ -440,7 +440,7 @@ TEST_CASE("NativeTextBuffer::find_words_with_subsequence_in_range") {
   {
     NativeTextBuffer buffer{u"a_b_c abc aBc"};
 
-    REQUIRE(buffer.find_words_with_subsequence_in_range(u"abc", u"_", Range{NativePoint{0, 0}, NativePoint{0, UINT32_MAX}}) == vector<SubsequenceMatch>({
+    REQUIRE(buffer.find_words_with_subsequence_in_range(u"abc", u"_", NativeRange{NativePoint{0, 0}, NativePoint{0, UINT32_MAX}}) == vector<SubsequenceMatch>({
       {u"aBc", {NativePoint{0, 10}}, {0, 1, 2}, 29},
       {u"a_b_c", {NativePoint{0, 0}}, {0, 2, 4}, 26},
       {u"abc", {NativePoint{0, 6}}, {0, 1, 2}, 20},
@@ -450,7 +450,7 @@ TEST_CASE("NativeTextBuffer::find_words_with_subsequence_in_range") {
   {
     NativeTextBuffer buffer{u"abc Abc"};
 
-    REQUIRE(buffer.find_words_with_subsequence_in_range(u"Abc", u"", Range{NativePoint{0, 0}, NativePoint{0, UINT32_MAX}}) == vector<SubsequenceMatch>({
+    REQUIRE(buffer.find_words_with_subsequence_in_range(u"Abc", u"", NativeRange{NativePoint{0, 0}, NativePoint{0, UINT32_MAX}}) == vector<SubsequenceMatch>({
       {u"Abc", {NativePoint{0, 4}}, {0, 1, 2}, 20},
       {u"abc", {NativePoint{0, 0}}, {0, 1, 2}, 19}
     }));
@@ -460,7 +460,7 @@ TEST_CASE("NativeTextBuffer::find_words_with_subsequence_in_range") {
     // Does not match words longer than 80 characters
     NativeTextBuffer buffer{u"eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uLy4uL2xpYi9jb252ZXJ0LmpzIl0sIm5hbWVzIjpbImxzi"};
 
-    REQUIRE(buffer.find_words_with_subsequence_in_range(u"eyJ", u"", Range{NativePoint{0, 0}, NativePoint{0, UINT32_MAX}}) == vector<SubsequenceMatch>({
+    REQUIRE(buffer.find_words_with_subsequence_in_range(u"eyJ", u"", NativeRange{NativePoint{0, 0}, NativePoint{0, UINT32_MAX}}) == vector<SubsequenceMatch>({
     }));
   }
 }
@@ -486,7 +486,7 @@ struct SnapshotTask {
 
 void query_random_ranges(NativeTextBuffer &buffer, Generator &rand, Text &mutated_text) {
   for (uint32_t k = 0; k < 5; k++) {
-    Range range = get_random_range(rand, buffer);
+    NativeRange range = get_random_range(rand, buffer);
     // cout << "query random range " << range << "\n";
 
     TextSlice slice = TextSlice(mutated_text).slice(range);
@@ -520,7 +520,7 @@ TEST_CASE("NativeTextBuffer - random edits and queries") {
       // cout << "iteration: " << j << "\n";
 
       Text mutated_text = buffer.text();
-      Range deleted_range = get_random_range(rand, buffer);
+      NativeRange deleted_range = get_random_range(rand, buffer);
       Text inserted_text = get_random_text(rand);
 
       if (rand() % 3) {
@@ -570,7 +570,7 @@ TEST_CASE("NativeTextBuffer - random edits and queries") {
       }
 
       for (uint32_t k = 0; k < 5; k++) {
-        Range range = get_random_range(rand, buffer);
+        NativeRange range = get_random_range(rand, buffer);
         Text subtext{TextSlice(mutated_text).slice(range)};
         if (subtext.empty()) subtext.append(Text{u"."});
         if (rand() % 2) subtext.append(Text{u"*"});
@@ -583,12 +583,12 @@ TEST_CASE("NativeTextBuffer - random edits and queries") {
 
         MatchResult match_result = regex.match(mutated_text.data(), mutated_text.size(), match_data);
         if (match_result.type == MatchResult::Partial || match_result.type == MatchResult::Full) {
-          REQUIRE(search_result == (Range{
+          REQUIRE(search_result == (NativeRange{
             mutated_text.position_for_offset(match_result.start_offset),
             mutated_text.position_for_offset(match_result.end_offset),
           }));
         } else {
-          REQUIRE(search_result == optional<Range>());
+          REQUIRE(search_result == optional<NativeRange>());
         }
       }
 

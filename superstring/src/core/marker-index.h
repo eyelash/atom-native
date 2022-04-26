@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include "flat_set.h"
 #include "native-point.h"
-#include "range.h"
+#include "native-range.h"
 
 class MarkerIndex {
 public:
@@ -40,7 +40,7 @@ public:
   SpliceResult splice(NativePoint start, NativePoint old_extent, NativePoint new_extent);
   NativePoint get_start(MarkerId id) const;
   NativePoint get_end(MarkerId id) const;
-  Range get_range(MarkerId id) const;
+  NativeRange get_range(MarkerId id) const;
 
   int compare(MarkerId id1, MarkerId id2) const;
   flat_set<MarkerId> find_intersecting(NativePoint start, NativePoint end);
@@ -52,7 +52,7 @@ public:
   flat_set<MarkerId> find_ending_at(NativePoint position);
   BoundaryQueryResult find_boundaries_after(NativePoint start, size_t max_count);
 
-  std::unordered_map<MarkerId, Range> dump();
+  std::unordered_map<MarkerId, NativeRange> dump();
 
 private:
   friend class Iterator;
@@ -84,7 +84,7 @@ private:
     void find_starting_in(const NativePoint &start, const NativePoint &end, flat_set<MarkerId> *result);
     void find_ending_in(const NativePoint &start, const NativePoint &end, flat_set<MarkerId> *result);
     void find_boundaries_after(NativePoint start, size_t max_count, BoundaryQueryResult *result);
-    std::unordered_map<MarkerId, Range> dump();
+    std::unordered_map<MarkerId, NativeRange> dump();
 
   private:
     void ascend();

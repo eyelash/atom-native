@@ -8,12 +8,12 @@ target_link_libraries(superstring_core
   $<$<PLATFORM_ID:Darwin>:iconv>
 )
 target_sources(superstring_core PRIVATE
-	src/core/encoding-conversion.cc
+  src/core/encoding-conversion.cc
   src/core/marker-index.cc
   src/core/native-point.cc
+  src/core/native-range.cc
   src/core/native-text-buffer.cc
   src/core/patch.cc
-  src/core/range.cc
   src/core/regex.cc
   src/core/text.cc
   src/core/text-slice.cc
@@ -31,7 +31,8 @@ target_compile_definitions(superstring_core PRIVATE
 )
 target_include_directories(superstring_core INTERFACE src/core)
 
-add_executable(tests
+add_executable(tests)
+target_sources(tests PRIVATE
   test/native/test-helpers.cc
   test/native/tests.cc
   test/native/encoding-conversion-test.cc

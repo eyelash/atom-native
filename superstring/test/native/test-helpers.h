@@ -8,7 +8,7 @@
 #include <ostream>
 #include <vector>
 #include <random>
-#include "range.h"
+#include "native-range.h"
 #include "text.h"
 #include "native-text-buffer.h"
 #include <iostream>
@@ -31,8 +31,8 @@ bool operator==(const Patch::Change &left, const Patch::Change &right);
 std::unique_ptr<Text> get_text(const std::u16string content);
 std::u16string get_random_string(Generator &, uint32_t character_count = 20);
 Text get_random_text(Generator &);
-Range get_random_range(Generator &, const Text &);
-Range get_random_range(Generator &, NativeTextBuffer &);
+NativeRange get_random_range(Generator &, const Text &);
+NativeRange get_random_range(Generator &, NativeTextBuffer &);
 
 namespace std {
   inline std::ostream &operator<<(std::ostream &stream, const std::u16string &text) {

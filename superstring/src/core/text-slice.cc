@@ -84,7 +84,7 @@ TextSlice TextSlice::suffix(NativePoint suffix_start) const {
   return split(suffix_start).second;
 }
 
-TextSlice TextSlice::slice(Range range) const {
+TextSlice TextSlice::slice(NativeRange range) const {
   return suffix(range.start).prefix(range.extent());
 }
 

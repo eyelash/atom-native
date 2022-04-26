@@ -3,7 +3,7 @@
 #include <iterator>
 #include <random>
 #include <stdlib.h>
-#include "range.h"
+#include "native-range.h"
 
 using std::default_random_engine;
 using std::unordered_map;
@@ -269,10 +269,10 @@ void MarkerIndex::Iterator::find_boundaries_after(NativePoint start, size_t max_
   }
 }
 
-unordered_map<MarkerIndex::MarkerId, Range> MarkerIndex::Iterator::dump() {
+unordered_map<MarkerIndex::MarkerId, NativeRange> MarkerIndex::Iterator::dump() {
   reset();
 
-  unordered_map<MarkerId, Range> snapshot;
+  unordered_map<MarkerId, NativeRange> snapshot;
 
   if (!current_node) return snapshot;
 
@@ -283,7 +283,7 @@ unordered_map<MarkerIndex::MarkerId, Range> MarkerIndex::Iterator::dump() {
 
   while (current_node) {
     for (MarkerId id : current_node->start_marker_ids) {
-      Range range;
+      NativeRange range;
       range.start = current_node_position;
       snapshot.insert({id, range});
     }
@@ -636,8 +636,8 @@ NativePoint MarkerIndex::get_end(MarkerId id) const {
     return get_node_position(result->second);
 }
 
-Range MarkerIndex::get_range(MarkerId id) const {
-  return Range{get_start(id), get_end(id)};
+NativeRange MarkerIndex::get_range(MarkerId id) const {
+  return NativeRange{get_start(id), get_end(id)};
 }
 
 int MarkerIndex::compare(MarkerId id1, MarkerId id2) const {
@@ -707,7 +707,7 @@ MarkerIndex::BoundaryQueryResult MarkerIndex::find_boundaries_after(NativePoint 
   return result;
 }
 
-unordered_map<MarkerIndex::MarkerId, Range> MarkerIndex::dump() {
+unordered_map<MarkerIndex::MarkerId, NativeRange> MarkerIndex::dump() {
   return iterator.dump();
 }
 

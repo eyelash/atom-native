@@ -119,7 +119,7 @@ TEST_CASE("text_diff - randomized changes") {
     for (unsigned int j = 0; j < 1 + rand() % 10; j++) {
       // cout << "j: " << j << "\n";
 
-      Range deleted_range = get_random_range(rand, new_text);
+      NativeRange deleted_range = get_random_range(rand, new_text);
       Text inserted_text{get_random_string(rand, 3)};
 
       new_text.splice(deleted_range.start, deleted_range.extent(), inserted_text);
@@ -133,7 +133,7 @@ TEST_CASE("text_diff - randomized changes") {
     for (const Change &change : patch.get_changes()) {
       REQUIRE(
         *change.new_text ==
-        Text(TextSlice(new_text).slice(Range{change.new_start, change.new_end}))
+        Text(TextSlice(new_text).slice(NativeRange{change.new_start, change.new_end}))
       );
 
       old_text.splice(

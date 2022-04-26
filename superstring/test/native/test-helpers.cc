@@ -1,6 +1,6 @@
 #include "test-helpers.h"
 #include "patch.h"
-#include "range.h"
+#include "native-range.h"
 #include "native-text-buffer.h"
 #include <catch.hpp>
 #include <cstring>
@@ -57,7 +57,7 @@ Text get_random_text(Generator &rand) {
   return Text {get_random_string(rand)};
 }
 
-Range get_random_range(Generator &rand, const Text &text) {
+NativeRange get_random_range(Generator &rand, const Text &text) {
   uint32_t start_row = rand() % (text.extent().row + 1);
   uint32_t max_column = text.line_length_for_row(start_row);
   uint32_t start_column = 0;
@@ -70,6 +70,6 @@ Range get_random_range(Generator &rand, const Text &text) {
   return {start, end};
 }
 
-Range get_random_range(Generator &rand, NativeTextBuffer &buffer) {
+NativeRange get_random_range(Generator &rand, NativeTextBuffer &buffer) {
   return get_random_range(rand, buffer.text());
 }

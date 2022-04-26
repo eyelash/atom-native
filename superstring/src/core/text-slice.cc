@@ -5,11 +5,11 @@
 TextSlice::TextSlice() :
   text{nullptr} {}
 
-TextSlice::TextSlice(const Text *text, Point start_position, Point end_position) :
+TextSlice::TextSlice(const Text *text, NativePoint start_position, NativePoint end_position) :
   text{text}, start_position{start_position}, end_position{end_position} {}
 
 TextSlice::TextSlice(const Text &text) :
-  text{&text}, start_position{Point()}, end_position{text.extent()} {}
+  text{&text}, start_position{NativePoint()}, end_position{text.extent()} {}
 
 size_t TextSlice::start_offset() const {
   if (start_position.is_zero()) return 0;
@@ -49,8 +49,8 @@ bool TextSlice::is_valid() const {
   return true;
 }
 
-std::pair<TextSlice, TextSlice> TextSlice::split(Point split_point) const {
-  Point absolute_split_point = Point::min(
+std::pair<TextSlice, TextSlice> TextSlice::split(NativePoint split_point) const {
+  NativePoint absolute_split_point = NativePoint::min(
     end_position,
     start_position.traverse(split_point)
   );
@@ -65,14 +65,14 @@ std::pair<TextSlice, TextSlice> TextSlice::split(uint32_t split_offset) const {
   return split(position_for_offset(split_offset));
 }
 
-Point TextSlice::position_for_offset(uint32_t offset, uint32_t min_row) const {
+NativePoint TextSlice::position_for_offset(uint32_t offset, uint32_t min_row) const {
   return text->position_for_offset(
     offset + start_offset(),
     start_position.row + min_row
   ).traversal(start_position);
 }
 
-TextSlice TextSlice::prefix(Point prefix_end) const {
+TextSlice TextSlice::prefix(NativePoint prefix_end) const {
   return split(prefix_end).first;
 }
 
@@ -80,7 +80,7 @@ TextSlice TextSlice::prefix(uint32_t prefix_end) const {
   return split(prefix_end).first;
 }
 
-TextSlice TextSlice::suffix(Point suffix_start) const {
+TextSlice TextSlice::suffix(NativePoint suffix_start) const {
   return split(suffix_start).second;
 }
 
@@ -88,7 +88,7 @@ TextSlice TextSlice::slice(Range range) const {
   return suffix(range.start).prefix(range.extent());
 }
 
-Point TextSlice::extent() const {
+NativePoint TextSlice::extent() const {
   return end_position.traversal(start_position);
 }
 

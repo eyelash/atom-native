@@ -59,8 +59,8 @@ void Text::serialize(Serializer &serializer) const {
   }
 }
 
-Point Text::extent(const std::u16string &string) {
-  Point result;
+NativePoint Text::extent(const std::u16string &string) {
+  NativePoint result;
   for (auto c : string) {
     if (c == '\n') {
       result.row++;
@@ -133,7 +133,7 @@ void splice_vector(
   }
 }
 
-void Text::splice(Point start, Point deletion_extent, TextSlice inserted_slice) {
+void Text::splice(NativePoint start, NativePoint deletion_extent, TextSlice inserted_slice) {
   uint32_t content_splice_start = offset_for_position(start);
   uint32_t content_splice_end = offset_for_position(start.traverse(deletion_extent));
   uint32_t original_content_size = content.size();
@@ -171,11 +171,11 @@ uint16_t Text::at(uint32_t offset) const {
   return content[offset];
 }
 
-uint16_t Text::at(Point position) const {
+uint16_t Text::at(NativePoint position) const {
   return at(offset_for_position(position));
 }
 
-ClipResult Text::clip_position(Point position) const {
+ClipResult Text::clip_position(NativePoint position) const {
   uint32_t row = position.row;
   if (row >= line_offsets.size()) {
     return {extent(), size()};
@@ -191,18 +191,18 @@ ClipResult Text::clip_position(Point position) const {
       }
     }
     if (position.column > end - start) {
-      return {Point(row, end - start), end};
+      return {NativePoint(row, end - start), end};
     } else {
       return {position, start + position.column};
     }
   }
 }
 
-uint32_t Text::offset_for_position(Point position) const {
+uint32_t Text::offset_for_position(NativePoint position) const {
   return clip_position(position).offset;
 }
 
-Point Text::position_for_offset(uint32_t offset, uint32_t min_row, bool clip_crlf) const {
+NativePoint Text::position_for_offset(uint32_t offset, uint32_t min_row, bool clip_crlf) const {
   if (offset > size()) offset = size();
   auto line_offsets_begin = line_offsets.begin() + min_row;
   auto line_offset = std::upper_bound(line_offsets_begin, line_offsets.end(), offset);
@@ -212,11 +212,11 @@ Point Text::position_for_offset(uint32_t offset, uint32_t min_row, bool clip_crl
   if (clip_crlf && offset > 0 && offset < size() && at(offset) == '\n' && at(offset - 1) == '\r') {
     column--;
   }
-  return Point(row, column);
+  return NativePoint(row, column);
 }
 
 uint32_t Text::line_length_for_row(uint32_t row) const {
-  return clip_position(Point{row, UINT32_MAX}).position.column;
+  return clip_position(NativePoint{row, UINT32_MAX}).position.column;
 }
 
 Text::const_iterator Text::begin() const {
@@ -235,8 +235,8 @@ const char16_t *Text::data() const {
   return content.data();
 }
 
-Point Text::extent() const {
-  return Point(line_offsets.size() - 1, content.size() - line_offsets.back());
+NativePoint Text::extent() const {
+  return NativePoint(line_offsets.size() - 1, content.size() - line_offsets.back());
 }
 
 bool Text::empty() const {

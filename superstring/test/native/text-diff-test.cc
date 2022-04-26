@@ -14,14 +14,14 @@ TEST_CASE("text_diff - multiple lines") {
 
   REQUIRE(patch.get_changes() == vector<Change>({
     Change{
-      Point{1, 0}, Point{1, 0},
-      Point{1, 0}, Point{2, 0},
+      NativePoint{1, 0}, NativePoint{1, 0},
+      NativePoint{1, 0}, NativePoint{2, 0},
       get_text(u"").get(), get_text(u"def\n").get(),
       0, 0, 0
     },
     Change{
-      Point{2, 2}, Point{2, 2},
-      Point{3, 2}, Point{3, 3},
+      NativePoint{2, 2}, NativePoint{2, 2},
+      NativePoint{3, 2}, NativePoint{3, 3},
       get_text(u"").get(), get_text(u"l").get(),
       0, 3, 0
     }
@@ -41,15 +41,15 @@ TEST_CASE("text_diff - single line") {
 
   REQUIRE(patch.get_changes() == vector<Change>({
     Change{
-      Point{0, 3}, Point{0, 4},
-      Point{0, 3}, Point{0, 5},
+      NativePoint{0, 3}, NativePoint{0, 4},
+      NativePoint{0, 3}, NativePoint{0, 5},
       get_text(u"d").get(), get_text(u"xy").get(),
       0, 0, 0
 
     },
     Change{
-      Point{0, 6}, Point{0, 8},
-      Point{0, 7}, Point{0, 7},
+      NativePoint{0, 6}, NativePoint{0, 8},
+      NativePoint{0, 7}, NativePoint{0, 7},
       get_text(u"gh").get(), get_text(u"").get(),
       1, 2, 0
     },
@@ -64,8 +64,8 @@ TEST_CASE("text_diff - old text is empty") {
 
   REQUIRE(patch.get_changes() == vector<Change>({
     Change{
-      Point{0, 0}, Point{0, 0},
-      Point{0, 0}, Point{4, 0},
+      NativePoint{0, 0}, NativePoint{0, 0},
+      NativePoint{0, 0}, NativePoint{4, 0},
       get_text(u"").get(), get_text(u"abc\ndef\nghi\njkl\n").get(),
       0, 0, 0
     },
@@ -80,8 +80,8 @@ TEST_CASE("text_diff - old text is a prefix of new text") {
 
   REQUIRE(patch.get_changes() == vector<Change>({
     Change{
-      Point{2, 0}, Point{2, 0},
-      Point{2, 0}, Point{4, 0},
+      NativePoint{2, 0}, NativePoint{2, 0},
+      NativePoint{2, 0}, NativePoint{4, 0},
       get_text(u"").get(), get_text(u"ghi\njkl\n").get(),
       0, 0, 0
     },
@@ -96,8 +96,8 @@ TEST_CASE("text_diff - old text is a suffix of new text") {
 
   REQUIRE(patch.get_changes() == vector<Change>({
     Change{
-      Point{0, 0}, Point{0, 0},
-      Point{0, 0}, Point{2, 0},
+      NativePoint{0, 0}, NativePoint{0, 0},
+      NativePoint{0, 0}, NativePoint{2, 0},
       get_text(u"").get(), get_text(u"abc\ndef\n").get(),
       0, 0, 0
     },

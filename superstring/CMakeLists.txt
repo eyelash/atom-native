@@ -10,9 +10,9 @@ target_link_libraries(superstring_core
 target_sources(superstring_core PRIVATE
 	src/core/encoding-conversion.cc
   src/core/marker-index.cc
+  src/core/native-point.cc
   src/core/native-text-buffer.cc
   src/core/patch.cc
-  src/core/point.cc
   src/core/range.cc
   src/core/regex.cc
   src/core/text.cc

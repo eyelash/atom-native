@@ -38,16 +38,16 @@ TEST_CASE("NativeTextBuffer::position_for_offset") {
   NativeTextBuffer buffer{u"ab\ndef\r\nhijk"};
   buffer.set_text_in_range({{0, 2}, {0, 2}}, u"c");
   buffer.set_text_in_range({{1, 3}, {1, 3}}, u"g");
-  REQUIRE(buffer.position_for_offset(0) == Point(0, 0));
-  REQUIRE(buffer.position_for_offset(1) == Point(0, 1));
-  REQUIRE(buffer.position_for_offset(2) == Point(0, 2));
-  REQUIRE(buffer.position_for_offset(3) == Point(0, 3));
-  REQUIRE(buffer.position_for_offset(4) == Point(1, 0));
-  REQUIRE(buffer.position_for_offset(5) == Point(1, 1));
-  REQUIRE(buffer.position_for_offset(7) == Point(1, 3));
-  REQUIRE(buffer.position_for_offset(8) == Point(1, 4));
-  REQUIRE(buffer.position_for_offset(9) == Point(1, 4));
-  REQUIRE(buffer.position_for_offset(10) == Point(2, 0));
+  REQUIRE(buffer.position_for_offset(0) == NativePoint(0, 0));
+  REQUIRE(buffer.position_for_offset(1) == NativePoint(0, 1));
+  REQUIRE(buffer.position_for_offset(2) == NativePoint(0, 2));
+  REQUIRE(buffer.position_for_offset(3) == NativePoint(0, 3));
+  REQUIRE(buffer.position_for_offset(4) == NativePoint(1, 0));
+  REQUIRE(buffer.position_for_offset(5) == NativePoint(1, 1));
+  REQUIRE(buffer.position_for_offset(7) == NativePoint(1, 3));
+  REQUIRE(buffer.position_for_offset(8) == NativePoint(1, 4));
+  REQUIRE(buffer.position_for_offset(9) == NativePoint(1, 4));
+  REQUIRE(buffer.position_for_offset(10) == NativePoint(2, 0));
 }
 
 TEST_CASE("NativeTextBuffer::create_snapshot") {
@@ -142,8 +142,8 @@ TEST_CASE("NativeTextBuffer::get_inverted_changes") {
   auto patch = buffer.get_inverted_changes(snapshot1);
   REQUIRE(patch.get_changes() == vector<Patch::Change>({
     Patch::Change{
-      Point {0, 2}, Point {0, 3},
-      Point {0, 2}, Point {0, 2},
+      NativePoint {0, 2}, NativePoint {0, 3},
+      NativePoint {0, 2}, NativePoint {0, 2},
       get_text(u"c").get(),
       get_text(u"").get(),
       0, 0, 0
@@ -382,9 +382,9 @@ TEST_CASE("NativeTextBuffer::find - partial matches at EOF") {
 TEST_CASE("NativeTextBuffer::find_all") {
   NativeTextBuffer buffer{u"abc\ndefg\nhijkl"};
   REQUIRE(buffer.find_all(Regex(u"\\w+", nullptr)) == vector<Range>({
-    Range{Point{0, 0}, Point{0, 3}},
-    Range{Point{1, 0}, Point{1, 4}},
-    Range{Point{2, 0}, Point{2, 5}},
+    Range{NativePoint{0, 0}, NativePoint{0, 3}},
+    Range{NativePoint{1, 0}, NativePoint{1, 4}},
+    Range{NativePoint{2, 0}, NativePoint{2, 5}},
   }));
 
   buffer.set_text_in_range({{1, 3}, {1, 3}}, u"34");
@@ -392,38 +392,38 @@ TEST_CASE("NativeTextBuffer::find_all") {
   REQUIRE(buffer.text() == u"abc\nd12ef34g\nhijkl");
 
   REQUIRE(buffer.find_all(Regex(u"\\w+", nullptr)) == vector<Range>({
-    Range{Point{0, 0}, Point{0, 3}},
-    Range{Point{1, 0}, Point{1, 8}},
-    Range{Point{2, 0}, Point{2, 5}},
+    Range{NativePoint{0, 0}, NativePoint{0, 3}},
+    Range{NativePoint{1, 0}, NativePoint{1, 8}},
+    Range{NativePoint{2, 0}, NativePoint{2, 5}},
   }));
 
   REQUIRE(buffer.find_all(Regex(u"^\\w", nullptr)) == vector<Range>({
-    Range{Point{0, 0}, Point{0, 1}},
-    Range{Point{1, 0}, Point{1, 1}},
-    Range{Point{2, 0}, Point{2, 1}},
+    Range{NativePoint{0, 0}, NativePoint{0, 1}},
+    Range{NativePoint{1, 0}, NativePoint{1, 1}},
+    Range{NativePoint{2, 0}, NativePoint{2, 1}},
   }));
 }
 
 TEST_CASE("NativeTextBuffer::find_all - empty matches") {
   NativeTextBuffer buffer{u"aab\nab\nb\n"};
   REQUIRE(buffer.find_all(Regex(u"^a*", nullptr)) == vector<Range>({
-    Range{Point{0, 0}, Point{0, 2}},
-    Range{Point{1, 0}, Point{1, 1}},
-    Range{Point{2, 0}, Point{2, 0}},
-    Range{Point{3, 0}, Point{3, 0}},
+    Range{NativePoint{0, 0}, NativePoint{0, 2}},
+    Range{NativePoint{1, 0}, NativePoint{1, 1}},
+    Range{NativePoint{2, 0}, NativePoint{2, 0}},
+    Range{NativePoint{3, 0}, NativePoint{3, 0}},
   }));
 
   REQUIRE(buffer.find_all(Regex(u"^a*", nullptr), {{1, 0}, {2, 0}}) == vector<Range>({
-    Range{Point{1, 0}, Point{1, 1}},
-    Range{Point{2, 0}, Point{2, 0}},
+    Range{NativePoint{1, 0}, NativePoint{1, 1}},
+    Range{NativePoint{2, 0}, NativePoint{2, 0}},
   }));
 
   buffer.set_text(u"abc");
   REQUIRE(buffer.find_all(Regex(u"", nullptr)) == vector<Range>({
-    Range{Point{0, 0}, Point{0, 0}},
-    Range{Point{0, 1}, Point{0, 1}},
-    Range{Point{0, 2}, Point{0, 2}},
-    Range{Point{0, 3}, Point{0, 3}},
+    Range{NativePoint{0, 0}, NativePoint{0, 0}},
+    Range{NativePoint{0, 1}, NativePoint{0, 1}},
+    Range{NativePoint{0, 2}, NativePoint{0, 2}},
+    Range{NativePoint{0, 3}, NativePoint{0, 3}},
   }));
 }
 
@@ -431,28 +431,28 @@ TEST_CASE("NativeTextBuffer::find_words_with_subsequence_in_range") {
   {
     NativeTextBuffer buffer{u"banana band bandana banana"};
 
-    REQUIRE(buffer.find_words_with_subsequence_in_range(u"bna", u"", Range{Point{0, 0}, Point{0, UINT32_MAX}}) == vector<SubsequenceMatch>({
-      {u"banana", {Point{0, 0}, Point{0, 20}}, {0, 2, 3}, 12},
-      {u"bandana", {Point{0, 12}}, {0, 5, 6}, 7}
+    REQUIRE(buffer.find_words_with_subsequence_in_range(u"bna", u"", Range{NativePoint{0, 0}, NativePoint{0, UINT32_MAX}}) == vector<SubsequenceMatch>({
+      {u"banana", {NativePoint{0, 0}, NativePoint{0, 20}}, {0, 2, 3}, 12},
+      {u"bandana", {NativePoint{0, 12}}, {0, 5, 6}, 7}
     }));
   }
 
   {
     NativeTextBuffer buffer{u"a_b_c abc aBc"};
 
-    REQUIRE(buffer.find_words_with_subsequence_in_range(u"abc", u"_", Range{Point{0, 0}, Point{0, UINT32_MAX}}) == vector<SubsequenceMatch>({
-      {u"aBc", {Point{0, 10}}, {0, 1, 2}, 29},
-      {u"a_b_c", {Point{0, 0}}, {0, 2, 4}, 26},
-      {u"abc", {Point{0, 6}}, {0, 1, 2}, 20},
+    REQUIRE(buffer.find_words_with_subsequence_in_range(u"abc", u"_", Range{NativePoint{0, 0}, NativePoint{0, UINT32_MAX}}) == vector<SubsequenceMatch>({
+      {u"aBc", {NativePoint{0, 10}}, {0, 1, 2}, 29},
+      {u"a_b_c", {NativePoint{0, 0}}, {0, 2, 4}, 26},
+      {u"abc", {NativePoint{0, 6}}, {0, 1, 2}, 20},
     }));
   }
 
   {
     NativeTextBuffer buffer{u"abc Abc"};
 
-    REQUIRE(buffer.find_words_with_subsequence_in_range(u"Abc", u"", Range{Point{0, 0}, Point{0, UINT32_MAX}}) == vector<SubsequenceMatch>({
-      {u"Abc", {Point{0, 4}}, {0, 1, 2}, 20},
-      {u"abc", {Point{0, 0}}, {0, 1, 2}, 19}
+    REQUIRE(buffer.find_words_with_subsequence_in_range(u"Abc", u"", Range{NativePoint{0, 0}, NativePoint{0, UINT32_MAX}}) == vector<SubsequenceMatch>({
+      {u"Abc", {NativePoint{0, 4}}, {0, 1, 2}, 20},
+      {u"abc", {NativePoint{0, 0}}, {0, 1, 2}, 19}
     }));
   }
 
@@ -460,7 +460,7 @@ TEST_CASE("NativeTextBuffer::find_words_with_subsequence_in_range") {
     // Does not match words longer than 80 characters
     NativeTextBuffer buffer{u"eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uLy4uL2xpYi9jb252ZXJ0LmpzIl0sIm5hbWVzIjpbImxzi"};
 
-    REQUIRE(buffer.find_words_with_subsequence_in_range(u"eyJ", u"", Range{Point{0, 0}, Point{0, UINT32_MAX}}) == vector<SubsequenceMatch>({
+    REQUIRE(buffer.find_words_with_subsequence_in_range(u"eyJ", u"", Range{NativePoint{0, 0}, NativePoint{0, UINT32_MAX}}) == vector<SubsequenceMatch>({
     }));
   }
 }
@@ -473,8 +473,8 @@ TEST_CASE("NativeTextBuffer::has_astral") {
 struct SnapshotData {
   Text base_text;
   u16string text;
-  Point extent;
-  vector<Point> line_end_positions;
+  NativePoint extent;
+  vector<NativePoint> line_end_positions;
 };
 
 struct SnapshotTask {
@@ -536,7 +536,7 @@ TEST_CASE("NativeTextBuffer - random edits and queries") {
             vector<SnapshotData> results;
             for (uint32_t k = 0; k < 5; k++) {
               std::this_thread::sleep_for(std::chrono::microseconds(rand() % 1000));
-              vector<Point> line_ending_positions;
+              vector<NativePoint> line_ending_positions;
               for (uint32_t row = 0; row < snapshot->extent().row; row++) {
                 line_ending_positions.push_back({row, snapshot->line_length_for_row(row)});
               }
@@ -564,8 +564,8 @@ TEST_CASE("NativeTextBuffer - random edits and queries") {
 
       for (uint32_t row = 0; row < mutated_text.extent().row; row++) {
         REQUIRE(
-          Point(row, *buffer.line_length_for_row(row)) ==
-          Point(row, mutated_text.line_length_for_row(row))
+          NativePoint(row, *buffer.line_length_for_row(row)) ==
+          NativePoint(row, mutated_text.line_length_for_row(row))
         );
       }
 
@@ -611,7 +611,7 @@ TEST_CASE("NativeTextBuffer - random edits and queries") {
           REQUIRE(data.text == mutated_text.content);
           REQUIRE(data.extent == mutated_text.extent());
           for (auto position : data.line_end_positions) {
-            REQUIRE(position == Point(position.row, mutated_text.line_length_for_row(position.row)));
+            REQUIRE(position == NativePoint(position.row, mutated_text.line_length_for_row(position.row)));
           }
         }
 

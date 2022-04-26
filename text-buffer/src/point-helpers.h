@@ -1,7 +1,7 @@
 #ifndef POINT_HELPERS_H_
 #define POINT_HELPERS_H_
 
-#include <point.h>
+#include "point.h"
 
 inline Point traverse(Point start, Point distance) {
   if (distance.row == 0) {

@@ -1,6 +1,7 @@
 #ifndef DISPLAY_LAYER_H_
 #define DISPLAY_LAYER_H_
 
+#include "point.h"
 #include <unordered_map>
 
 class TextBuffer;

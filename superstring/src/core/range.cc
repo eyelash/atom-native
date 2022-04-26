@@ -1,9 +1,9 @@
 #include "range.h"
 
 Range Range::all_inclusive() {
-  return Range{Point(), Point::max()};
+  return Range{NativePoint(), NativePoint::max()};
 }
 
-Point Range::extent() const {
+NativePoint Range::extent() const {
   return end.traversal(start);
 }

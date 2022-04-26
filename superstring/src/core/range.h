@@ -2,15 +2,15 @@
 #define RANGE_H_
 
 #include <ostream>
-#include "point.h"
+#include "native-point.h"
 
 struct Range {
-  Point start;
-  Point end;
+  NativePoint start;
+  NativePoint end;
 
   static Range all_inclusive();
 
-  Point extent() const;
+  NativePoint extent() const;
 
   bool operator==(const Range &other) const {
     return start == other.start && end == other.end;

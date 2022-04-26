@@ -23,11 +23,11 @@ struct Patch::Node {
   Node *left;
   Node *right;
 
-  Point old_extent;
-  Point new_extent;
+  NativePoint old_extent;
+  NativePoint new_extent;
 
-  Point old_distance_from_left_ancestor;
-  Point new_distance_from_left_ancestor;
+  NativePoint old_distance_from_left_ancestor;
+  NativePoint new_distance_from_left_ancestor;
 
   unique_ptr<Text> old_text;
   unique_ptr<Text> new_text;
@@ -39,10 +39,10 @@ struct Patch::Node {
   Node(
     Node *left,
     Node *right,
-    Point old_extent,
-    Point new_extent,
-    Point old_distance_from_left_ancestor,
-    Point new_distance_from_left_ancestor,
+    NativePoint old_extent,
+    NativePoint new_extent,
+    NativePoint old_distance_from_left_ancestor,
+    NativePoint new_distance_from_left_ancestor,
     unique_ptr<Text> &&old_text,
     unique_ptr<Text> &&new_text,
     uint32_t old_text_size
@@ -131,10 +131,10 @@ struct Patch::Node {
     return right ? right->new_subtree_text_size : 0;
   }
 
-  void get_subtree_end(Point *old_end, Point *new_end) {
+  void get_subtree_end(NativePoint *old_end, NativePoint *new_end) {
     Node *node = this;
-    *old_end = Point();
-    *new_end = Point();
+    *old_end = NativePoint();
+    *new_end = NativePoint();
     while (node) {
       *old_end = old_end->traverse(node->old_distance_from_left_ancestor)
                      .traverse(node->old_extent);
@@ -198,11 +198,11 @@ struct Patch::Node {
     }
   }
 
-  void write_dot_graph(std::stringstream &result, Point left_ancestor_old_end, Point left_ancestor_new_end) {
-    Point node_old_start = left_ancestor_old_end.traverse(old_distance_from_left_ancestor);
-    Point node_new_start = left_ancestor_new_end.traverse(new_distance_from_left_ancestor);
-    Point node_old_end = node_old_start.traverse(old_extent);
-    Point node_new_end = node_new_start.traverse(new_extent);
+  void write_dot_graph(std::stringstream &result, NativePoint left_ancestor_old_end, NativePoint left_ancestor_new_end) {
+    NativePoint node_old_start = left_ancestor_old_end.traverse(old_distance_from_left_ancestor);
+    NativePoint node_new_start = left_ancestor_new_end.traverse(new_distance_from_left_ancestor);
+    NativePoint node_old_end = node_old_start.traverse(old_extent);
+    NativePoint node_new_end = node_new_start.traverse(new_extent);
 
     result << "node_" << this << " ["
       << "label=\""
@@ -250,11 +250,11 @@ struct Patch::Node {
     }
   }
 
-  void write_json(std::stringstream &result, Point left_ancestor_old_end, Point left_ancestor_new_end) {
-    Point node_old_start = left_ancestor_old_end.traverse(old_distance_from_left_ancestor);
-    Point node_new_start = left_ancestor_new_end.traverse(new_distance_from_left_ancestor);
-    Point node_old_end = node_old_start.traverse(old_extent);
-    Point node_new_end = node_new_start.traverse(new_extent);
+  void write_json(std::stringstream &result, NativePoint left_ancestor_old_end, NativePoint left_ancestor_new_end) {
+    NativePoint node_old_start = left_ancestor_old_end.traverse(old_distance_from_left_ancestor);
+    NativePoint node_new_start = left_ancestor_new_end.traverse(new_distance_from_left_ancestor);
+    NativePoint node_old_end = node_old_start.traverse(old_extent);
+    NativePoint node_new_end = node_new_start.traverse(new_extent);
 
     result << "{";
     result << "\"id\": \"" << this << "\", ";
@@ -280,13 +280,13 @@ struct Patch::Node {
 };
 
 struct Patch::PositionStackEntry {
-  Point old_end;
-  Point new_end;
+  NativePoint old_end;
+  NativePoint new_end;
   uint32_t total_old_text_size;
   uint32_t total_new_text_size;
 
   PositionStackEntry() : total_old_text_size{0}, total_new_text_size{0} {}
-  PositionStackEntry(Point old_end, Point new_end, uint32_t total_old_text_size, uint32_t total_new_text_size) :
+  PositionStackEntry(NativePoint old_end, NativePoint new_end, uint32_t total_old_text_size, uint32_t total_new_text_size) :
     old_end{old_end},
     new_end{new_end},
     total_old_text_size{total_old_text_size},
@@ -294,23 +294,23 @@ struct Patch::PositionStackEntry {
 };
 
 struct Patch::OldCoordinates {
-  static Point distance_from_left_ancestor(const Node *node) {
+  static NativePoint distance_from_left_ancestor(const Node *node) {
     return node->old_distance_from_left_ancestor;
   }
-  static Point extent(const Node *node) { return node->old_extent; }
-  static Point start(const Change &change) { return change.old_start; }
-  static Point end(const Change &change) { return change.old_end; }
-  static Point choose(Point old, Point new_) { return old; }
+  static NativePoint extent(const Node *node) { return node->old_extent; }
+  static NativePoint start(const Change &change) { return change.old_start; }
+  static NativePoint end(const Change &change) { return change.old_end; }
+  static NativePoint choose(NativePoint old, NativePoint new_) { return old; }
 };
 
 struct Patch::NewCoordinates {
-  static Point distance_from_left_ancestor(const Node *node) {
+  static NativePoint distance_from_left_ancestor(const Node *node) {
     return node->new_distance_from_left_ancestor;
   }
-  static Point extent(const Node *node) { return node->new_extent; }
-  static Point start(const Change &change) { return change.new_start; }
-  static Point end(const Change &change) { return change.new_end; }
-  static Point choose(Point old, Point new_) { return new_; }
+  static NativePoint extent(const Node *node) { return node->new_extent; }
+  static NativePoint start(const Change &change) { return change.new_start; }
+  static NativePoint end(const Change &change) { return change.new_end; }
+  static NativePoint choose(NativePoint old, NativePoint new_) { return new_; }
 };
 
 // Construction and destruction
@@ -476,8 +476,8 @@ Patch Patch::invert() {
 
 // Mutations
 
-bool Patch::splice(Point new_splice_start,
-                   Point new_deletion_extent, Point new_insertion_extent,
+bool Patch::splice(NativePoint new_splice_start,
+                   NativePoint new_deletion_extent, NativePoint new_insertion_extent,
                    optional<Text> &&deleted_text, optional<Text> &&inserted_text,
                    uint32_t deleted_text_size) {
   if (new_deletion_extent.is_zero() && new_insertion_extent.is_zero()) return true;
@@ -490,8 +490,8 @@ bool Patch::splice(Point new_splice_start,
     return true;
   }
 
-  Point new_deletion_end = new_splice_start.traverse(new_deletion_extent);
-  Point new_insertion_end = new_splice_start.traverse(new_insertion_extent);
+  NativePoint new_deletion_end = new_splice_start.traverse(new_deletion_extent);
+  NativePoint new_insertion_end = new_splice_start.traverse(new_insertion_extent);
 
   Node *lower_bound = splay_node_starting_before<NewCoordinates>(new_splice_start);
 
@@ -512,14 +512,14 @@ bool Patch::splice(Point new_splice_start,
   }
 
   if (lower_bound && upper_bound) {
-    Point lower_bound_old_start = lower_bound->old_distance_from_left_ancestor;
-    Point lower_bound_new_start = lower_bound->new_distance_from_left_ancestor;
-    Point upper_bound_old_start = upper_bound->old_distance_from_left_ancestor;
-    Point upper_bound_new_start = upper_bound->new_distance_from_left_ancestor;
-    Point lower_bound_old_end = lower_bound_old_start.traverse(lower_bound->old_extent);
-    Point lower_bound_new_end = lower_bound_new_start.traverse(lower_bound->new_extent);
-    Point upper_bound_old_end = upper_bound_old_start.traverse(upper_bound->old_extent);
-    Point upper_bound_new_end = upper_bound_new_start.traverse(upper_bound->new_extent);
+    NativePoint lower_bound_old_start = lower_bound->old_distance_from_left_ancestor;
+    NativePoint lower_bound_new_start = lower_bound->new_distance_from_left_ancestor;
+    NativePoint upper_bound_old_start = upper_bound->old_distance_from_left_ancestor;
+    NativePoint upper_bound_new_start = upper_bound->new_distance_from_left_ancestor;
+    NativePoint lower_bound_old_end = lower_bound_old_start.traverse(lower_bound->old_extent);
+    NativePoint lower_bound_new_end = lower_bound_new_start.traverse(lower_bound->new_extent);
+    NativePoint upper_bound_old_end = upper_bound_old_start.traverse(upper_bound->old_extent);
+    NativePoint upper_bound_new_end = upper_bound_new_start.traverse(upper_bound->new_extent);
 
     bool overlaps_lower_bound, overlaps_upper_bound;
     if (merges_adjacent_changes) {
@@ -533,8 +533,8 @@ bool Patch::splice(Point new_splice_start,
     }
 
     if (overlaps_lower_bound && overlaps_upper_bound) {
-      Point new_extent_prefix = new_splice_start.traversal(lower_bound_new_start);
-      Point new_extent_suffix = upper_bound_new_end.traversal(new_deletion_end);
+      NativePoint new_extent_prefix = new_splice_start.traversal(lower_bound_new_start);
+      NativePoint new_extent_suffix = upper_bound_new_end.traversal(new_deletion_end);
 
       if (inserted_text && lower_bound->new_text && upper_bound->new_text) {
         TextSlice new_text_prefix = TextSlice(*lower_bound->new_text).prefix(new_extent_prefix);
@@ -568,9 +568,9 @@ bool Patch::splice(Point new_splice_start,
         delete_node(&lower_bound);
       }
     } else if (overlaps_upper_bound) {
-      Point old_splice_start =
+      NativePoint old_splice_start =
         lower_bound_old_end.traverse(new_splice_start.traversal(lower_bound_new_end));
-      Point new_extent_suffix =
+      NativePoint new_extent_suffix =
         upper_bound_new_end.traversal(new_deletion_end);
 
       if (inserted_text && upper_bound->new_text) {
@@ -594,11 +594,11 @@ bool Patch::splice(Point new_splice_start,
         delete_node(&upper_bound->left);
       }
     } else if (overlaps_lower_bound) {
-      Point rightmost_child_old_end, rightmost_child_new_end;
+      NativePoint rightmost_child_old_end, rightmost_child_new_end;
       lower_bound->get_subtree_end(&rightmost_child_old_end, &rightmost_child_new_end);
-      Point old_deletion_end =
+      NativePoint old_deletion_end =
         rightmost_child_old_end.traverse(new_deletion_end.traversal(rightmost_child_new_end));
-      Point new_extent_prefix =
+      NativePoint new_extent_prefix =
         new_splice_start.traversal(lower_bound_new_start);
 
       upper_bound->new_distance_from_left_ancestor =
@@ -628,20 +628,20 @@ bool Patch::splice(Point new_splice_start,
         root = build_node(
           upper_bound->left, upper_bound,
           upper_bound_old_start, upper_bound_new_start,
-          Point(), new_insertion_extent,
+          NativePoint(), new_insertion_extent,
           move(old_text), move(inserted_text),
           old_text_size
         );
 
         upper_bound->left = nullptr;
-        upper_bound->old_distance_from_left_ancestor = Point();
-        upper_bound->new_distance_from_left_ancestor = Point();
+        upper_bound->old_distance_from_left_ancestor = NativePoint();
+        upper_bound->new_distance_from_left_ancestor = NativePoint();
       } else {
-        Point rightmost_child_old_end, rightmost_child_new_end;
+        NativePoint rightmost_child_old_end, rightmost_child_new_end;
         lower_bound->get_subtree_end(&rightmost_child_old_end, &rightmost_child_new_end);
-        Point old_splice_start =
+        NativePoint old_splice_start =
           lower_bound_old_end.traverse(new_splice_start.traversal(lower_bound_new_end));
-        Point old_deletion_end =
+        NativePoint old_deletion_end =
           rightmost_child_old_end.traverse(new_deletion_end.traversal(rightmost_child_new_end));
         root = build_node(
           lower_bound, upper_bound,
@@ -659,15 +659,15 @@ bool Patch::splice(Point new_splice_start,
       }
     }
   } else if (lower_bound) {
-    Point lower_bound_old_start = lower_bound->old_distance_from_left_ancestor;
-    Point lower_bound_new_start = lower_bound->new_distance_from_left_ancestor;
-    Point lower_bound_new_end =
+    NativePoint lower_bound_old_start = lower_bound->old_distance_from_left_ancestor;
+    NativePoint lower_bound_new_start = lower_bound->new_distance_from_left_ancestor;
+    NativePoint lower_bound_new_end =
       lower_bound_new_start.traverse(lower_bound->new_extent);
-    Point lower_bound_old_end =
+    NativePoint lower_bound_old_end =
       lower_bound_old_start.traverse(lower_bound->old_extent);
-    Point rightmost_child_old_end, rightmost_child_new_end;
+    NativePoint rightmost_child_old_end, rightmost_child_new_end;
     lower_bound->get_subtree_end(&rightmost_child_old_end, &rightmost_child_new_end);
-    Point old_deletion_end =
+    NativePoint old_deletion_end =
       rightmost_child_old_end.traverse(new_deletion_end.traversal(rightmost_child_new_end));
     bool overlaps_lower_bound =
       new_splice_start < lower_bound_new_end ||
@@ -688,7 +688,7 @@ bool Patch::splice(Point new_splice_start,
       lower_bound->old_extent = old_deletion_end.traversal(lower_bound_old_start);
       lower_bound->new_extent = new_insertion_end.traversal(lower_bound_new_start);
     } else {
-      Point old_splice_start = lower_bound_old_end.traverse(
+      NativePoint old_splice_start = lower_bound_old_end.traverse(
         new_splice_start.traversal(lower_bound_new_end)
       );
       root = build_node(
@@ -702,17 +702,17 @@ bool Patch::splice(Point new_splice_start,
 
     delete_node(&lower_bound->right);
   } else if (upper_bound) {
-    Point upper_bound_new_start = upper_bound->new_distance_from_left_ancestor;
-    Point upper_bound_old_start = upper_bound->old_distance_from_left_ancestor;
-    Point upper_bound_new_end =
+    NativePoint upper_bound_new_start = upper_bound->new_distance_from_left_ancestor;
+    NativePoint upper_bound_old_start = upper_bound->old_distance_from_left_ancestor;
+    NativePoint upper_bound_new_end =
       upper_bound_new_start.traverse(upper_bound->new_extent);
     bool overlaps_upper_bound =
       new_deletion_end > upper_bound_new_start ||
       (merges_adjacent_changes && new_deletion_end == upper_bound_new_start);
 
-    Point old_deletion_end;
+    NativePoint old_deletion_end;
     if (upper_bound->left) {
-      Point rightmost_child_old_end, rightmost_child_new_end;
+      NativePoint rightmost_child_old_end, rightmost_child_new_end;
       upper_bound->left->get_subtree_end(&rightmost_child_old_end, &rightmost_child_new_end);
       old_deletion_end =
         rightmost_child_old_end.traverse(new_deletion_end.traversal(rightmost_child_new_end));
@@ -746,7 +746,7 @@ bool Patch::splice(Point new_splice_start,
         move(old_text), move(inserted_text),
         old_text_size
       );
-      Point distance_from_end_of_root_to_start_of_upper_bound =
+      NativePoint distance_from_end_of_root_to_start_of_upper_bound =
         upper_bound_new_start.traversal(new_deletion_end);
       upper_bound->old_distance_from_left_ancestor =
         distance_from_end_of_root_to_start_of_upper_bound;
@@ -756,9 +756,9 @@ bool Patch::splice(Point new_splice_start,
 
     delete_node(&upper_bound->left);
   } else {
-    Point rightmost_child_old_end, rightmost_child_new_end;
+    NativePoint rightmost_child_old_end, rightmost_child_new_end;
     root->get_subtree_end(&rightmost_child_old_end, &rightmost_child_new_end);
-    Point old_deletion_end = rightmost_child_old_end.traverse(
+    NativePoint old_deletion_end = rightmost_child_old_end.traverse(
       new_deletion_end.traversal(rightmost_child_new_end));
     delete_node(&root);
     root = build_node(
@@ -776,12 +776,12 @@ bool Patch::splice(Point new_splice_start,
   return true;
 }
 
-void Patch::splice_old(Point old_splice_start, Point old_deletion_extent,
-                      Point old_insertion_extent) {
+void Patch::splice_old(NativePoint old_splice_start, NativePoint old_deletion_extent,
+                      NativePoint old_insertion_extent) {
   if (!root) return;
 
-  Point old_deletion_end = old_splice_start.traverse(old_deletion_extent);
-  Point old_insertion_end = old_splice_start.traverse(old_insertion_extent);
+  NativePoint old_deletion_end = old_splice_start.traverse(old_deletion_extent);
+  NativePoint old_insertion_end = old_splice_start.traverse(old_insertion_extent);
 
   Node *lower_bound = splay_node_ending_before<OldCoordinates>(old_splice_start);
   Node *upper_bound = splay_node_starting_after<OldCoordinates>(old_deletion_end, old_splice_start);
@@ -807,14 +807,14 @@ void Patch::splice_old(Point old_splice_start, Point old_deletion_extent,
     }
   }
 
-  Point new_deletion_end, new_insertion_end;
+  NativePoint new_deletion_end, new_insertion_end;
 
   if (lower_bound) {
-    Point lower_bound_old_start = lower_bound->old_distance_from_left_ancestor;
-    Point lower_bound_new_start = lower_bound->new_distance_from_left_ancestor;
-    Point lower_bound_old_end =
+    NativePoint lower_bound_old_start = lower_bound->old_distance_from_left_ancestor;
+    NativePoint lower_bound_new_start = lower_bound->new_distance_from_left_ancestor;
+    NativePoint lower_bound_old_end =
         lower_bound_old_start.traverse(lower_bound->old_extent);
-    Point lower_bound_new_end =
+    NativePoint lower_bound_new_end =
         lower_bound_new_start.traverse(lower_bound->new_extent);
     new_deletion_end = lower_bound_new_end.traverse(
         old_deletion_end.traversal(lower_bound_old_end));
@@ -828,7 +828,7 @@ void Patch::splice_old(Point old_splice_start, Point old_deletion_extent,
   }
 
   if (upper_bound) {
-    Point distance_between_splice_and_upper_bound =
+    NativePoint distance_between_splice_and_upper_bound =
         upper_bound->old_distance_from_left_ancestor.traversal(
             old_deletion_end);
     upper_bound->old_distance_from_left_ancestor =
@@ -939,8 +939,8 @@ void Patch::rebalance() {
 
 vector<Change> Patch::get_changes() const {
   return get_changes_in_range<NewCoordinates>(
-    Point(),
-    Point(UINT32_MAX, UINT32_MAX),
+    NativePoint(),
+    NativePoint(UINT32_MAX, UINT32_MAX),
     true
   );
 }
@@ -955,11 +955,11 @@ optional<Change> Patch::get_bounds() const {
     node = node->left;
   }
 
-  Point old_start = node->old_distance_from_left_ancestor;
-  Point new_start = node->new_distance_from_left_ancestor;
+  NativePoint old_start = node->old_distance_from_left_ancestor;
+  NativePoint new_start = node->new_distance_from_left_ancestor;
 
   node = root;
-  Point old_end, new_end;
+  NativePoint old_end, new_end;
   while (node) {
     old_end = old_end.traverse(node->old_distance_from_left_ancestor.traverse(node->old_extent));
     new_end = new_end.traverse(node->new_distance_from_left_ancestor.traverse(node->new_extent));
@@ -974,37 +974,37 @@ optional<Change> Patch::get_bounds() const {
   };
 }
 
-vector<Change> Patch::get_changes_in_old_range(Point start, Point end) const {
+vector<Change> Patch::get_changes_in_old_range(NativePoint start, NativePoint end) const {
   return get_changes_in_range<OldCoordinates>(start, end, false);
 }
 
-vector<Change> Patch::get_changes_in_new_range(Point start, Point end) const {
+vector<Change> Patch::get_changes_in_new_range(NativePoint start, NativePoint end) const {
   return get_changes_in_range<NewCoordinates>(start, end, false);
 }
 
-optional<Change> Patch::get_change_starting_before_old_position(Point target) const {
+optional<Change> Patch::get_change_starting_before_old_position(NativePoint target) const {
   return get_change_starting_before_position<OldCoordinates>(target);
 }
 
-optional<Change> Patch::get_change_starting_before_new_position(Point target) const {
+optional<Change> Patch::get_change_starting_before_new_position(NativePoint target) const {
   return get_change_starting_before_position<NewCoordinates>(target);
 }
 
-optional<Change> Patch::get_change_ending_after_new_position(Point target) const {
+optional<Change> Patch::get_change_ending_after_new_position(NativePoint target) const {
   return get_change_ending_after_position<NewCoordinates>(target);
 }
 
-Point Patch::new_position_for_new_offset(uint32_t target_offset,
-                                         function<uint32_t(Point)> old_offset_for_old_position,
-                                         function<Point(uint32_t)> old_position_for_old_offset) const {
+NativePoint Patch::new_position_for_new_offset(uint32_t target_offset,
+                                         function<uint32_t(NativePoint)> old_offset_for_old_position,
+                                         function<NativePoint(uint32_t)> old_position_for_old_offset) const {
   const Node *node = root;
   Patch::PositionStackEntry left_ancestor_info;
-  Point preceding_new_position, preceding_old_position;
+  NativePoint preceding_new_position, preceding_old_position;
   uint32_t preceding_old_offset = 0, preceding_new_offset = 0;
 
   while (node) {
-    Point node_old_start = left_ancestor_info.old_end.traverse(node->old_distance_from_left_ancestor);
-    Point node_new_start = left_ancestor_info.new_end.traverse(node->new_distance_from_left_ancestor);
+    NativePoint node_old_start = left_ancestor_info.old_end.traverse(node->old_distance_from_left_ancestor);
+    NativePoint node_new_start = left_ancestor_info.new_end.traverse(node->new_distance_from_left_ancestor);
     uint32_t node_old_start_offset = old_offset_for_old_position(node_old_start);
     uint32_t node_new_start_offset = node_old_start_offset -
       left_ancestor_info.total_old_text_size +
@@ -1049,24 +1049,24 @@ Point Patch::new_position_for_new_offset(uint32_t target_offset,
 
 // Splaying reads
 
-vector<Change> Patch::grab_changes_in_old_range(Point start, Point end) {
+vector<Change> Patch::grab_changes_in_old_range(NativePoint start, NativePoint end) {
   return grab_changes_in_range<OldCoordinates>(start, end);
 }
 
-vector<Change> Patch::grab_changes_in_new_range(Point start, Point end) {
+vector<Change> Patch::grab_changes_in_new_range(NativePoint start, NativePoint end) {
   return grab_changes_in_range<NewCoordinates>(start, end);
 }
 
-optional<Change> Patch::grab_change_starting_before_old_position(Point target) {
+optional<Change> Patch::grab_change_starting_before_old_position(NativePoint target) {
   return grab_change_starting_before_position<OldCoordinates>(target);
 }
 
-optional<Change> Patch::grab_change_starting_before_new_position(Point target) {
+optional<Change> Patch::grab_change_starting_before_new_position(NativePoint target) {
   return grab_change_starting_before_position<NewCoordinates>(target);
 }
 
-optional<Change> Patch::grab_change_ending_after_new_position(Point target, bool exclusive) {
-  optional<Point> exclusive_lower_bound;
+optional<Change> Patch::grab_change_ending_after_new_position(NativePoint target, bool exclusive) {
+  optional<NativePoint> exclusive_lower_bound;
   if (exclusive) exclusive_lower_bound = target;
   if (splay_node_ending_after<NewCoordinates>(target, exclusive_lower_bound)) {
     return change_for_root_node();
@@ -1080,14 +1080,14 @@ optional<Change> Patch::grab_change_ending_after_new_position(Point target, bool
 std::string Patch::get_dot_graph() const {
   std::stringstream result;
   result << "digraph patch {" << endl;
-  if (root) root->write_dot_graph(result, Point(), Point());
+  if (root) root->write_dot_graph(result, NativePoint(), NativePoint());
   result << "}" << endl;
   return result.str();
 }
 
 std::string Patch::get_json() const {
   std::stringstream result;
-  if (root) root->write_json(result, Point(), Point());
+  if (root) root->write_json(result, NativePoint(), NativePoint());
   return result.str();
 }
 
@@ -1229,7 +1229,7 @@ void Patch::perform_rebalancing_rotations(uint32_t count) {
 }
 
 std::pair<optional<Text>, bool> Patch::compute_old_text(
-  optional<Text> &&deleted_text, Point new_splice_start, Point new_deletion_end
+  optional<Text> &&deleted_text, NativePoint new_splice_start, NativePoint new_deletion_end
 ) {
   if (!deleted_text) return {optional<Text>{}, true};
 
@@ -1242,7 +1242,7 @@ std::pair<optional<Text>, bool> Patch::compute_old_text(
   );
 
   TextSlice deleted_text_slice = TextSlice(*deleted_text);
-  Point deleted_text_slice_start = new_splice_start;
+  NativePoint deleted_text_slice_start = new_splice_start;
 
   for (const Change &change : overlapping_changes) {
     if (!change.old_text) return {optional<Text>{}, true};
@@ -1258,7 +1258,7 @@ std::pair<optional<Text>, bool> Patch::compute_old_text(
     }
 
     result.append(*change.old_text);
-    deleted_text_slice = deleted_text_slice.suffix(Point::min(
+    deleted_text_slice = deleted_text_slice.suffix(NativePoint::min(
       deleted_text_slice.extent(),
       change.new_end.traversal(deleted_text_slice_start)
     ));
@@ -1272,8 +1272,8 @@ std::pair<optional<Text>, bool> Patch::compute_old_text(
 }
 
 uint32_t Patch::compute_old_text_size(uint32_t deleted_text_size,
-                                      Point new_splice_start,
-                                      Point new_deletion_end) {
+                                      NativePoint new_splice_start,
+                                      NativePoint new_deletion_end) {
   uint32_t old_text_size = deleted_text_size;
   auto overlapping_changes = grab_changes_in_range<NewCoordinates>(
     new_splice_start,
@@ -1300,9 +1300,9 @@ uint32_t Patch::compute_old_text_size(uint32_t deleted_text_size,
 }
 
 Patch::Node *Patch::build_node(Node *left, Node *right,
-                       Point old_distance_from_left_ancestor,
-                       Point new_distance_from_left_ancestor,
-                       Point old_extent, Point new_extent,
+                       NativePoint old_distance_from_left_ancestor,
+                       NativePoint new_distance_from_left_ancestor,
+                       NativePoint old_extent, NativePoint new_extent,
                        optional<Text> &&old_text, optional<Text> &&new_text,
                        uint32_t old_text_size) {
   change_count++;
@@ -1340,17 +1340,17 @@ void Patch::delete_node(Node **node_to_delete) {
 }
 
 template <typename CoordinateSpace>
-Patch::Node *Patch::splay_node_ending_before(Point target) {
+Patch::Node *Patch::splay_node_ending_before(NativePoint target) {
   Node *splayed_node = nullptr;
-  Point left_ancestor_end = Point();
+  NativePoint left_ancestor_end = NativePoint();
   Node *node = root;
 
   node_stack.clear();
   size_t splayed_node_ancestor_count = 0;
   while (node) {
-    Point node_start = left_ancestor_end.traverse(
+    NativePoint node_start = left_ancestor_end.traverse(
         CoordinateSpace::distance_from_left_ancestor(node));
-    Point node_end = node_start.traverse(CoordinateSpace::extent(node));
+    NativePoint node_end = node_start.traverse(CoordinateSpace::extent(node));
     if (node_end <= target) {
       splayed_node = node;
       splayed_node_ancestor_count = node_stack.size();
@@ -1380,17 +1380,17 @@ Patch::Node *Patch::splay_node_ending_before(Point target) {
 }
 
 template <typename CoordinateSpace>
-Patch::Node *Patch::splay_node_starting_before(Point target) {
+Patch::Node *Patch::splay_node_starting_before(NativePoint target) {
   Node *splayed_node = nullptr;
-  Point left_ancestor_end = Point();
+  NativePoint left_ancestor_end = NativePoint();
   Node *node = root;
 
   node_stack.clear();
   size_t splayed_node_ancestor_count = 0;
   while (node) {
-    Point node_start = left_ancestor_end.traverse(
+    NativePoint node_start = left_ancestor_end.traverse(
         CoordinateSpace::distance_from_left_ancestor(node));
-    Point node_end = node_start.traverse(CoordinateSpace::extent(node));
+    NativePoint node_end = node_start.traverse(CoordinateSpace::extent(node));
     if (node_start <= target) {
       splayed_node = node;
       splayed_node_ancestor_count = node_stack.size();
@@ -1421,14 +1421,14 @@ Patch::Node *Patch::splay_node_starting_before(Point target) {
 
 void Patch::remove_noop_change() {
   if (root && root->old_text && root->new_text && *root->old_text == *root->new_text) {
-    splice_old(root->old_distance_from_left_ancestor, Point(), Point());
+    splice_old(root->old_distance_from_left_ancestor, NativePoint(), NativePoint());
   }
 }
 
 // Private - non-splaying reads
 
 template <typename CoordinateSpace>
-vector<Patch::Change> Patch::get_changes_in_range(Point start, Point end, bool inclusive) const {
+vector<Patch::Change> Patch::get_changes_in_range(NativePoint start, NativePoint end, bool inclusive) const {
   vector<Change> result;
 
   Node *node = root;
@@ -1441,12 +1441,12 @@ vector<Patch::Change> Patch::get_changes_in_range(Point start, Point end, bool i
 
   while (node) {
     auto &left_ancestor_info = left_ancestor_stack.back();
-    Point node_old_start = left_ancestor_info.old_end.traverse(node->old_distance_from_left_ancestor);
-    Point node_new_start = left_ancestor_info.new_end.traverse(node->new_distance_from_left_ancestor);
-    Point node_old_end = node_old_start.traverse(node->old_extent);
-    Point node_new_end = node_new_start.traverse(node->new_extent);
+    NativePoint node_old_start = left_ancestor_info.old_end.traverse(node->old_distance_from_left_ancestor);
+    NativePoint node_new_start = left_ancestor_info.new_end.traverse(node->new_distance_from_left_ancestor);
+    NativePoint node_old_end = node_old_start.traverse(node->old_extent);
+    NativePoint node_new_end = node_new_start.traverse(node->new_extent);
 
-    Point node_end = CoordinateSpace::choose(node_old_end, node_new_end);
+    NativePoint node_end = CoordinateSpace::choose(node_old_end, node_new_end);
     if (node_end > start || (inclusive && node_end == start)) {
       found_node_ancestor_count = node_stack.size();
       found_node_left_ancestor_count = left_ancestor_stack.size();
@@ -1479,15 +1479,15 @@ vector<Patch::Change> Patch::get_changes_in_range(Point start, Point end, bool i
 
   while (node) {
     PositionStackEntry &left_ancestor_info = left_ancestor_stack.back();
-    Point old_start = left_ancestor_info.old_end.traverse(
+    NativePoint old_start = left_ancestor_info.old_end.traverse(
         node->old_distance_from_left_ancestor);
-    Point new_start = left_ancestor_info.new_end.traverse(
+    NativePoint new_start = left_ancestor_info.new_end.traverse(
         node->new_distance_from_left_ancestor);
-    Point node_start = CoordinateSpace::choose(old_start, new_start);
+    NativePoint node_start = CoordinateSpace::choose(old_start, new_start);
     if (node_start > end || (!inclusive && node_start == end)) break;
 
-    Point old_end = old_start.traverse(node->old_extent);
-    Point new_end = new_start.traverse(node->new_extent);
+    NativePoint old_end = old_start.traverse(node->old_extent);
+    NativePoint new_end = new_start.traverse(node->new_extent);
     Text *old_text = node->old_text.get();
     Text *new_text = node->new_text.get();
     uint32_t old_text_size = node->old_text_size();
@@ -1542,15 +1542,15 @@ vector<Patch::Change> Patch::get_changes_in_range(Point start, Point end, bool i
 }
 
 template <typename CoordinateSpace>
-optional<Patch::Change> Patch::get_change_starting_before_position(Point target) const {
+optional<Patch::Change> Patch::get_change_starting_before_position(NativePoint target) const {
   const Node *found_node = nullptr;
   const Node *node = root;
   Patch::PositionStackEntry left_ancestor_info;
   Patch::PositionStackEntry found_node_left_ancestor_info;
 
   while (node) {
-    Point node_old_start = left_ancestor_info.old_end.traverse(node->old_distance_from_left_ancestor);
-    Point node_new_start = left_ancestor_info.new_end.traverse(node->new_distance_from_left_ancestor);
+    NativePoint node_old_start = left_ancestor_info.old_end.traverse(node->old_distance_from_left_ancestor);
+    NativePoint node_new_start = left_ancestor_info.new_end.traverse(node->new_distance_from_left_ancestor);
     if (CoordinateSpace::choose(node_old_start, node_new_start) <= target) {
       found_node = node;
       found_node_left_ancestor_info = left_ancestor_info;
@@ -1573,8 +1573,8 @@ optional<Patch::Change> Patch::get_change_starting_before_position(Point target)
   }
 
   if (found_node) {
-    Point old_start = found_node_left_ancestor_info.old_end.traverse(found_node->old_distance_from_left_ancestor);
-    Point new_start = found_node_left_ancestor_info.new_end.traverse(found_node->new_distance_from_left_ancestor);
+    NativePoint old_start = found_node_left_ancestor_info.old_end.traverse(found_node->old_distance_from_left_ancestor);
+    NativePoint new_start = found_node_left_ancestor_info.new_end.traverse(found_node->new_distance_from_left_ancestor);
 
     return Change{
       old_start, old_start.traverse(found_node->old_extent),
@@ -1591,16 +1591,16 @@ optional<Patch::Change> Patch::get_change_starting_before_position(Point target)
 }
 
 template <typename CoordinateSpace>
-optional<Patch::Change> Patch::get_change_ending_after_position(Point target) const {
+optional<Patch::Change> Patch::get_change_ending_after_position(NativePoint target) const {
   Node *found_node = nullptr;
   Node *node = root;
   Patch::PositionStackEntry left_ancestor_info, found_node_left_ancestor_info;
 
   while (node) {
-    Point node_old_start = left_ancestor_info.old_end.traverse(node->old_distance_from_left_ancestor);
-    Point node_new_start = left_ancestor_info.new_end.traverse(node->new_distance_from_left_ancestor);
-    Point node_old_end = node_old_start.traverse(node->old_extent);
-    Point node_new_end = node_new_start.traverse(node->new_extent);
+    NativePoint node_old_start = left_ancestor_info.old_end.traverse(node->old_distance_from_left_ancestor);
+    NativePoint node_new_start = left_ancestor_info.new_end.traverse(node->new_distance_from_left_ancestor);
+    NativePoint node_old_end = node_old_start.traverse(node->old_extent);
+    NativePoint node_new_end = node_new_start.traverse(node->new_extent);
     if (CoordinateSpace::choose(node_old_end, node_new_end) > target) {
       found_node = node;
       found_node_left_ancestor_info = left_ancestor_info;
@@ -1623,8 +1623,8 @@ optional<Patch::Change> Patch::get_change_ending_after_position(Point target) co
   }
 
   if (found_node) {
-    Point old_start = found_node_left_ancestor_info.old_end.traverse(found_node->old_distance_from_left_ancestor);
-    Point new_start = found_node_left_ancestor_info.new_end.traverse(found_node->new_distance_from_left_ancestor);
+    NativePoint old_start = found_node_left_ancestor_info.old_end.traverse(found_node->old_distance_from_left_ancestor);
+    NativePoint new_start = found_node_left_ancestor_info.new_end.traverse(found_node->new_distance_from_left_ancestor);
 
     return Change{
       old_start, old_start.traverse(found_node->old_extent),
@@ -1643,7 +1643,7 @@ optional<Patch::Change> Patch::get_change_ending_after_position(Point target) co
 // Private - splaying reads
 
 template <typename CoordinateSpace>
-vector<Change> Patch::grab_changes_in_range(Point start, Point end, bool inclusive) {
+vector<Change> Patch::grab_changes_in_range(NativePoint start, NativePoint end, bool inclusive) {
   vector<Change> result;
   if (!root)
     return result;
@@ -1652,7 +1652,7 @@ vector<Change> Patch::grab_changes_in_range(Point start, Point end, bool inclusi
 
   node_stack.clear();
   left_ancestor_stack.clear();
-  left_ancestor_stack.push_back({Point(), Point(), 0, 0});
+  left_ancestor_stack.push_back({NativePoint(), NativePoint(), 0, 0});
 
   Node *node = root;
   if (!lower_bound) {
@@ -1665,13 +1665,13 @@ vector<Change> Patch::grab_changes_in_range(Point start, Point end, bool inclusi
   while (node) {
     Patch::PositionStackEntry &left_ancestor_info =
         left_ancestor_stack.back();
-    Point old_start = left_ancestor_info.old_end.traverse(
+    NativePoint old_start = left_ancestor_info.old_end.traverse(
         node->old_distance_from_left_ancestor);
-    Point new_start = left_ancestor_info.new_end.traverse(
+    NativePoint new_start = left_ancestor_info.new_end.traverse(
         node->new_distance_from_left_ancestor);
 
-    Point old_end = old_start.traverse(node->old_extent);
-    Point new_end = new_start.traverse(node->new_extent);
+    NativePoint old_end = old_start.traverse(node->old_extent);
+    NativePoint new_end = new_start.traverse(node->new_extent);
     Text *old_text = node->old_text.get();
     Text *new_text = node->new_text.get();
     uint32_t old_text_size = node->old_text_size();
@@ -1743,7 +1743,7 @@ vector<Change> Patch::grab_changes_in_range(Point start, Point end, bool inclusi
 }
 
 template <typename CoordinateSpace>
-optional<Change> Patch::grab_change_starting_before_position(Point target) {
+optional<Change> Patch::grab_change_starting_before_position(NativePoint target) {
   if (splay_node_starting_before<CoordinateSpace>(target)) {
     return change_for_root_node();
   } else {
@@ -1752,17 +1752,17 @@ optional<Change> Patch::grab_change_starting_before_position(Point target) {
 }
 
 template <typename CoordinateSpace>
-Patch::Node *Patch::splay_node_ending_after(Point target, optional<Point> exclusive_lower_bound) {
+Patch::Node *Patch::splay_node_ending_after(NativePoint target, optional<NativePoint> exclusive_lower_bound) {
   Node *splayed_node = nullptr;
-  Point left_ancestor_end = Point();
+  NativePoint left_ancestor_end = NativePoint();
   Node *node = root;
 
   node_stack.clear();
   size_t splayed_node_ancestor_count = 0;
   while (node) {
-    Point node_start = left_ancestor_end.traverse(
+    NativePoint node_start = left_ancestor_end.traverse(
         CoordinateSpace::distance_from_left_ancestor(node));
-    Point node_end = node_start.traverse(CoordinateSpace::extent(node));
+    NativePoint node_end = node_start.traverse(CoordinateSpace::extent(node));
     if (node_end >= target && (!exclusive_lower_bound || node_end > *exclusive_lower_bound)) {
       splayed_node = node;
       splayed_node_ancestor_count = node_stack.size();
@@ -1792,17 +1792,17 @@ Patch::Node *Patch::splay_node_ending_after(Point target, optional<Point> exclus
 }
 
 template <typename CoordinateSpace>
-Patch::Node *Patch::splay_node_starting_after(Point target, optional<Point> exclusive_lower_bound) {
+Patch::Node *Patch::splay_node_starting_after(NativePoint target, optional<NativePoint> exclusive_lower_bound) {
   Node *splayed_node = nullptr;
-  Point left_ancestor_end = Point();
+  NativePoint left_ancestor_end = NativePoint();
   Node *node = root;
 
   node_stack.clear();
   size_t splayed_node_ancestor_count = 0;
   while (node) {
-    Point node_start = left_ancestor_end.traverse(
+    NativePoint node_start = left_ancestor_end.traverse(
         CoordinateSpace::distance_from_left_ancestor(node));
-    Point node_end = node_start.traverse(CoordinateSpace::extent(node));
+    NativePoint node_end = node_start.traverse(CoordinateSpace::extent(node));
     if (node_start >= target && (!exclusive_lower_bound || node_start > *exclusive_lower_bound)) {
       splayed_node = node;
       splayed_node_ancestor_count = node_stack.size();
@@ -1832,10 +1832,10 @@ Patch::Node *Patch::splay_node_starting_after(Point target, optional<Point> excl
 }
 
 Change Patch::change_for_root_node() {
-  Point old_start = root->old_distance_from_left_ancestor;
-  Point new_start = root->new_distance_from_left_ancestor;
-  Point old_end = old_start.traverse(root->old_extent);
-  Point new_end = new_start.traverse(root->new_extent);
+  NativePoint old_start = root->old_distance_from_left_ancestor;
+  NativePoint new_start = root->new_distance_from_left_ancestor;
+  NativePoint old_end = old_start.traverse(root->old_extent);
+  NativePoint new_end = new_start.traverse(root->new_extent);
   Text *old_text = root->old_text.get();
   Text *new_text = root->new_text.get();
   uint32_t old_text_size = root->old_text_size();

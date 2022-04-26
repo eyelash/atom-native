@@ -5,7 +5,7 @@
 #include <vector>
 #include "text.h"
 #include "patch.h"
-#include "point.h"
+#include "native-point.h"
 #include "range.h"
 #include "regex.h"
 #include "marker-index.h"
@@ -26,16 +26,16 @@ public:
   ~NativeTextBuffer();
 
   uint32_t size() const;
-  Point extent() const;
+  NativePoint extent() const;
   optional<std::u16string> line_for_row(uint32_t row);
   void with_line_for_row(uint32_t row, const std::function<void(const char16_t *, uint32_t)> &);
 
   optional<uint32_t> line_length_for_row(uint32_t row);
   const uint16_t *line_ending_for_row(uint32_t row);
-  ClipResult clip_position(Point);
-  Point position_for_offset(uint32_t offset);
+  ClipResult clip_position(NativePoint);
+  NativePoint position_for_offset(uint32_t offset);
   std::u16string text();
-  uint16_t character_at(Point position) const;
+  uint16_t character_at(NativePoint position) const;
   std::u16string text_in_range(Range range);
   void set_text(std::u16string &&);
   void set_text(const std::u16string &);
@@ -58,7 +58,7 @@ public:
 
   struct SubsequenceMatch {
     std::u16string word;
-    std::vector<Point> positions;
+    std::vector<NativePoint> positions;
     std::vector<uint32_t> match_indices;
     int32_t score;
     bool operator==(const SubsequenceMatch &) const;
@@ -79,7 +79,7 @@ public:
     void flush_preceding_changes();
 
     uint32_t size() const;
-    Point extent() const;
+    NativePoint extent() const;
     uint32_t line_length_for_row(uint32_t) const;
     std::vector<TextSlice> chunks() const;
     std::vector<TextSlice> chunks_in_range(Range) const;

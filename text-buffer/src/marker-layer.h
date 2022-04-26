@@ -1,6 +1,7 @@
 #ifndef MARKER_LAYER_H_
 #define MARKER_LAYER_H_
 
+#include "point.h"
 #include <marker-index.h>
 #include <vector>
 #include <unordered_map>

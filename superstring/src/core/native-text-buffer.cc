@@ -28,7 +28,7 @@ struct NativeTextBuffer::Layer {
   optional<Text> text;
   bool uses_patch;
 
-  Point extent_;
+  NativePoint extent_;
   uint32_t size_;
   uint32_t snapshot_count;
 
@@ -48,8 +48,8 @@ struct NativeTextBuffer::Layer {
     size_{previous_layer->size()},
     snapshot_count{0} {}
 
-  static inline Point previous_column(Point position) {
-    return Point(position.row, position.column - 1);
+  static inline NativePoint previous_column(NativePoint position) {
+    return NativePoint(position.row, position.column - 1);
   }
 
   bool is_above_layer(const Layer *layer) const {
@@ -61,7 +61,7 @@ struct NativeTextBuffer::Layer {
     return false;
   }
 
-  uint16_t character_at(Point position) const {
+  uint16_t character_at(NativePoint position) const {
     if (!uses_patch) return text->at(position);
 
     auto change = patch.get_change_starting_before_new_position(position);
@@ -75,7 +75,7 @@ struct NativeTextBuffer::Layer {
     }
   }
 
-  ClipResult clip_position(Point position, bool splay = false) {
+  ClipResult clip_position(NativePoint position, bool splay = false) {
     if (!uses_patch) return text->clip_position(position);
     if (snapshot_count > 0) splay = false;
 
@@ -146,11 +146,11 @@ struct NativeTextBuffer::Layer {
   }
 
   template <typename Callback>
-  inline bool for_each_chunk_in_range(Point start, Point goal_position,
+  inline bool for_each_chunk_in_range(NativePoint start, NativePoint goal_position,
                                       const Callback &callback, bool splay = false) {
     // *goal_position = clip_position(*goal_position, splay).position;
-    // Point current_position = clip_position(start, splay).position;
-    Point current_position = start;
+    // NativePoint current_position = clip_position(start, splay).position;
+    NativePoint current_position = start;
 
     if (!uses_patch) {
       TextSlice slice = TextSlice(*text).slice({current_position, goal_position});
@@ -159,7 +159,7 @@ struct NativeTextBuffer::Layer {
 
     if (snapshot_count > 0) splay = false;
 
-    Point base_position;
+    NativePoint base_position;
     auto change = splay ?
       patch.grab_change_starting_before_new_position(current_position) :
       patch.get_change_starting_before_new_position(current_position);
@@ -188,7 +188,7 @@ struct NativeTextBuffer::Layer {
       }
 
       TextSlice slice = TextSlice(*change.new_text)
-        .prefix(Point::min(change.new_end, goal_position).traversal(change.new_start));
+        .prefix(NativePoint::min(change.new_end, goal_position).traversal(change.new_start));
       if (!slice.empty() && callback(slice)) return true;
 
       base_position = change.old_end;
@@ -206,13 +206,13 @@ struct NativeTextBuffer::Layer {
     return false;
   }
 
-  Point position_for_offset(uint32_t goal_offset) const {
+  NativePoint position_for_offset(uint32_t goal_offset) const {
     if (text) {
       return text->position_for_offset(goal_offset);
     } else {
       return patch.new_position_for_new_offset(
         goal_offset,
-        [this](Point old_position) {
+        [this](NativePoint old_position) {
           return previous_layer->clip_position(old_position).offset;
         },
         [this](uint32_t old_offset) {
@@ -222,7 +222,7 @@ struct NativeTextBuffer::Layer {
     }
   }
 
-  Point extent() const { return extent_; }
+  NativePoint extent() const { return extent_; }
 
   uint32_t size() const { return size_; }
 
@@ -256,7 +256,7 @@ struct NativeTextBuffer::Layer {
 
   vector<pair<const char16_t *, uint32_t>> primitive_chunks() {
     vector<pair<const char16_t *, uint32_t>> result;
-    for_each_chunk_in_range(Point(), Point::max(), [&result](TextSlice slice) {
+    for_each_chunk_in_range(NativePoint(), NativePoint::max(), [&result](TextSlice slice) {
       result.push_back({slice.data(), slice.size()});
       return false;
     });
@@ -272,17 +272,17 @@ struct NativeTextBuffer::Layer {
     range.end = clip_position(range.end).position;
 
     uint32_t minimum_match_row = range.start.row;
-    Range last_match{Point::max(), Point::max()};
+    Range last_match{NativePoint::max(), NativePoint::max()};
     bool last_match_is_pending = false;
     bool done = false;
     Text chunk_continuation;
     TextSlice slice_to_search;
-    Point chunk_start_position = range.start;
-    Point last_search_end_position = range.start;
-    Point slice_to_search_start_position = range.start;
+    NativePoint chunk_start_position = range.start;
+    NativePoint last_search_end_position = range.start;
+    NativePoint slice_to_search_start_position = range.start;
 
     for_each_chunk_in_range(range.start, range.end, [&](TextSlice chunk) {
-      Point chunk_end_position = chunk_start_position.traverse(chunk.extent());
+      NativePoint chunk_end_position = chunk_start_position.traverse(chunk.extent());
       while (last_search_end_position < chunk_end_position) {
         if (last_search_end_position >= chunk_start_position) {
           TextSlice remaining_chunk = chunk
@@ -294,7 +294,7 @@ struct NativeTextBuffer::Layer {
           // endings are not valid.
           if (last_match_is_pending) {
             if (!remaining_chunk.empty() && remaining_chunk.front() == '\n') {
-              chunk_continuation.splice(Point(), Point(), Text{u"\r"});
+              chunk_continuation.splice(NativePoint(), NativePoint(), Text{u"\r"});
               slice_to_search_start_position.column--;
               last_match.end.column--;
             }
@@ -316,14 +316,14 @@ struct NativeTextBuffer::Layer {
           slice_to_search = TextSlice(chunk_continuation);
         }
 
-        Point slice_to_search_end_position =
+        NativePoint slice_to_search_end_position =
           slice_to_search_start_position.traverse(slice_to_search.extent());
 
         int options = 0;
         if (slice_to_search_start_position.column == 0) options |= MatchOptions::IsBeginningOfLine;
         if (slice_to_search_end_position == range.end) {
           options |= MatchOptions::IsEndSearch;
-          if (range.end == clip_position(Point{range.end.row, UINT32_MAX}).position) {
+          if (range.end == clip_position(NativePoint{range.end.row, UINT32_MAX}).position) {
             options |= MatchOptions::IsEndOfLine;
           }
         }
@@ -350,7 +350,7 @@ struct NativeTextBuffer::Layer {
           case MatchResult::Partial:
             last_search_end_position = slice_to_search_start_position.traverse(slice_to_search.extent());
             if (chunk_continuation.empty() || match_result.start_offset > 0) {
-              Point partial_match_position = slice_to_search.position_for_offset(match_result.start_offset,
+              NativePoint partial_match_position = slice_to_search.position_for_offset(match_result.start_offset,
                 minimum_match_row - slice_to_search_start_position.row
               );
               slice_to_search_start_position = slice_to_search_start_position.traverse(partial_match_position);
@@ -360,11 +360,11 @@ struct NativeTextBuffer::Layer {
             break;
 
           case MatchResult::Full:
-            Point match_start_position = slice_to_search.position_for_offset(
+            NativePoint match_start_position = slice_to_search.position_for_offset(
               match_result.start_offset,
               minimum_match_row - slice_to_search_start_position.row
             );
-            Point match_end_position = slice_to_search.position_for_offset(
+            NativePoint match_end_position = slice_to_search.position_for_offset(
               match_result.end_offset,
               minimum_match_row - slice_to_search_start_position.row
             );
@@ -414,7 +414,7 @@ struct NativeTextBuffer::Layer {
       static char16_t EMPTY[] = {0};
       unsigned options = MatchOptions::IsEndSearch;
       if (range.end.column == 0) options |= MatchOptions::IsBeginningOfLine;
-      if (range.end == clip_position(Point{range.end.row, UINT32_MAX}).position) {
+      if (range.end == clip_position(NativePoint{range.end.row, UINT32_MAX}).position) {
         options |= MatchOptions::IsEndOfLine;
       }
       MatchResult match_result = regex.match(EMPTY, 0, match_data, options);
@@ -467,8 +467,8 @@ struct NativeTextBuffer::Layer {
   vector<SubsequenceMatch> find_words_with_subsequence_in_range(u16string query, const u16string &extra_word_characters, Range range) {
     const size_t MAX_WORD_LENGTH = 80;
     size_t query_index = 0;
-    Point position;
-    Point current_word_start;
+    NativePoint position;
+    NativePoint current_word_start;
     u16string current_word;
     u16string raw_query = query;
 
@@ -478,7 +478,7 @@ struct NativeTextBuffer::Layer {
 
     // First, find the start position of all words matching the given
     // subsequence.
-    std::unordered_map<u16string, vector<Point>> substring_matches;
+    std::unordered_map<u16string, vector<NativePoint>> substring_matches;
 
     for_each_chunk_in_range(
       clip_position(range.start).position,
@@ -533,7 +533,7 @@ struct NativeTextBuffer::Layer {
 
     for (auto entry : substring_matches) {
       const u16string &word = entry.first;
-      const vector<Point> &start_positions = entry.second;
+      const vector<NativePoint> &start_positions = entry.second;
 
       vector<SubsequenceMatchVariant> match_variants {{}};
       vector<SubsequenceMatchVariant> new_match_variants;
@@ -642,7 +642,7 @@ struct NativeTextBuffer::Layer {
 
     bool result = false;
     uint32_t start_offset = 0;
-    for_each_chunk_in_range(Point(), extent(), [&](TextSlice chunk) {
+    for_each_chunk_in_range(NativePoint(), extent(), [&](TextSlice chunk) {
       if (chunk.text == &(*base_layer->text) ||
           equal(chunk.begin(), chunk.end(), base_layer->text->begin() + start_offset)) {
         start_offset += chunk.size();
@@ -657,7 +657,7 @@ struct NativeTextBuffer::Layer {
 
   bool has_astral() {
     bool result = false;
-    for_each_chunk_in_range(Point(), extent(), [&](TextSlice chunk) {
+    for_each_chunk_in_range(NativePoint(), extent(), [&](TextSlice chunk) {
       for (auto ch : chunk) {
         if ((ch & 0xf800) == 0xd800) {
           result = true;
@@ -786,7 +786,7 @@ bool NativeTextBuffer::deserialize_changes(Deserializer &deserializer) {
   if (top_layer != base_layer || base_layer->previous_layer) return false;
   top_layer = new Layer(base_layer);
   top_layer->size_ = deserializer.read<uint32_t>();
-  top_layer->extent_ = Point(deserializer);
+  top_layer->extent_ = NativePoint(deserializer);
   top_layer->patch = Patch(deserializer);
   return true;
 }
@@ -795,7 +795,7 @@ const Text &NativeTextBuffer::base_text() const {
   return *base_layer->text;
 }
 
-Point NativeTextBuffer::extent() const {
+NativePoint NativeTextBuffer::extent() const {
   return top_layer->extent();
 }
 
@@ -805,7 +805,7 @@ uint32_t NativeTextBuffer::size() const {
 
 optional<uint32_t> NativeTextBuffer::line_length_for_row(uint32_t row) {
   if (row > extent().row) return optional<uint32_t>{};
-  return top_layer->clip_position(Point{row, UINT32_MAX}, true).position.column;
+  return top_layer->clip_position(NativePoint{row, UINT32_MAX}, true).position.column;
 }
 
 const uint16_t *NativeTextBuffer::line_ending_for_row(uint32_t row) {
@@ -817,8 +817,8 @@ const uint16_t *NativeTextBuffer::line_ending_for_row(uint32_t row) {
 
   const uint16_t *result = NONE;
   top_layer->for_each_chunk_in_range(
-    clip_position(Point(row, UINT32_MAX)).position,
-    Point(row + 1, 0),
+    clip_position(NativePoint(row, UINT32_MAX)).position,
+    NativePoint(row + 1, 0),
     [&result](TextSlice slice) {
       auto begin = slice.begin();
       if (begin == slice.end()) return false;
@@ -832,7 +832,7 @@ void NativeTextBuffer::with_line_for_row(uint32_t row, const std::function<void(
   u16string result;
   uint32_t column = 0;
   uint32_t slice_count = 0;
-  Point line_end = clip_position({row, UINT32_MAX}).position;
+  NativePoint line_end = clip_position({row, UINT32_MAX}).position;
   top_layer->for_each_chunk_in_range({row, 0}, line_end, [&](TextSlice slice) -> bool {
     auto begin = slice.begin(), end = slice.end();
     size_t size = end - begin;
@@ -857,19 +857,19 @@ optional<u16string> NativeTextBuffer::line_for_row(uint32_t row) {
   return text_in_range({{row, 0}, {row, UINT32_MAX}});
 }
 
-ClipResult NativeTextBuffer::clip_position(Point position) {
+ClipResult NativeTextBuffer::clip_position(NativePoint position) {
   return top_layer->clip_position(position, true);
 }
 
-Point NativeTextBuffer::position_for_offset(uint32_t offset) {
+NativePoint NativeTextBuffer::position_for_offset(uint32_t offset) {
   return top_layer->position_for_offset(offset);
 }
 
 u16string NativeTextBuffer::text() {
-  return top_layer->text_in_range(Range{Point(), extent()});
+  return top_layer->text_in_range(Range{NativePoint(), extent()});
 }
 
-uint16_t NativeTextBuffer::character_at(Point position) const {
+uint16_t NativeTextBuffer::character_at(NativePoint position) const {
   return top_layer->character_at(position);
 }
 
@@ -882,11 +882,11 @@ vector<TextSlice> NativeTextBuffer::chunks() const {
 }
 
 void NativeTextBuffer::set_text(u16string &&new_text) {
-  set_text_in_range(Range{Point(0, 0), extent()}, move(new_text));
+  set_text_in_range(Range{NativePoint(0, 0), extent()}, move(new_text));
 }
 
 void NativeTextBuffer::set_text(const u16string &new_text) {
-  set_text_in_range(Range{Point(0, 0), extent()}, u16string(new_text));
+  set_text_in_range(Range{NativePoint(0, 0), extent()}, u16string(new_text));
 }
 
 void NativeTextBuffer::set_text_in_range(Range old_range, u16string &&string) {
@@ -896,10 +896,10 @@ void NativeTextBuffer::set_text_in_range(Range old_range, u16string &&string) {
 
   auto start = clip_position(old_range.start);
   auto end = old_range.end == old_range.start ? start : clip_position(old_range.end);
-  Point deleted_extent = end.position.traversal(start.position);
+  NativePoint deleted_extent = end.position.traversal(start.position);
   Text new_text{move(string)};
-  Point inserted_extent = new_text.extent();
-  Point new_range_end = start.position.traverse(new_text.extent());
+  NativePoint inserted_extent = new_text.extent();
+  NativePoint new_range_end = start.position.traverse(new_text.extent());
   uint32_t deleted_text_size = end.offset - start.offset;
   top_layer->extent_ = new_range_end.traverse(top_layer->extent_.traversal(end.position));
   top_layer->size_ += new_text.size() - deleted_text_size;
@@ -929,7 +929,7 @@ void NativeTextBuffer::set_text_in_range(Range old_range, u16string &&string) {
         return false;
       });
     if (change_is_noop) {
-      top_layer->patch.splice_old(change->old_start, Point(), Point());
+      top_layer->patch.splice_old(change->old_start, NativePoint(), NativePoint());
     }
   }
 }
@@ -1024,12 +1024,12 @@ uint32_t NativeTextBuffer::Snapshot::size() const {
   return layer.size();
 }
 
-Point NativeTextBuffer::Snapshot::extent() const {
+NativePoint NativeTextBuffer::Snapshot::extent() const {
   return layer.extent();
 }
 
 uint32_t NativeTextBuffer::Snapshot::line_length_for_row(uint32_t row) const {
-  return layer.clip_position(Point{row, UINT32_MAX}).position.column;
+  return layer.clip_position(NativePoint{row, UINT32_MAX}).position.column;
 }
 
 u16string NativeTextBuffer::Snapshot::text_in_range(Range range) const {

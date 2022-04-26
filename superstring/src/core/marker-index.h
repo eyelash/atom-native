@@ -4,7 +4,7 @@
 #include <random>
 #include <unordered_map>
 #include "flat_set.h"
-#include "point.h"
+#include "native-point.h"
 #include "range.h"
 
 class MarkerIndex {
@@ -20,7 +20,7 @@ public:
   };
 
   struct Boundary {
-    Point position;
+    NativePoint position;
     flat_set<MarkerId> starting;
     flat_set<MarkerId> ending;
   };
@@ -33,24 +33,24 @@ public:
   MarkerIndex(unsigned seed = 0u);
   ~MarkerIndex();
   int generate_random_number();
-  void insert(MarkerId id, Point start, Point end);
+  void insert(MarkerId id, NativePoint start, NativePoint end);
   void set_exclusive(MarkerId id, bool exclusive);
   void remove(MarkerId id);
   bool has(MarkerId id);
-  SpliceResult splice(Point start, Point old_extent, Point new_extent);
-  Point get_start(MarkerId id) const;
-  Point get_end(MarkerId id) const;
+  SpliceResult splice(NativePoint start, NativePoint old_extent, NativePoint new_extent);
+  NativePoint get_start(MarkerId id) const;
+  NativePoint get_end(MarkerId id) const;
   Range get_range(MarkerId id) const;
 
   int compare(MarkerId id1, MarkerId id2) const;
-  flat_set<MarkerId> find_intersecting(Point start, Point end);
-  flat_set<MarkerId> find_containing(Point start, Point end);
-  flat_set<MarkerId> find_contained_in(Point start, Point end);
-  flat_set<MarkerId> find_starting_in(Point start, Point end);
-  flat_set<MarkerId> find_starting_at(Point position);
-  flat_set<MarkerId> find_ending_in(Point start, Point end);
-  flat_set<MarkerId> find_ending_at(Point position);
-  BoundaryQueryResult find_boundaries_after(Point start, size_t max_count);
+  flat_set<MarkerId> find_intersecting(NativePoint start, NativePoint end);
+  flat_set<MarkerId> find_containing(NativePoint start, NativePoint end);
+  flat_set<MarkerId> find_contained_in(NativePoint start, NativePoint end);
+  flat_set<MarkerId> find_starting_in(NativePoint start, NativePoint end);
+  flat_set<MarkerId> find_starting_at(NativePoint position);
+  flat_set<MarkerId> find_ending_in(NativePoint start, NativePoint end);
+  flat_set<MarkerId> find_ending_at(NativePoint position);
+  BoundaryQueryResult find_boundaries_after(NativePoint start, size_t max_count);
 
   std::unordered_map<MarkerId, Range> dump();
 
@@ -61,14 +61,14 @@ private:
     Node *parent;
     Node *left;
     Node *right;
-    Point left_extent;
+    NativePoint left_extent;
     flat_set<MarkerId> left_marker_ids;
     flat_set<MarkerId> right_marker_ids;
     flat_set<MarkerId> start_marker_ids;
     flat_set<MarkerId> end_marker_ids;
     int priority;
 
-    Node(Node *parent, Point left_extent);
+    Node(Node *parent, NativePoint left_extent);
     bool is_marker_endpoint();
   };
 
@@ -76,14 +76,14 @@ private:
   public:
     Iterator(MarkerIndex *marker_index);
     void reset();
-    Node* insert_marker_start(const MarkerId &id, const Point &start_position, const Point &end_position);
-    Node* insert_marker_end(const MarkerId &id, const Point &start_position, const Point &end_position);
-    Node* insert_splice_boundary(const Point &position, bool is_insertion_end);
-    void find_intersecting(const Point &start, const Point &end, flat_set<MarkerId> *result);
-    void find_contained_in(const Point &start, const Point &end, flat_set<MarkerId> *result);
-    void find_starting_in(const Point &start, const Point &end, flat_set<MarkerId> *result);
-    void find_ending_in(const Point &start, const Point &end, flat_set<MarkerId> *result);
-    void find_boundaries_after(Point start, size_t max_count, BoundaryQueryResult *result);
+    Node* insert_marker_start(const MarkerId &id, const NativePoint &start_position, const NativePoint &end_position);
+    Node* insert_marker_end(const MarkerId &id, const NativePoint &start_position, const NativePoint &end_position);
+    Node* insert_splice_boundary(const NativePoint &position, bool is_insertion_end);
+    void find_intersecting(const NativePoint &start, const NativePoint &end, flat_set<MarkerId> *result);
+    void find_contained_in(const NativePoint &start, const NativePoint &end, flat_set<MarkerId> *result);
+    void find_starting_in(const NativePoint &start, const NativePoint &end, flat_set<MarkerId> *result);
+    void find_ending_in(const NativePoint &start, const NativePoint &end, flat_set<MarkerId> *result);
+    void find_boundaries_after(NativePoint start, size_t max_count, BoundaryQueryResult *result);
     std::unordered_map<MarkerId, Range> dump();
 
   private:
@@ -91,24 +91,24 @@ private:
     void descend_left();
     void descend_right();
     void move_to_successor();
-    void seek_to_first_node_greater_than_or_equal_to(const Point &position);
-    void mark_right(const MarkerId &id, const Point &start_position, const Point &end_position);
-    void mark_left(const MarkerId &id, const Point &start_position, const Point &end_position);
-    Node* insert_left_child(const Point &position);
-    Node* insert_right_child(const Point &position);
-    void check_intersection(const Point &start, const Point &end, flat_set<MarkerId> *results);
+    void seek_to_first_node_greater_than_or_equal_to(const NativePoint &position);
+    void mark_right(const MarkerId &id, const NativePoint &start_position, const NativePoint &end_position);
+    void mark_left(const MarkerId &id, const NativePoint &start_position, const NativePoint &end_position);
+    Node* insert_left_child(const NativePoint &position);
+    Node* insert_right_child(const NativePoint &position);
+    void check_intersection(const NativePoint &start, const NativePoint &end, flat_set<MarkerId> *results);
     void cache_node_position() const;
 
     MarkerIndex *marker_index;
     Node *current_node;
-    Point current_node_position;
-    Point left_ancestor_position;
-    Point right_ancestor_position;
-    std::vector<Point> left_ancestor_position_stack;
-    std::vector<Point> right_ancestor_position_stack;
+    NativePoint current_node_position;
+    NativePoint left_ancestor_position;
+    NativePoint right_ancestor_position;
+    std::vector<NativePoint> left_ancestor_position_stack;
+    std::vector<NativePoint> right_ancestor_position_stack;
   };
 
-  Point get_node_position(const Node *node) const;
+  NativePoint get_node_position(const Node *node) const;
   void delete_node(Node *node);
   void delete_subtree(Node *node);
   void bubble_node_up(Node *node);
@@ -125,7 +125,7 @@ private:
   std::unordered_map<MarkerId, Node*> end_nodes_by_id;
   Iterator iterator;
   flat_set<MarkerId> exclusive_marker_ids;
-  mutable std::unordered_map<const Node*, Point> node_position_cache;
+  mutable std::unordered_map<const Node*, NativePoint> node_position_cache;
 };
 
 #endif // MARKER_INDEX_H_

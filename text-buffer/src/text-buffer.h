@@ -1,6 +1,7 @@
 #ifndef TEXT_BUFFER_H_
 #define TEXT_BUFFER_H_
 
+#include "point.h"
 #include <string>
 #include <unordered_map>
 #include <native-text-buffer.h>

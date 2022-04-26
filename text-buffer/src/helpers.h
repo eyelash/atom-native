@@ -1,8 +1,8 @@
 #ifndef HELPERS_H_
 #define HELPERS_H_
 
+#include "point.h"
 #include <regex.h>
-#include <point.h>
 
 inline Point extentForText(const std::u16string &text) {
   static const Regex LF_REGEX(u"\\n", nullptr);

@@ -6,13 +6,13 @@
 #include <vector>
 #include <ostream>
 #include "serializer.h"
-#include "point.h"
+#include "native-point.h"
 #include "optional.h"
 
 class TextSlice;
 
 struct ClipResult {
-  Point position;
+  NativePoint position;
   uint32_t offset;
 };
 
@@ -20,7 +20,7 @@ class Text {
   friend class TextSlice;
 
  public:
-  static Point extent(const std::u16string &);
+  static NativePoint extent(const std::u16string &);
 
   std::u16string content;
   std::vector<uint32_t> line_offsets;
@@ -38,19 +38,19 @@ class Text {
 
   static Text concat(TextSlice a, TextSlice b);
   static Text concat(TextSlice a, TextSlice b, TextSlice c);
-  void splice(Point start, Point deletion_extent, TextSlice inserted_slice);
+  void splice(NativePoint start, NativePoint deletion_extent, TextSlice inserted_slice);
 
-  uint16_t at(Point position) const;
+  uint16_t at(NativePoint position) const;
   uint16_t at(uint32_t offset) const;
   const_iterator begin() const;
   const_iterator end() const;
   inline const_iterator cbegin() const { return begin(); }
   inline const_iterator cend() const { return end(); }
-  ClipResult clip_position(Point) const;
-  Point extent() const;
+  ClipResult clip_position(NativePoint) const;
+  NativePoint extent() const;
   bool empty() const;
-  uint32_t offset_for_position(Point) const;
-  Point position_for_offset(uint32_t, uint32_t min_row = 0, bool clip_crlf = true) const;
+  uint32_t offset_for_position(NativePoint) const;
+  NativePoint position_for_offset(uint32_t, uint32_t min_row = 0, bool clip_crlf = true) const;
   uint32_t line_length_for_row(uint32_t row) const;
   void append(TextSlice);
   void assign(TextSlice);

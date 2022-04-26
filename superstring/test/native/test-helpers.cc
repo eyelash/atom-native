@@ -62,10 +62,10 @@ Range get_random_range(Generator &rand, const Text &text) {
   uint32_t max_column = text.line_length_for_row(start_row);
   uint32_t start_column = 0;
   if (max_column > 0) start_column = rand() % max_column;
-  Point start {start_row, start_column};
-  Point end {start};
+  NativePoint start {start_row, start_column};
+  NativePoint end {start};
   while (rand() % 10 < 3) {
-    end = text.clip_position(end.traverse(Point(rand() % 2, rand() % 10))).position;
+    end = text.clip_position(end.traverse(NativePoint(rand() % 2, rand() % 10))).position;
   }
   return {start, end};
 }

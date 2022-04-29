@@ -2,20 +2,31 @@
 #define HELPERS_H_
 
 #include "point.h"
-#include <regex.h>
 
-inline Point extentForText(const std::u16string &text) {
-  static const Regex LF_REGEX(u"\\n", nullptr);
-  size_t lastLineStartIndex = 0;
-  uint32_t row = 0;
-  Regex::MatchData match_data(LF_REGEX);
-  Regex::MatchResult result = LF_REGEX.match(text.data() + lastLineStartIndex, text.size() - lastLineStartIndex, match_data);
-  while (result.type == Regex::MatchResult::Partial || result.type == Regex::MatchResult::Full) {
-    row++;
-    lastLineStartIndex = result.end_offset;
-    result = LF_REGEX.match(text.data() + lastLineStartIndex, text.size() - lastLineStartIndex, match_data);
+template <class T> void spliceArray(std::vector<T>& array, double start, double removedCount, const std::vector<T>& insertedItems = std::vector<T>()) {
+  const double oldLength = array.size();
+  const double insertedCount = insertedItems.size();
+  removedCount = std::min(removedCount, oldLength - start);
+  const double lengthDelta = insertedCount - removedCount;
+  const double newLength = oldLength + lengthDelta;
+
+  if (lengthDelta > 0) {
+    array.resize(newLength);
+    for (double i = newLength - 1, end = start + insertedCount; i >= end; i--) {
+      array[i] = array[i - lengthDelta];
+    }
+  } else if (lengthDelta < 0) {
+    for (double i = start + insertedCount, end = newLength; i < end; i++) {
+      array[i] = array[i - lengthDelta];
+    }
+    array.resize(newLength);
   }
-  return {row, static_cast<unsigned>(text.size() - lastLineStartIndex)};
+
+  for (double i = 0; i < insertedCount; i++) {
+    array[start + i] = insertedItems[i];
+  }
 }
+
+Point extentForText(const std::u16string &);
 
 #endif  // HELPERS_H_

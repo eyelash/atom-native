@@ -7,27 +7,30 @@
 class MarkerLayer;
 
 class Marker {
-  unsigned id;
   MarkerLayer *layer;
   bool tailed;
   bool reversed;
 
 public:
+  unsigned id;
+
   Marker(unsigned, MarkerLayer *, Range);
   ~Marker();
 
-  Range getRange();
-  bool setRange(const Range &, optional<bool>);
-  Point getHeadPosition();
+  Range getRange() const;
+  bool setRange(const Range &, optional<bool> = optional<bool>());
+  Point getHeadPosition() const;
   bool setHeadPosition(const Point &);
-  Point getTailPosition();
+  Point getTailPosition() const;
   bool setTailPosition(const Point &);
-  Point getStartPosition();
-  Point getEndPosition();
+  Point getStartPosition() const;
+  Point getEndPosition() const;
   bool clearTail();
   bool plantTail();
   bool isReversed() const;
   bool hasTail() const;
+  bool isEqual(const Marker *) const;
+  int compare(const Marker *) const;
 
 private:
   struct UpdateParams {
@@ -35,7 +38,7 @@ private:
     optional<bool> reversed;
     optional<bool> tailed;
   };
-  bool update(Range, const UpdateParams &);
+  bool update(const Range &, const UpdateParams &);
 };
 
 #endif  // MARKER_H_

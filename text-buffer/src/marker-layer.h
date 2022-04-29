@@ -23,19 +23,19 @@ public:
   void clear();
   Marker *getMarker(unsigned);
   std::vector<Marker *> getMarkers();
-  std::size_t getMarkerCount();
+  std::size_t getMarkerCount() const;
   Marker *markRange(Range);
   Marker *markPosition(Point);
   void splice(Point, Point, Point);
-  Range getMarkerRange(unsigned);
-  Point getMarkerStartPosition(unsigned);
-  Point getMarkerEndPosition(unsigned);
+  Range getMarkerRange(unsigned) const;
+  Point getMarkerStartPosition(unsigned) const;
+  Point getMarkerEndPosition(unsigned) const;
   int compareMarkers(unsigned, unsigned);
   void setMarkerRange(unsigned, Range);
 
 private:
-  Marker *createMarker(Range);
-  Marker *addMarker(unsigned, Range);
+  Marker *createMarker(const Range &);
+  Marker *addMarker(unsigned, const Range &);
 };
 
 #endif  // MARKER_LAYER_H_

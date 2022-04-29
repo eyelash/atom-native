@@ -30,6 +30,9 @@ struct Point {
   bool isZero() const;
   bool isPositive() const;
   bool isNegative() const;
+
+  static Point ZERO;
+  static Point INFINITY_;
 };
 
 #endif  // POINT_H_

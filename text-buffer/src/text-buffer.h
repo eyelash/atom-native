@@ -1,7 +1,7 @@
 #ifndef TEXT_BUFFER_H_
 #define TEXT_BUFFER_H_
 
-#include "point.h"
+#include "range.h"
 #include <string>
 #include <unordered_map>
 #include <native-text-buffer.h>
@@ -54,7 +54,7 @@ public:
   Marker *getMarker(unsigned);
   std::size_t getMarkerCount();
   Range getRange();
-  unsigned getLineCount();
+  double getLineCount();
   unsigned getLastRow();
   Point getFirstPosition();
   Point getEndPosition();

@@ -2,11 +2,11 @@
 #include "marker-layer.h"
 
 Marker::Marker(unsigned id, MarkerLayer *layer, Range range) :
-  id{id}, layer{layer}, tailed{false}, reversed{false} {}
+  layer{layer}, tailed{false}, reversed{false}, id{id} {}
 
 Marker::~Marker() {}
 
-Range Marker::getRange() {
+Range Marker::getRange() const {
   return this->layer->getMarkerRange(this->id);
 }
 
@@ -18,7 +18,7 @@ bool Marker::setRange(const Range &range, optional<bool> reversed) {
   });
 }
 
-Point Marker::getHeadPosition() {
+Point Marker::getHeadPosition() const {
   if (this->reversed) {
     return this->getStartPosition();
   } else {
@@ -51,7 +51,7 @@ bool Marker::setHeadPosition(const Point &position) {
   return this->update(oldRange, params);
 }
 
-Point Marker::getTailPosition() {
+Point Marker::getTailPosition() const {
   if (this->reversed) {
     return this->getEndPosition();
   } else {
@@ -81,11 +81,11 @@ bool Marker::setTailPosition(const Point &position) {
   return this->update(oldRange, params);
 }
 
-Point Marker::getStartPosition() {
+Point Marker::getStartPosition() const {
   return this->layer->getMarkerStartPosition(this->id);
 }
 
-Point Marker::getEndPosition() {
+Point Marker::getEndPosition() const {
   return this->layer->getMarkerEndPosition(this->id);
 }
 
@@ -117,7 +117,15 @@ bool Marker::hasTail() const {
   return this->tailed;
 }
 
-bool Marker::update(Range oldRange, const UpdateParams &params) {
+bool Marker::isEqual(const Marker *other) const {
+  return this->tailed == other->tailed && this->reversed == other->reversed /* && this->exclusive == other->exclusive */ && this->getRange().isEqual(other->getRange());
+}
+
+int Marker::compare(const Marker *other) const {
+  return this->layer->compareMarkers(this->id, other->id);
+}
+
+bool Marker::update(const Range &oldRange, const UpdateParams &params) {
   bool updated = false;
   if (params.range && !params.range->isEqual(oldRange)) {
     this->layer->setMarkerRange(this->id, *params.range);

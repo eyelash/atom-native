@@ -137,3 +137,7 @@ bool Point::isNegative() const {
     return this->column < 0;
   }
 }
+
+Point Point::ZERO = Point(0, 0);
+
+Point Point::INFINITY_ = Point(INFINITY, INFINITY);

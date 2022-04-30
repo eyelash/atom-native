@@ -5,9 +5,11 @@
 #include <optional.h>
 
 class TextBuffer;
+class DisplayLayer;
 
 class TextEditor {
   TextBuffer *buffer;
+  DisplayLayer *displayLayer;
 
 public:
   TextEditor();
@@ -17,8 +19,19 @@ public:
   std::u16string getText();
   std::u16string getTextInBufferRange(Range);
   unsigned getLineCount();
+  double getScreenLineCount();
   unsigned getLastBufferRow();
-  optional<std::u16string> lineTextForBufferRow(uint32_t bufferRow);
+  double getLastScreenRow();
+  optional<std::u16string> lineTextForBufferRow(uint32_t);
+  double bufferRowForScreenRow(double);
+  double screenRowForBufferRow(double);
+  Point getRightmostScreenPosition();
+  double getMaxScreenLineLength();
+  double getLongestScreenRow();
+  double lineLengthForScreenRow(double);
+  Range bufferRangeForBufferRow(double, bool);
+  std::u16string getTextInRange(Range);
+  Point getEofBufferPosition();
   void setText(std::u16string &&);
   Range setTextInBufferRange(Range, std::u16string &&);
 };

@@ -1154,9 +1154,9 @@ std::pair<double, double> DisplayLayer::findBoundaryFollowingScreenRow(double sc
 
 // Returns a map describing fold starts and ends, structured as
 // fold start row -> fold start column -> fold end point
-/*computeFoldsInBufferRowRange (startBufferRow, endBufferRow) {
-  const folds = {}
-  const foldMarkers = this.foldsMarkerLayer.findMarkers({
+std::unordered_map<double, std::unordered_map<double, Point>> DisplayLayer::computeFoldsInBufferRowRange(double startBufferRow, double endBufferRow) {
+  std::unordered_map<double, std::unordered_map<double, Point>> folds;
+  /*const foldMarkers = this.foldsMarkerLayer.findMarkers({
     intersectsRowRange: [startBufferRow, endBufferRow - 1]
   })
 
@@ -1201,10 +1201,10 @@ std::pair<double, double> DisplayLayer::findBoundaryFollowingScreenRow(double sc
       if (!folds[foldStart.row]) folds[foldStart.row] = {}
       folds[foldStart.row][foldStart.column] = foldEnd
     }
-  }
+  }*/
 
-  return folds
-}*/
+  return folds;
+}
 
 /*setParams (params) {
   let paramsChanged = false

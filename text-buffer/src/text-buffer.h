@@ -34,7 +34,7 @@ public:
     std::u16string newText;
   };
 
-  bool isEmpty();
+  bool isEmpty() const;
   std::u16string getText();
   uint16_t getCharacterAtPosition(Point);
   std::u16string getTextInRange(Range);
@@ -53,12 +53,12 @@ public:
   std::vector<Marker *> getMarkers();
   Marker *getMarker(unsigned);
   std::size_t getMarkerCount();
-  Range getRange();
-  double getLineCount();
-  unsigned getLastRow();
-  Point getFirstPosition();
-  Point getEndPosition();
-  uint32_t getLength();
+  Range getRange() const;
+  double getLineCount() const;
+  unsigned getLastRow() const;
+  Point getFirstPosition() const;
+  Point getEndPosition() const;
+  uint32_t getLength() const;
   uint32_t getMaxCharacterIndex();
   Range rangeForRow(unsigned, bool);
   uint32_t characterIndexForPosition(Point);

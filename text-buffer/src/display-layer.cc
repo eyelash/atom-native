@@ -1137,20 +1137,20 @@ double DisplayLayer::findBoundaryFollowingBufferRow(double bufferRow) {
   }
 }
 
-/*findBoundaryFollowingScreenRow (screenRow) {
+std::pair<double, double> DisplayLayer::findBoundaryFollowingScreenRow(double screenRow) {
   while (true) {
-    let bufferPosition = this.translateScreenPositionWithSpatialIndex(Point(screenRow, 0), 'forward')
-    if (bufferPosition.column === 0) {
-      return [bufferPosition.row, screenRow]
+    Point bufferPosition = this->translateScreenPositionWithSpatialIndex(Point(screenRow, 0), ClipDirection::forward);
+    if (bufferPosition.column == 0) {
+      return std::make_pair(bufferPosition.row, screenRow);
     } else {
-      const endOfBufferRow = Point(
+      const Point endOfBufferRow = Point(
         bufferPosition.row,
-        this.buffer.lineLengthForRow(bufferPosition.row)
-      )
-      screenRow = this.translateBufferPositionWithSpatialIndex(endOfBufferRow, 'forward').row + 1
+        this->buffer->lineLengthForRow(bufferPosition.row)
+      );
+      screenRow = this->translateBufferPositionWithSpatialIndex(endOfBufferRow, ClipDirection::forward).row + 1;
     }
   }
-}*/
+}
 
 // Returns a map describing fold starts and ends, structured as
 // fold start row -> fold start column -> fold end point

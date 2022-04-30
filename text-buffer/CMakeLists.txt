@@ -15,6 +15,6 @@ target_sources(text-buffer PRIVATE
   src/point-helpers.cc
   src/range.cc
   src/screen-line-builder.cc
-  #src/text-buffer.cc
+  src/text-buffer.cc
 )
 target_include_directories(text-buffer INTERFACE src)

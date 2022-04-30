@@ -39,7 +39,7 @@ Section: File Details
 Section: Reading Text
 */
 
-bool TextBuffer::isEmpty() {
+bool TextBuffer::isEmpty() const {
   return this->buffer->size() == 0;
 }
 
@@ -111,11 +111,11 @@ Range TextBuffer::applyChange(Change change, bool pushToHistory) {
   std::u16string newText = std::move(change.newText);
 
   const Point oldExtent = traversal(oldEnd, oldStart);
-  const Range oldRange = Range{newStart, traverse(newStart, oldExtent)};
+  const Range oldRange = Range(newStart, traverse(newStart, oldExtent));
   //oldRange.freeze()
 
   const Point newExtent = traversal(newEnd, newStart);
-  const Range newRange = Range{newStart, traverse(newStart, newExtent)};
+  const Range newRange = Range(newStart, traverse(newStart, newExtent));
   //newRange.freeze()
 
   /*if (pushToHistory) {
@@ -200,23 +200,23 @@ Section: Search And Replace
 Section: Buffer Range Details
 */
 
-Range TextBuffer::getRange() {
-  return Range{this->getFirstPosition(), this->getEndPosition()};
+Range TextBuffer::getRange() const {
+  return Range(this->getFirstPosition(), this->getEndPosition());
 }
 
-unsigned TextBuffer::getLineCount() { return this->buffer->extent().row + 1; }
+double TextBuffer::getLineCount() const { return this->buffer->extent().row + 1; }
 
-unsigned TextBuffer::getLastRow() {
+unsigned TextBuffer::getLastRow() const {
   return this->getLineCount() - 1;
 }
 
-Point TextBuffer::getFirstPosition() {
-  return Point{0, 0};
+Point TextBuffer::getFirstPosition() const {
+  return Point(0, 0);
 }
 
-Point TextBuffer::getEndPosition() { return this->buffer->extent(); }
+Point TextBuffer::getEndPosition() const { return this->buffer->extent(); }
 
-uint32_t TextBuffer::getLength() { return this->buffer->size(); }
+uint32_t TextBuffer::getLength() const { return this->buffer->size(); }
 
 uint32_t TextBuffer::getMaxCharacterIndex() {
   return this->characterIndexForPosition({UINT32_MAX, UINT32_MAX});
@@ -225,9 +225,9 @@ uint32_t TextBuffer::getMaxCharacterIndex() {
 Range TextBuffer::rangeForRow(unsigned row, bool includeNewline) {
   row = std::min(row, this->getLastRow());
   if (includeNewline && row < this->getLastRow()) {
-    return Range{Point{row, 0}, Point{row + 1, 0}};
+    return Range(Point(row, 0), Point(row + 1, 0));
   } else {
-    return Range{Point{row, 0}, Point{row, this->lineLengthForRow(row)}};
+    return Range(Point(row, 0), Point(row, this->lineLengthForRow(row)));
   }
 }
 
@@ -245,7 +245,7 @@ Range TextBuffer::clipRange(Range range) {
   if (range.start == start && range.end == end) {
     return range;
   } else {
-    return Range{start, end};
+    return Range(start, end);
   }
 }
 
@@ -256,13 +256,13 @@ Point TextBuffer::clipPosition(Point position) {
   } else if (row > this->getLastRow()) {
     return this->getEndPosition();
   } else if (column < 0) {
-    return Point{row, 0};
+    return Point(row, 0);
   } else {
     const uint32_t lineLength = *this->lineLengthForRow(row);
     /*if (column >= lineLength && row < this.getLastRow() && options && options.clipDirection === 'forward') {
       return new Point(row + 1, 0)
     } else */ if (column > lineLength) {
-      return Point{row, lineLength};
+      return Point(row, lineLength);
     } else {
       return position;
     }

@@ -63,6 +63,7 @@ public:
   void populateSpatialIndexIfNeeded(double, double);
   double findBoundaryPrecedingBufferRow(double);
   double findBoundaryFollowingBufferRow(double);
+  std::pair<double, double> findBoundaryFollowingScreenRow(double);
   std::unordered_map<double, std::unordered_map<double, Point>> computeFoldsInBufferRowRange(double, double);
   static bool isSoftWrapHunk(const Patch::Change &);
 };

@@ -5,6 +5,8 @@
 #include "point-helpers.h"
 #include "is-character-pair.h"
 #include "helpers.h"
+#include "constants.h"
+#include "language-mode.h"
 
 /*
 const {Patch} = require('superstring')
@@ -29,18 +31,20 @@ static bool isWordStart(char16_t previousCharacter, char16_t character) {
 }
 
 DisplayLayer::DisplayLayer(unsigned id, TextBuffer *buffer) :
+  id{id},
   buffer{buffer},
+  nextBuiltInScopeId{1},
   tabLength{4},
   softWrapColumn{INFINITY},
   softWrapHangingIndent{0},
+  showIndentGuides{false},
   ratioForCharacter{unitRatio},
   isWrapBoundary{isWordStart},
   foldCharacter{u'\u22EF'},
   foldsMarkerLayer{buffer->addMarkerLayer()},
   spatialIndex{new Patch()},
   rightmostScreenPosition{Point(0, 0)},
-  indexedBufferRowCount{0},
-  id{id} {}
+  indexedBufferRowCount{0} {}
 
 DisplayLayer::~DisplayLayer() {
   for (auto& displayMarkerLayer : this->displayMarkerLayersById) {
@@ -703,110 +707,111 @@ std::vector<double> DisplayLayer::bufferRowsForScreenRows(double startRow, doubl
   return bufferRows;
 }
 
-/*leadingWhitespaceLengthForSurroundingLines (startBufferRow) {
-  let length = 0
-  for (let bufferRow = startBufferRow - 1; bufferRow >= 0; bufferRow--) {
-    const line = this.buffer.lineForRow(bufferRow)
-    if (line.length > 0) {
-      length = this.leadingWhitespaceLengthForNonEmptyLine(line)
-      break
+double DisplayLayer::leadingWhitespaceLengthForSurroundingLines(double startBufferRow) {
+  double length = 0;
+  for (double bufferRow = startBufferRow - 1; bufferRow >= 0; bufferRow--) {
+    auto line = this->buffer->lineForRow(bufferRow);
+    if (line->size() > 0) {
+      length = this->leadingWhitespaceLengthForNonEmptyLine(*line);
+      break;
     }
   }
 
-  const lineCount = this.buffer.getLineCount()
-  for (let bufferRow = startBufferRow + 1; bufferRow < lineCount; bufferRow++) {
-    const line = this.buffer.lineForRow(bufferRow)
-    if (line.length > 0) {
-      length = Math.max(length, this.leadingWhitespaceLengthForNonEmptyLine(line))
-      break
+  const double lineCount = this->buffer->getLineCount();
+  for (double bufferRow = startBufferRow + 1; bufferRow < lineCount; bufferRow++) {
+    auto line = this->buffer->lineForRow(bufferRow);
+    if (line->size() > 0) {
+      length = std::max(length, this->leadingWhitespaceLengthForNonEmptyLine(*line));
+      break;
     }
   }
 
-  return length
-}*/
+  return length;
+}
 
-/*leadingWhitespaceLengthForNonEmptyLine (line) {
-  let length = 0
-  for (let i = 0; i < line.length; i++) {
-    const character = line[i]
-    if (character === ' ') {
-      length++
-    } else if (character === '\t') {
-      length += this.tabLength - (length % this.tabLength)
+double DisplayLayer::leadingWhitespaceLengthForNonEmptyLine(const std::u16string &line) {
+  double length = 0;
+  for (double i = 0; i < line.size(); i++) {
+    const char16_t character = line[i];
+    if (character == u' ') {
+      length++;
+    } else if (character == u'\t') {
+      length += this->tabLength - std::fmod(length, this->tabLength);
     } else {
-      break
+      break;
     }
   }
-  return length
-}*/
+  return length;
+}
 
-/*findTrailingWhitespaceStartColumn (bufferRow) {
-  let position
-  for (position = {row: bufferRow, column: this.buffer.lineLengthForRow(bufferRow) - 1}; position.column >= 0; position.column--) {
-    const previousCharacter = this.buffer.getCharacterAtPosition(position)
-    if (previousCharacter !== ' ' && previousCharacter !== '\t') {
-      break
+double DisplayLayer::findTrailingWhitespaceStartColumn(double bufferRow) {
+  Point position;
+  for (position = Point(bufferRow, this->buffer->lineLengthForRow(bufferRow) - 1); position.column >= 0; position.column--) {
+    const char16_t previousCharacter = this->buffer->getCharacterAtPosition(position);
+    if (previousCharacter != u' ' && previousCharacter != u'\t') {
+      break;
     }
   }
-  return position.column + 1
-}*/
+  return position.column + 1;
+}
 
-/*registerBuiltInScope (flags, className) {
-  if (this.nextBuiltInScopeId > MAX_BUILT_IN_SCOPE_ID) {
+int32_t DisplayLayer::registerBuiltInScope(int32_t flags, const std::u16string &className) {
+  /*if (this.nextBuiltInScopeId > MAX_BUILT_IN_SCOPE_ID) {
     throw new Error('Built in scope ids exhausted')
-  }
+  }*/
 
-  let scopeId
-  if (className.length > 0) {
-    scopeId = this.nextBuiltInScopeId += 2
-    this.builtInClassNamesByScopeId.set(scopeId, className)
+  int32_t scopeId;
+  if (className.size() > 0) {
+    scopeId = this->nextBuiltInScopeId += 2;
+    this->builtInClassNamesByScopeId[scopeId] = className;
   } else {
-    scopeId = 0
+    scopeId = 0;
   }
-  this.builtInScopeIdsByFlags.set(flags, scopeId)
-  return scopeId
-}*/
+  this->builtInScopeIdsByFlags[flags] = scopeId;
+  return scopeId;
+}
 
-/*getBuiltInScopeId (flags) {
-  if (this.builtInScopeIdsByFlags.has(flags)) {
-    return this.builtInScopeIdsByFlags.get(flags)
+int32_t DisplayLayer::getBuiltInScopeId(int32_t flags) {
+  auto iter = this->builtInScopeIdsByFlags.find(flags);
+  if (iter != this->builtInScopeIdsByFlags.end()) {
+    return iter->second;
   } else {
-    return -1
+    return -1;
   }
-}*/
+}
 
-/*classNameForScopeId (scopeId) {
+std::u16string DisplayLayer::classNameForScopeId(int32_t scopeId) {
   if (scopeId <= MAX_BUILT_IN_SCOPE_ID) {
-    return this.builtInClassNamesByScopeId.get(scopeId)
+    return this->builtInClassNamesByScopeId[scopeId];
   } else {
-    return this.buffer.languageMode.classNameForScopeId(scopeId)
+    return this->buffer->languageMode->classNameForScopeId(scopeId);
   }
-}*/
+}
 
-/*scopeIdForTag (tag) {
-  if (this.isCloseTag(tag)) tag++
-  return -tag
-}*/
+int32_t DisplayLayer::scopeIdForTag(int32_t tag) const {
+  if (this->isCloseTag(tag)) tag++;
+  return -tag;
+}
 
-/*classNameForTag (tag) {
-  return this.classNameForScopeId(this.scopeIdForTag(tag))
-}*/
+std::u16string DisplayLayer::classNameForTag(int32_t tag) {
+  return this->classNameForScopeId(this->scopeIdForTag(tag));
+}
 
-/*openTagForScopeId (scopeId) {
-  return -scopeId
-}*/
+int32_t DisplayLayer::openTagForScopeId(int32_t scopeId) {
+  return -scopeId;
+}
 
-/*closeTagForScopeId (scopeId) {
-  return -scopeId - 1
-}*/
+int32_t DisplayLayer::closeTagForScopeId(int32_t scopeId) {
+  return -scopeId - 1;
+}
 
-/*isOpenTag (tag) {
-  return tag < 0 && (tag & 1) === 1
-}*/
+bool DisplayLayer::isOpenTag(int32_t tag) const {
+  return tag < 0 && (tag & 1) == 1;
+}
 
-/*isCloseTag (tag) {
-  return tag < 0 && (tag & 1) === 0
-}*/
+bool DisplayLayer::isCloseTag(int32_t tag) const {
+  return tag < 0 && (tag & 1) == 0;
+}
 
 /*bufferWillChange (change) {
   const lineCount = this.buffer.getLineCount()
@@ -1087,7 +1092,7 @@ void DisplayLayer::updateSpatialIndex(double startBufferRow, double oldEndBuffer
     startScreenRow,
     oldScreenRowCount,
     // TODO: ensure zero initialization
-    std::vector<int>(insertedScreenLineLengths.size())
+    std::vector<ScreenLine>(insertedScreenLineLengths.size())
   );
 
   /*return {

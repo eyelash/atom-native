@@ -10,15 +10,40 @@ class MarkerLayer;
 class DisplayMarkerLayer;
 
 class DisplayLayer {
+public:
+  struct ScreenLine {
+    unsigned id;
+    std::u16string lineText;
+    std::vector<int32_t> tags;
+    double softWrapIndent;
+  };
+  struct Invisibles {
+    const char16_t *space;
+    const char16_t *tab;
+  };
+  enum class ClipDirection {
+    backward,
+    forward,
+    closest
+  };
+
+  unsigned id;
+private:
   TextBuffer *buffer;
-  std::vector<int> cachedScreenLines;
+  std::vector<ScreenLine> cachedScreenLines;
+  std::unordered_map<int32_t, int32_t> builtInScopeIdsByFlags;
+  std::unordered_map<int32_t, std::u16string> builtInClassNamesByScopeId;
+  int32_t nextBuiltInScopeId;
   std::unordered_map<unsigned, DisplayMarkerLayer *> displayMarkerLayersById;
+  Invisibles invisibles;
   double tabLength;
   double softWrapColumn;
   double softWrapHangingIndent;
+  bool showIndentGuides;
   double (*ratioForCharacter)(char16_t);
   bool (*isWrapBoundary)(char16_t, char16_t);
   char16_t foldCharacter;
+  std::unordered_map<std::u16string, const char16_t *> eolInvisibles;
   MarkerLayer *foldsMarkerLayer;
   Patch *spatialIndex;
   std::vector<double> tabCounts;
@@ -27,14 +52,6 @@ class DisplayLayer {
   double indexedBufferRowCount;
 
 public:
-  unsigned id;
-
-  enum class ClipDirection {
-    backward,
-    forward,
-    closest
-  };
-
   DisplayLayer(unsigned, TextBuffer *);
   ~DisplayLayer();
 
@@ -43,7 +60,7 @@ public:
   DisplayMarkerLayer *getMarkerLayer(unsigned);
   Range bufferRangeForFold(unsigned);
   Point translateBufferPosition(Point);
-  Point translateBufferPositionWithSpatialIndex(Point, ClipDirection);
+  Point translateBufferPositionWithSpatialIndex(Point, ClipDirection = ClipDirection::closest);
   Range translateBufferRange(Range);
   Point translateScreenPosition(Point);
   Point translateScreenPositionWithSpatialIndex(Point, ClipDirection = ClipDirection::forward, bool = false);
@@ -59,6 +76,18 @@ public:
   Point getRightmostScreenPosition();
   Point getApproximateRightmostScreenPosition();
   std::vector<double> bufferRowsForScreenRows(double, double);
+  double leadingWhitespaceLengthForSurroundingLines(double);
+  double leadingWhitespaceLengthForNonEmptyLine(const std::u16string &);
+  double findTrailingWhitespaceStartColumn(double);
+  int32_t registerBuiltInScope(int32_t, const std::u16string &);
+  int32_t getBuiltInScopeId(int32_t);
+  std::u16string classNameForScopeId(int32_t);
+  int32_t scopeIdForTag(int32_t) const;
+  std::u16string classNameForTag(int32_t);
+  int32_t openTagForScopeId(int32_t);
+  int32_t closeTagForScopeId(int32_t);
+  bool isOpenTag(int32_t) const;
+  bool isCloseTag(int32_t) const;
   void updateSpatialIndex(double, double, double, double /*, deadline = NullDeadline */);
   void populateSpatialIndexIfNeeded(double, double);
   double findBoundaryPrecedingBufferRow(double);
@@ -66,6 +95,8 @@ public:
   std::pair<double, double> findBoundaryFollowingScreenRow(double);
   std::unordered_map<double, std::unordered_map<double, Point>> computeFoldsInBufferRowRange(double, double);
   static bool isSoftWrapHunk(const Patch::Change &);
+
+  friend class ScreenLineBuilder;
 };
 
 #endif  // DISPLAY_LAYER_H_

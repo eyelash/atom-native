@@ -3,13 +3,15 @@
 #include "display-layer.h"
 #include "helpers.h"
 #include "point-helpers.h"
+#include "language-mode.h"
 
 TextBuffer::TextBuffer() :
   buffer{new NativeTextBuffer()},
   nextMarkerLayerId{0},
   nextDisplayLayerId{0},
   defaultMarkerLayer{new MarkerLayer(this, this->nextMarkerLayerId++)},
-  nextMarkerId{1} {
+  nextMarkerId{1},
+  languageMode{new LanguageMode()} {
   this->markerLayers[this->defaultMarkerLayer->id] = this->defaultMarkerLayer;
 }
 
@@ -17,7 +19,8 @@ TextBuffer::TextBuffer(const std::u16string &text) :
   buffer{new NativeTextBuffer(text)},
   nextMarkerLayerId{0},
   defaultMarkerLayer{new MarkerLayer(this, this->nextMarkerLayerId++)},
-  nextMarkerId{1} {
+  nextMarkerId{1},
+  languageMode{new LanguageMode()} {
   this->markerLayers[this->defaultMarkerLayer->id] = this->defaultMarkerLayer;
 }
 
@@ -74,9 +77,17 @@ optional<std::u16string> TextBuffer::lineForRow(uint32_t row) {
   return this->buffer->line_for_row(row);
 }
 
+const char16_t *TextBuffer::lineEndingForRow(double row) {
+  return this->buffer->line_ending_for_row(row);
+}
+
 optional<uint32_t> TextBuffer::lineLengthForRow(uint32_t row) {
   return this->buffer->line_length_for_row(row);
 }
+
+/*isRowBlank (row) {
+  return !/\S/.test(this.lineForRow(row))
+}*/
 
 /*
 Section: Mutating Text

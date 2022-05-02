@@ -9,6 +9,7 @@ target_sources(text-buffer PRIVATE
   src/display-marker.cc
   src/helpers.cc
   src/is-character-pair.cc
+  src/language-mode.cc
   src/marker-layer.cc
   src/marker.cc
   src/point.cc

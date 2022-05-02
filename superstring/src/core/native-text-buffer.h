@@ -31,7 +31,7 @@ public:
   void with_line_for_row(uint32_t row, const std::function<void(const char16_t *, uint32_t)> &);
 
   optional<uint32_t> line_length_for_row(uint32_t row);
-  const uint16_t *line_ending_for_row(uint32_t row);
+  const char16_t *line_ending_for_row(uint32_t row);
   ClipResult clip_position(NativePoint);
   NativePoint position_for_offset(uint32_t offset);
   std::u16string text();

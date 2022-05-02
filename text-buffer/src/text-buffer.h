@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <native-text-buffer.h>
 
+class LanguageMode;
 class Marker;
 class MarkerLayer;
 class DisplayLayer;
@@ -20,6 +21,7 @@ class TextBuffer {
   unsigned nextMarkerId;
 
 public:
+  LanguageMode *languageMode;
 
   TextBuffer();
   TextBuffer(const std::u16string &text);
@@ -41,6 +43,7 @@ public:
   std::vector<std::u16string> getLines();
   optional<std::u16string> getLastLine();
   optional<std::u16string> lineForRow(uint32_t);
+  const char16_t *lineEndingForRow(double);
   optional<uint32_t> lineLengthForRow(uint32_t);
   Range setText(std::u16string &&);
   Range setTextInRange(Range, std::u16string &&);

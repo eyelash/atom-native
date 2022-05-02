@@ -39,6 +39,102 @@ std::size_t MarkerLayer::getMarkerCount() const {
   return this->markersById.size();
 }
 
+MarkerLayer::FindParam startPosition(Point position) {
+  return [position](MarkerIndex *index) {
+    return index->find_starting_at(position);
+  };
+}
+
+MarkerLayer::FindParam endPosition(Point position) {
+  return [position](MarkerIndex *index) {
+    return index->find_ending_at(position);
+  };
+}
+
+MarkerLayer::FindParam startsInRange(Range range) {
+  return [range](MarkerIndex *index) {
+    return index->find_starting_in(range.start, range.end);
+  };
+}
+
+MarkerLayer::FindParam endsInRange(Range range) {
+  return [range](MarkerIndex *index) {
+    return index->find_ending_in(range.start, range.end);
+  };
+}
+
+MarkerLayer::FindParam containsPoint(Point position) {
+  return containsPosition(position);
+}
+
+MarkerLayer::FindParam containsPosition(Point position) {
+  return [position](MarkerIndex *index) {
+    return index->find_containing(position, position);
+  };
+}
+
+MarkerLayer::FindParam containsRange(Range range) {
+  return [range](MarkerIndex *index) {
+    return index->find_containing(range.start, range.end);
+  };
+}
+
+MarkerLayer::FindParam intersectsRange(Range range) {
+  return [range](MarkerIndex *index) {
+    return index->find_intersecting(range.start, range.end);
+  };
+}
+
+MarkerLayer::FindParam startRow(double row) {
+  return [row](MarkerIndex *index) {
+    return index->find_starting_in(Point(row, 0), Point(row, INFINITY));
+  };
+}
+
+MarkerLayer::FindParam endRow(double row) {
+  return [row](MarkerIndex *index) {
+    return index->find_ending_in(Point(row, 0), Point(row, INFINITY));
+  };
+}
+
+MarkerLayer::FindParam intersectsRow(double row) {
+  return [row](MarkerIndex *index) {
+    return index->find_intersecting(Point(row, 0), Point(row, INFINITY));
+  };
+}
+
+
+MarkerLayer::FindParam intersectsRowRange(std::pair<double, double> rowRange) {
+  return [rowRange](MarkerIndex *index) {
+    return index->find_intersecting(Point(rowRange.first, 0), Point(rowRange.second, INFINITY));
+  };
+}
+
+MarkerLayer::FindParam intersectsRowRange(double row0, double row1) {
+  return [row0, row1](MarkerIndex *index) {
+    return index->find_intersecting(Point(row0, 0), Point(row1, INFINITY));
+  };
+}
+
+MarkerLayer::FindParam containedInRange(Range range) {
+  return [range](MarkerIndex *index) {
+    return index->find_contained_in(range.start, range.end);
+  };
+}
+
+std::vector<Marker *> MarkerLayer::findMarkers(FindParam param) {
+  auto markerIds = param(this->index);
+  std::vector<Marker *> result;
+  for (unsigned markerId : markerIds) {
+    Marker *marker = this->markersById[markerId];
+    result.push_back(marker);
+  }
+  std::sort(result.begin(), result.end(), [](Marker *a, Marker *b) {
+    return a->compare(b) < 0;
+  });
+  return result;
+}
+
 Marker *MarkerLayer::markRange(Range range) {
   return this->createMarker(this->delegate->clipRange(range));
 }

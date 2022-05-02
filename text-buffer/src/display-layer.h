@@ -6,6 +6,7 @@
 #include <patch.h>
 
 class TextBuffer;
+class ScreenLineBuilder;
 class MarkerLayer;
 class DisplayMarkerLayer;
 
@@ -30,6 +31,7 @@ public:
   unsigned id;
 private:
   TextBuffer *buffer;
+  ScreenLineBuilder *screenLineBuilder;
   std::vector<ScreenLine> cachedScreenLines;
   std::unordered_map<int32_t, int32_t> builtInScopeIdsByFlags;
   std::unordered_map<int32_t, std::u16string> builtInClassNamesByScopeId;
@@ -76,6 +78,9 @@ public:
   Point getRightmostScreenPosition();
   Point getApproximateRightmostScreenPosition();
   std::vector<double> bufferRowsForScreenRows(double, double);
+  ScreenLine getScreenLine(double);
+  std::vector<ScreenLine> getScreenLines(double, double);
+  std::vector<ScreenLine> getScreenLines(double = 0);
   double leadingWhitespaceLengthForSurroundingLines(double);
   double leadingWhitespaceLengthForNonEmptyLine(const std::u16string &);
   double findTrailingWhitespaceStartColumn(double);

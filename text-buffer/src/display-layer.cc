@@ -1,7 +1,9 @@
 #include "display-layer.h"
 #include "text-buffer.h"
+#include "screen-line-builder.h"
 #include "marker-layer.h"
 #include "display-marker-layer.h"
+#include "marker.h"
 #include "point-helpers.h"
 #include "is-character-pair.h"
 #include "helpers.h"
@@ -33,6 +35,7 @@ static bool isWordStart(char16_t previousCharacter, char16_t character) {
 DisplayLayer::DisplayLayer(unsigned id, TextBuffer *buffer) :
   id{id},
   buffer{buffer},
+  screenLineBuilder{new ScreenLineBuilder(this)},
   nextBuiltInScopeId{1},
   tabLength{4},
   softWrapColumn{INFINITY},
@@ -47,6 +50,7 @@ DisplayLayer::DisplayLayer(unsigned id, TextBuffer *buffer) :
   indexedBufferRowCount{0} {}
 
 DisplayLayer::~DisplayLayer() {
+  delete screenLineBuilder;
   for (auto& displayMarkerLayer : this->displayMarkerLayersById) {
     delete displayMarkerLayer.second;
   }
@@ -671,13 +675,21 @@ Point DisplayLayer::getApproximateRightmostScreenPosition() {
   return this->rightmostScreenPosition;
 }
 
-/*getScreenLine (screenRow) {
-  return this.cachedScreenLines[screenRow] || this.getScreenLines(screenRow, screenRow + 1)[0]
-}*/
+DisplayLayer::ScreenLine DisplayLayer::getScreenLine(double screenRow) {
+  if (screenRow < this->cachedScreenLines.size()) {
+    return this->cachedScreenLines[screenRow];
+  } else {
+    return this->getScreenLines(screenRow, screenRow + 1)[0];
+  }
+}
 
-/*getScreenLines (screenStartRow = 0, screenEndRow = this.getScreenLineCount()) {
-  return this.screenLineBuilder.buildScreenLines(screenStartRow, screenEndRow)
-}*/
+std::vector<DisplayLayer::ScreenLine> DisplayLayer::getScreenLines(double screenStartRow, double screenEndRow) {
+  return this->screenLineBuilder->buildScreenLines(screenStartRow, screenEndRow);
+}
+
+std::vector<DisplayLayer::ScreenLine> DisplayLayer::getScreenLines(double screenStartRow) {
+  return this->getScreenLines(screenStartRow, this->getScreenLineCount());
+}
 
 std::vector<double> DisplayLayer::bufferRowsForScreenRows(double startRow, double endRow) {
   this->populateSpatialIndexIfNeeded(this->buffer->getLineCount(), endRow);
@@ -910,9 +922,9 @@ void DisplayLayer::updateSpatialIndex(double startBufferRow, double oldEndBuffer
     double firstNonWhitespaceScreenColumn = -1;
 
     while (bufferColumn <= bufferLineLength) {
-      const Point foldEnd = /* folds[bufferRow] && */ folds[bufferRow][bufferColumn];
+      const optional<Point> foldEnd = folds.count(bufferRow) && folds[bufferRow].count(bufferColumn) ? folds[bufferRow][bufferColumn] : optional<Point>();
       const char16_t previousCharacter = (*bufferLine)[bufferColumn - 1];
-      const char16_t character = /* foldEnd ? */ this->foldCharacter /* : (*bufferLine)[bufferColumn] */;
+      const char16_t character = foldEnd ? this->foldCharacter : (*bufferLine)[bufferColumn];
 
       // Are we in leading whitespace? If yes, record the *end* of the leading
       // whitespace if we've reached a non whitespace character. If no, record
@@ -1005,17 +1017,17 @@ void DisplayLayer::updateSpatialIndex(double startBufferRow, double oldEndBuffer
 
       // If there is a fold at this position, splice it into the spatial index
       // and jump to the end of the fold.
-      if (/* foldEnd */ true) {
+      if (foldEnd) {
         this->spatialIndex->splice(
           Point(screenRow, unexpandedScreenColumn),
-          traversal(foldEnd, Point(bufferRow, bufferColumn)),
+          traversal(*foldEnd, Point(bufferRow, bufferColumn)),
           Point(0, 1)
         );
         unexpandedScreenColumn++;
         expandedScreenColumn++;
         screenLineWidth += characterWidth;
-        bufferRow = foldEnd.row;
-        bufferColumn = foldEnd.column;
+        bufferRow = foldEnd->row;
+        bufferColumn = foldEnd->column;
         bufferLine = this->buffer->lineForRow(bufferRow);
         bufferLineLength = bufferLine->size();
       } else {
@@ -1161,52 +1173,53 @@ std::pair<double, double> DisplayLayer::findBoundaryFollowingScreenRow(double sc
 // fold start row -> fold start column -> fold end point
 std::unordered_map<double, std::unordered_map<double, Point>> DisplayLayer::computeFoldsInBufferRowRange(double startBufferRow, double endBufferRow) {
   std::unordered_map<double, std::unordered_map<double, Point>> folds;
-  /*const foldMarkers = this.foldsMarkerLayer.findMarkers({
-    intersectsRowRange: [startBufferRow, endBufferRow - 1]
-  })
+  auto foldMarkers = this->foldsMarkerLayer->findMarkers(
+    intersectsRowRange(startBufferRow, endBufferRow - 1)
+  );
 
   // If the given buffer range exceeds the indexed range, we need to ensure
   // we consider any folds that intersect the combined row range of the
   // initially-queried folds, since we couldn't use the index to expand the
   // row range to account for these extra folds ahead of time.
-  if (endBufferRow >= this.indexedBufferRowCount) {
-    for (let i = 0; i < foldMarkers.length; i++) {
-      const marker = foldMarkers[i]
-      const nextMarker = foldMarkers[i + 1]
-      if (marker.getEndPosition().row >= endBufferRow &&
-          (!nextMarker || nextMarker.getEndPosition().row < marker.getEndPosition().row)) {
-        const intersectingMarkers = this.foldsMarkerLayer.findMarkers({
-          intersectsRow: marker.getEndPosition().row
-        })
-        endBufferRow = marker.getEndPosition().row + 1
-        foldMarkers.splice(i, foldMarkers.length - i, ...intersectingMarkers)
+  if (endBufferRow >= this->indexedBufferRowCount) {
+    for (double i = 0; i < foldMarkers.size(); i++) {
+      const auto& marker = foldMarkers[i];
+      const auto& nextMarker = foldMarkers[i + 1];
+      if (marker->getEndPosition().row >= endBufferRow &&
+          (!(i + 1 < foldMarkers.size()) || nextMarker->getEndPosition().row < marker->getEndPosition().row)) {
+        const auto intersectingMarkers = this->foldsMarkerLayer->findMarkers(
+          intersectsRow(marker->getEndPosition().row)
+        );
+        endBufferRow = marker->getEndPosition().row + 1;
+        foldMarkers.erase(foldMarkers.begin() + i, foldMarkers.end());
+        foldMarkers.insert(foldMarkers.end(), intersectingMarkers.begin(), intersectingMarkers.end());
       }
     }
   }
 
-  for (let i = 0; i < foldMarkers.length; i++) {
-    const foldStart = foldMarkers[i].getStartPosition()
-    let foldEnd = foldMarkers[i].getEndPosition()
+  for (double i = 0; i < foldMarkers.size(); i++) {
+    const Point foldStart = foldMarkers[i]->getStartPosition();
+    Point foldEnd = foldMarkers[i]->getEndPosition();
 
     // Merge overlapping folds
-    while (i < foldMarkers.length - 1) {
-      const nextFoldMarker = foldMarkers[i + 1]
-      if (compare(nextFoldMarker.getStartPosition(), foldEnd) < 0) {
-        if (compare(foldEnd, nextFoldMarker.getEndPosition()) < 0) {
-          foldEnd = nextFoldMarker.getEndPosition()
+    while (i < foldMarkers.size() - 1) {
+      const auto& nextFoldMarker = foldMarkers[i + 1];
+      if (compare(nextFoldMarker->getStartPosition(), foldEnd) < 0) {
+        if (compare(foldEnd, nextFoldMarker->getEndPosition()) < 0) {
+          foldEnd = nextFoldMarker->getEndPosition();
         }
-        i++
+        i++;
       } else {
-        break
+        break;
       }
     }
 
     // Add non-empty folds to the returned result
     if (compare(foldStart, foldEnd) < 0) {
-      if (!folds[foldStart.row]) folds[foldStart.row] = {}
-      folds[foldStart.row][foldStart.column] = foldEnd
+      if (!folds.count(foldStart.row)) folds[foldStart.row] = std::unordered_map<double, Point>();
+      folds[foldStart.row][foldStart.column] = foldEnd;
     }
-  }*/
+  }
 
   return folds;
 }

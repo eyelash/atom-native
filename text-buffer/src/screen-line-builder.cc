@@ -48,26 +48,26 @@ std::vector<DisplayLayer::ScreenLine> ScreenLineBuilder::buildScreenLines(double
   // buffer.
   screenRowLoop:
   while (this->screenRow < endScreenRow) {
-    const auto& cachedScreenLine = this->displayLayer->cachedScreenLines[this->screenRow];
-    if (this->screenRow < this->displayLayer->cachedScreenLines.size()) {
-      this->pushScreenLine(cachedScreenLine);
+    optional<DisplayLayer::ScreenLine> cachedScreenLine = this->screenRow < this->displayLayer->cachedScreenLines.size() ? this->displayLayer->cachedScreenLines[this->screenRow] : optional<DisplayLayer::ScreenLine>();
+    if (cachedScreenLine) {
+      this->pushScreenLine(*cachedScreenLine);
 
-      auto& nextHunk = hunks[hunkIndex];
-      while (hunkIndex < hunks.size() && nextHunk.new_start.row <= this->screenRow) {
-        if (nextHunk.new_start.row == this->screenRow) {
-          if (nextHunk.new_end.row > nextHunk.new_start.row) {
+      Patch::Change *nextHunk = &hunks[hunkIndex];
+      while (hunkIndex < hunks.size() && nextHunk->new_start.row <= this->screenRow) {
+        if (nextHunk->new_start.row == this->screenRow) {
+          if (nextHunk->new_end.row > nextHunk->new_start.row) {
             this->screenRow++;
-            this->bufferPosition.column = nextHunk.old_end.column;
+            this->bufferPosition.column = nextHunk->old_end.column;
             hunkIndex++;
             goto continueScreenRowLoop;
           } else {
-            this->bufferPosition.row = nextHunk.old_end.row;
-            this->bufferPosition.column = nextHunk.old_end.column;
+            this->bufferPosition.row = nextHunk->old_end.row;
+            this->bufferPosition.column = nextHunk->old_end.column;
           }
         }
 
         hunkIndex++;
-        nextHunk = hunks[hunkIndex];
+        nextHunk = &hunks[hunkIndex];
       }
 
       this->screenRow++;
@@ -78,7 +78,7 @@ std::vector<DisplayLayer::ScreenLine> ScreenLineBuilder::buildScreenLines(double
     }
 
     this->currentBuiltInClassNameFlags = 0;
-    this->bufferLineLength = this->displayLayer->buffer->lineLengthForRow(this->bufferPosition.row);
+    this->bufferLineLength = *this->displayLayer->buffer->lineLengthForRow(this->bufferPosition.row);
 
     if (this->bufferPosition.row > this->displayLayer->buffer->getLastRow()) break;
     this->trailingWhitespaceStartColumn = this->displayLayer->findTrailingWhitespaceStartColumn(this->bufferPosition.row);
@@ -91,10 +91,10 @@ std::vector<DisplayLayer::ScreenLine> ScreenLineBuilder::buildScreenLines(double
     }
 
     {
-      const auto& prevCachedScreenLine = this->displayLayer->cachedScreenLines[this->screenRow - 1];
-      if ( /* prevCachedScreenLine && */ prevCachedScreenLine.softWrapIndent >= 0) {
+      optional<DisplayLayer::ScreenLine> prevCachedScreenLine = this->screenRow - 1 >= 0 && this->screenRow - 1 < this->displayLayer->cachedScreenLines.size() ? this->displayLayer->cachedScreenLines[this->screenRow - 1] : optional<DisplayLayer::ScreenLine>();
+      if (prevCachedScreenLine && prevCachedScreenLine->softWrapIndent >= 0) {
         this->inLeadingWhitespace = false;
-        if (prevCachedScreenLine.softWrapIndent > 0) this->emitIndentWhitespace(prevCachedScreenLine.softWrapIndent);
+        if (prevCachedScreenLine->softWrapIndent > 0) this->emitIndentWhitespace(prevCachedScreenLine->softWrapIndent);
       }
     }
 
@@ -102,19 +102,19 @@ std::vector<DisplayLayer::ScreenLine> ScreenLineBuilder::buildScreenLines(double
     // multiple screen rows if there are soft wraps.
     while (this->bufferPosition.column <= this->bufferLineLength) {
       // Handle folds or soft wraps at the current position.
-      auto& nextHunk = hunks[hunkIndex];
-      while (hunkIndex < hunks.size() && nextHunk.old_start.row == this->bufferPosition.row && nextHunk.old_start.column == this->bufferPosition.column) {
-        if (this->displayLayer->isSoftWrapHunk(nextHunk)) {
-          this->emitSoftWrap(nextHunk);
+      Patch::Change *nextHunk = &hunks[hunkIndex];
+      while (hunkIndex < hunks.size() && nextHunk->old_start.row == this->bufferPosition.row && nextHunk->old_start.column == this->bufferPosition.column) {
+        if (this->displayLayer->isSoftWrapHunk(*nextHunk)) {
+          this->emitSoftWrap(*nextHunk);
           if (this->screenRow == endScreenRow) {
             goto breakScreenRowLoop;
           }
         } else {
-          this->emitFold(nextHunk, *decorationIterator, endBufferRow);
+          this->emitFold(*nextHunk, *decorationIterator, endBufferRow);
         }
 
         hunkIndex++;
-        nextHunk = hunks[hunkIndex];
+        nextHunk = &hunks[hunkIndex];
       }
 
       char16_t nextCharacter = this->displayLayer->buffer->getCharacterAtPosition(this->bufferPosition);
@@ -179,7 +179,7 @@ double ScreenLineBuilder::getBuiltInScopeId(int32_t flags) {
     if (flags & LINE_ENDING) className += u"eol ";
     if (flags & INDENT_GUIDE) className += u"indent-guide ";
     if (flags & FOLD) className += u"fold-marker ";
-    //className = className.trim();
+    if (!className.empty()) className.pop_back();
     scopeId = this->displayLayer->registerBuiltInScope(flags, className);
   }
   return scopeId;
@@ -259,7 +259,7 @@ void ScreenLineBuilder::emitFold(const Patch::Change &nextHunk, LanguageMode::Hi
 
   this->scopeIdsToReopen = decorationIterator.seek(this->bufferPosition, endBufferRow);
 
-  this->bufferLineLength = this->displayLayer->buffer->lineLengthForRow(this->bufferPosition.row);
+  this->bufferLineLength = *this->displayLayer->buffer->lineLengthForRow(this->bufferPosition.row);
   this->trailingWhitespaceStartColumn = this->displayLayer->findTrailingWhitespaceStartColumn(this->bufferPosition.row);
 }
 
@@ -370,7 +370,7 @@ void ScreenLineBuilder::emitCloseTag(int32_t scopeId) {
 
   if (scopeId == 0) return;
 
-  for (double i = this->scopeIdsToReopen.size() - 1; i >= 0; i--) {
+  for (double i = this->scopeIdsToReopen.size() - 1.0; i >= 0; i--) {
     if (this->scopeIdsToReopen[i] == scopeId) {
       this->scopeIdsToReopen.erase(this->scopeIdsToReopen.begin() + i);
       return;
@@ -404,7 +404,7 @@ void ScreenLineBuilder::emitOpenTag(double scopeId, bool reopenTags) {
 void ScreenLineBuilder::closeContainingScopes() {
   if (this->containingScopeIds.size() > 0) this->emitEmptyTokenIfNeeded();
 
-  for (double i = this->containingScopeIds.size() - 1; i >= 0; i--) {
+  for (double i = this->containingScopeIds.size() - 1.0; i >= 0; i--) {
     const int32_t containingScopeId = this->containingScopeIds[i];
     this->currentScreenLineTags.push_back(this->displayLayer->closeTagForScopeId(containingScopeId));
     this->scopeIdsToReopen.insert(this->scopeIdsToReopen.begin(), containingScopeId);

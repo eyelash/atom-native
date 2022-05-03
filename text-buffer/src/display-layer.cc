@@ -37,6 +37,7 @@ DisplayLayer::DisplayLayer(unsigned id, TextBuffer *buffer) :
   buffer{buffer},
   screenLineBuilder{new ScreenLineBuilder(this)},
   nextBuiltInScopeId{1},
+  invisibles{nullptr, nullptr},
   tabLength{4},
   softWrapColumn{INFINITY},
   softWrapHangingIndent{0},
@@ -487,14 +488,14 @@ Point DisplayLayer::expandHardTabs(Point targetScreenPosition, Point targetBuffe
       break;
     }
 
-    const auto& nextHunk = hunks[hunkIndex];
-    if (hunkIndex < hunks.size() && nextHunk.old_start.row == bufferRow && nextHunk.old_start.column == bufferColumn) {
-      if (this->isSoftWrapHunk(nextHunk)) {
+    const Patch::Change *nextHunk = &hunks[hunkIndex];
+    if (hunkIndex < hunks.size() && nextHunk->old_start.row == bufferRow && nextHunk->old_start.column == bufferColumn) {
+      if (this->isSoftWrapHunk(*nextHunk)) {
         //if (hunkIndex != 0) throw new Error('Unexpected soft wrap hunk');
         unexpandedScreenColumn = hunks[0].new_end.column;
         expandedScreenColumn = unexpandedScreenColumn;
       } else {
-        bufferRow = nextHunk.old_end.row, bufferColumn = nextHunk.old_end.column;
+        bufferRow = nextHunk->old_end.row, bufferColumn = nextHunk->old_end.column;
         bufferLine = this->buffer->lineForRow(bufferRow);
         unexpandedScreenColumn++;
         expandedScreenColumn++;
@@ -676,11 +677,8 @@ Point DisplayLayer::getApproximateRightmostScreenPosition() {
 }
 
 DisplayLayer::ScreenLine DisplayLayer::getScreenLine(double screenRow) {
-  if (screenRow < this->cachedScreenLines.size()) {
-    return this->cachedScreenLines[screenRow];
-  } else {
-    return this->getScreenLines(screenRow, screenRow + 1)[0];
-  }
+  optional<ScreenLine> cachedScreenLine = screenRow >= 0 && screenRow < this->cachedScreenLines.size() ? this->cachedScreenLines[screenRow] : optional<ScreenLine>();
+  return cachedScreenLine ? *cachedScreenLine : this->getScreenLines(screenRow, screenRow + 1)[0];
 }
 
 std::vector<DisplayLayer::ScreenLine> DisplayLayer::getScreenLines(double screenStartRow, double screenEndRow) {
@@ -758,7 +756,7 @@ double DisplayLayer::leadingWhitespaceLengthForNonEmptyLine(const std::u16string
 
 double DisplayLayer::findTrailingWhitespaceStartColumn(double bufferRow) {
   Point position;
-  for (position = Point(bufferRow, this->buffer->lineLengthForRow(bufferRow) - 1); position.column >= 0; position.column--) {
+  for (position = Point(bufferRow, *this->buffer->lineLengthForRow(bufferRow) - 1); position.column >= 0; position.column--) {
     const char16_t previousCharacter = this->buffer->getCharacterAtPosition(position);
     if (previousCharacter != u' ' && previousCharacter != u'\t') {
       break;
@@ -1103,8 +1101,7 @@ void DisplayLayer::updateSpatialIndex(double startBufferRow, double oldEndBuffer
     this->cachedScreenLines,
     startScreenRow,
     oldScreenRowCount,
-    // TODO: ensure zero initialization
-    std::vector<ScreenLine>(insertedScreenLineLengths.size())
+    std::vector<optional<ScreenLine>>(insertedScreenLineLengths.size())
   );
 
   /*return {
@@ -1162,7 +1159,7 @@ std::pair<double, double> DisplayLayer::findBoundaryFollowingScreenRow(double sc
     } else {
       const Point endOfBufferRow = Point(
         bufferPosition.row,
-        this->buffer->lineLengthForRow(bufferPosition.row)
+        *this->buffer->lineLengthForRow(bufferPosition.row)
       );
       screenRow = this->translateBufferPositionWithSpatialIndex(endOfBufferRow, ClipDirection::forward).row + 1;
     }

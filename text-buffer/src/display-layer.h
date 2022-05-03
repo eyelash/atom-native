@@ -32,7 +32,7 @@ public:
 private:
   TextBuffer *buffer;
   ScreenLineBuilder *screenLineBuilder;
-  std::vector<ScreenLine> cachedScreenLines;
+  std::vector<optional<ScreenLine>> cachedScreenLines;
   std::unordered_map<int32_t, int32_t> builtInScopeIdsByFlags;
   std::unordered_map<int32_t, std::u16string> builtInClassNamesByScopeId;
   int32_t nextBuiltInScopeId;

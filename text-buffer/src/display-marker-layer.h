@@ -3,6 +3,7 @@
 
 #include "range.h"
 #include <unordered_map>
+#include <functional>
 
 class DisplayLayer;
 class MarkerLayer;
@@ -20,6 +21,7 @@ public:
   ~DisplayMarkerLayer();
 
   void clear();
+  void onDidCreateMarker(std::function<void(DisplayMarker *)>);
   DisplayMarker *markScreenRange(Range);
   DisplayMarker *markScreenPosition(Point);
   DisplayMarker *markBufferRange(Range);

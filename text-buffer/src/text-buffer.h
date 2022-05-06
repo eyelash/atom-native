@@ -45,8 +45,8 @@ public:
   optional<std::u16string> lineForRow(uint32_t);
   const char16_t *lineEndingForRow(double);
   optional<uint32_t> lineLengthForRow(uint32_t);
-  Range setText(std::u16string &&);
-  Range setTextInRange(Range, std::u16string &&);
+  Range setText(std::u16string);
+  Range setTextInRange(Range, std::u16string);
   Range applyChange(Change, bool);
   MarkerLayer *addMarkerLayer();
   MarkerLayer *getMarkerLayer(unsigned);

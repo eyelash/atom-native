@@ -2,6 +2,7 @@
 #define MARKER_LAYER_H_
 
 #include "range.h"
+#include "event-kit.h"
 #include <marker-index.h>
 #include <vector>
 #include <unordered_map>
@@ -12,6 +13,7 @@ class Marker;
 
 class MarkerLayer {
   TextBuffer *delegate;
+  Emitter<Marker *> didCreateMarkerEmitter;
   MarkerIndex *index;
   std::unordered_map<unsigned, Marker *> markersById;
 
@@ -29,6 +31,7 @@ public:
   std::vector<Marker *> findMarkers(FindParam);
   Marker *markRange(Range);
   Marker *markPosition(Point);
+  void onDidCreateMarker(std::function<void(Marker *)>);
   void splice(Point, Point, Point);
   Range getMarkerRange(unsigned) const;
   Point getMarkerStartPosition(unsigned) const;

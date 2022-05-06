@@ -93,11 +93,11 @@ optional<uint32_t> TextBuffer::lineLengthForRow(uint32_t row) {
 Section: Mutating Text
 */
 
-Range TextBuffer::setText(std::u16string &&text) {
+Range TextBuffer::setText(std::u16string text) {
   return this->setTextInRange(this->getRange(), std::move(text));
 }
 
-Range TextBuffer::setTextInRange(Range range, std::u16string &&newText) {
+Range TextBuffer::setTextInRange(Range range, std::u16string newText) {
   const Range oldRange = this->clipRange(range);
   std::u16string oldText = this->getTextInRange(oldRange);
 

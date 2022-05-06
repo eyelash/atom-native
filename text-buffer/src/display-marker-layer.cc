@@ -23,6 +23,12 @@ void DisplayMarkerLayer::clear() {
 Section: Event Subscription
 */
 
+void DisplayMarkerLayer::onDidCreateMarker(std::function<void(DisplayMarker *)> callback) {
+  return this->bufferMarkerLayer->onDidCreateMarker([this, callback](Marker *bufferMarker) {
+    callback(this->getMarker(bufferMarker->id));
+  });
+}
+
 /*
 Section: Marker creation
 */

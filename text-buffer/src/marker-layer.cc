@@ -23,6 +23,10 @@ void MarkerLayer::clear() {
   this->index = new MarkerIndex();
 }
 
+/*
+Section: Querying
+*/
+
 Marker *MarkerLayer::getMarker(unsigned id) {
   return this->markersById[id];
 }
@@ -144,6 +148,19 @@ Marker *MarkerLayer::markPosition(Point position) {
   return this->createMarker(Range{position, position});
 }
 
+/*
+Section: Event subscription
+*/
+
+void MarkerLayer::onDidCreateMarker(std::function<void(Marker *)> callback) {
+  //this->emitCreateMarkerEvents = true;
+  return this->didCreateMarkerEmitter.on(callback);
+}
+
+/*
+Section: Private - TextBuffer interface
+*/
+
 void MarkerLayer::splice(Point start, Point oldExtent, Point newExtent) {
   auto invalidated = this->index->splice(start, oldExtent, newExtent);
   // TODO: destroy invalidated markers
@@ -174,6 +191,7 @@ void MarkerLayer::setMarkerRange(unsigned id, Range range) {
 Marker *MarkerLayer::createMarker(const Range &range) {
   unsigned id = this->delegate->getNextMarkerId();
   Marker *marker = this->addMarker(id, range);
+  this->didCreateMarkerEmitter.emit(marker);
   return marker;
 }
 

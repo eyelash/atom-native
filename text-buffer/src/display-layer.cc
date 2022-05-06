@@ -328,11 +328,10 @@ Range DisplayLayer::bufferRangeForFold(unsigned foldId) {
   }).map((marker) => marker.id)
 }*/
 
-Point DisplayLayer::translateBufferPosition(Point bufferPosition) {
+Point DisplayLayer::translateBufferPosition(Point bufferPosition, ClipDirection clipDirection) {
   bufferPosition = this->buffer->clipPosition(bufferPosition);
   this->populateSpatialIndexIfNeeded(bufferPosition.row + 1, INFINITY);
 
-  const ClipDirection clipDirection = ClipDirection::closest;
   const double columnDelta = this->getClipColumnDelta(bufferPosition, clipDirection);
   if (columnDelta != 0) {
     bufferPosition = Point(bufferPosition.row, bufferPosition.column + columnDelta);
@@ -376,17 +375,14 @@ Point DisplayLayer::translateBufferPositionWithSpatialIndex(Point bufferPosition
   }
 }
 
-Range DisplayLayer::translateBufferRange(Range bufferRange) {
+Range DisplayLayer::translateBufferRange(Range bufferRange, ClipDirection clipDirection) {
   return Range(
-    this->translateBufferPosition(bufferRange.start),
-    this->translateBufferPosition(bufferRange.end)
+    this->translateBufferPosition(bufferRange.start, clipDirection),
+    this->translateBufferPosition(bufferRange.end, clipDirection)
   );
 }
 
-Point DisplayLayer::translateScreenPosition(Point screenPosition) {
-  //Point.assertValid(screenPosition)
-  const ClipDirection clipDirection = ClipDirection::closest;
-  const bool skipSoftWrapIndentation = false;
+Point DisplayLayer::translateScreenPosition(Point screenPosition, ClipDirection clipDirection, bool skipSoftWrapIndentation) {
   this->populateSpatialIndexIfNeeded(this->buffer->getLineCount(), screenPosition.row + 1);
   screenPosition = this->constrainScreenPosition(screenPosition, clipDirection);
   const double tabCount = this->tabCounts[screenPosition.row];
@@ -432,10 +428,10 @@ Point DisplayLayer::translateScreenPositionWithSpatialIndex(Point screenPosition
   }
 }
 
-Range DisplayLayer::translateScreenRange(Range screenRange) {
+Range DisplayLayer::translateScreenRange(Range screenRange, ClipDirection clipDirection, bool skipSoftWrapIndentation) {
   return Range(
-    this->translateScreenPosition(screenRange.start),
-    this->translateScreenPosition(screenRange.end)
+    this->translateScreenPosition(screenRange.start, clipDirection, skipSoftWrapIndentation),
+    this->translateScreenPosition(screenRange.end, clipDirection, skipSoftWrapIndentation)
   );
 }
 
@@ -659,13 +655,13 @@ double DisplayLayer::getScreenLineCount() {
   return this->screenLineLengths.size();
 }
 
-/*getApproximateScreenLineCount () {
-  if (this.indexedBufferRowCount > 0) {
-    return Math.floor(this.buffer.getLineCount() * this.screenLineLengths.length / this.indexedBufferRowCount)
+double DisplayLayer::getApproximateScreenLineCount() {
+  if (this->indexedBufferRowCount > 0) {
+    return std::floor(this->buffer->getLineCount() * this->screenLineLengths.size() / this->indexedBufferRowCount);
   } else {
-    return this.buffer.getLineCount()
+    return this->buffer->getLineCount();
   }
-}*/
+}
 
 Point DisplayLayer::getRightmostScreenPosition() {
   this->populateSpatialIndexIfNeeded(this->buffer->getLineCount(), INFINITY);
@@ -823,55 +819,55 @@ bool DisplayLayer::isCloseTag(int32_t tag) const {
   return tag < 0 && (tag & 1) == 0;
 }
 
-/*bufferWillChange (change) {
-  const lineCount = this.buffer.getLineCount()
-  let endRow = change.oldRange.end.row
-  while (endRow + 1 < lineCount && this.buffer.lineLengthForRow(endRow + 1) === 0) {
-    endRow++
+void DisplayLayer::bufferWillChange(Range oldRange) {
+  const double lineCount = this->buffer->getLineCount();
+  double endRow = oldRange.end.row;
+  while (endRow + 1 < lineCount && *this->buffer->lineLengthForRow(endRow + 1) == 0) {
+    endRow++;
   }
-  this.populateSpatialIndexIfNeeded(endRow + 1, Infinity)
-}*/
+  this->populateSpatialIndexIfNeeded(endRow + 1, INFINITY);
+}
 
-/*bufferDidChange ({oldRange, newRange}) {
-  let startRow = oldRange.start.row
-  let oldEndRow = oldRange.end.row
-  let newEndRow = newRange.end.row
+void DisplayLayer::bufferDidChange(Range oldRange, Range newRange) {
+  double startRow = oldRange.start.row;
+  double oldEndRow = oldRange.end.row;
+  double newEndRow = newRange.end.row;
 
   // Indent guides on sequences of blank lines are affected by the content of
   // adjacent lines.
-  if (this.showIndentGuides) {
+  if (this->showIndentGuides) {
     while (startRow > 0) {
-      if (this.buffer.lineLengthForRow(startRow - 1) > 0) break
-      startRow--
+      if (*this->buffer->lineLengthForRow(startRow - 1) > 0) break;
+      startRow--;
     }
 
-    while (newEndRow < this.buffer.getLastRow()) {
-      if (this.buffer.lineLengthForRow(newEndRow + 1) > 0) break
-      oldEndRow++
-      newEndRow++
+    while (newEndRow < this->buffer->getLastRow()) {
+      if (*this->buffer->lineLengthForRow(newEndRow + 1) > 0) break;
+      oldEndRow++;
+      newEndRow++;
     }
   }
 
-  this.indexedBufferRowCount += newEndRow - oldEndRow
-  this.didChange(this.updateSpatialIndex(startRow, oldEndRow + 1, newEndRow + 1, Infinity))
-}*/
+  this->indexedBufferRowCount += newEndRow - oldEndRow;
+  this->didChange(this->updateSpatialIndex(startRow, oldEndRow + 1, newEndRow + 1, INFINITY));
+}
 
-/*didChange ({start, oldExtent, newExtent}) {
-  this.changesSinceLastEvent.splice(start, oldExtent, newExtent)
-  if (this.buffer.transactCallDepth === 0) this.emitDeferredChangeEvents()
-}*/
+void DisplayLayer::didChange(UpdateResult updateResult) {
+  this->changesSinceLastEvent.splice(updateResult.start, updateResult.oldExtent, updateResult.newExtent);
+  if (this->buffer->transactCallDepth == 0) this->emitDeferredChangeEvents();
+}
 
-/*emitDeferredChangeEvents () {
-  if (this.changesSinceLastEvent.getChangeCount() > 0) {
-    this.emitter.emit('did-change', this.changesSinceLastEvent.getChanges().map((change) => {
+void DisplayLayer::emitDeferredChangeEvents() {
+  if (this->changesSinceLastEvent.get_change_count() > 0) {
+    /*this.emitter.emit('did-change', this.changesSinceLastEvent.getChanges().map((change) => {
       return {
         oldRange: new Range(change.oldStart, change.oldEnd),
         newRange: new Range(change.newStart, change.newEnd)
       }
-    }))
-    this.changesSinceLastEvent = new Patch()
+    }));*/
+    this->changesSinceLastEvent = Patch();
   }
-}*/
+}
 
 /*notifyObserversIfMarkerScreenPositionsChanged () {
   this.displayMarkerLayersById.forEach((layer) => {
@@ -879,7 +875,7 @@ bool DisplayLayer::isCloseTag(int32_t tag) const {
   })
 }*/
 
-void DisplayLayer::updateSpatialIndex(double startBufferRow, double oldEndBufferRow, double newEndBufferRow, double endScreenRow /*, deadline = NullDeadline */) {
+DisplayLayer::UpdateResult DisplayLayer::updateSpatialIndex(double startBufferRow, double oldEndBufferRow, double newEndBufferRow, double endScreenRow /*, deadline = NullDeadline */) {
   const double originalOldEndBufferRow = oldEndBufferRow;
   startBufferRow = this->findBoundaryPrecedingBufferRow(startBufferRow);
   oldEndBufferRow = this->findBoundaryFollowingBufferRow(oldEndBufferRow);
@@ -1104,11 +1100,11 @@ void DisplayLayer::updateSpatialIndex(double startBufferRow, double oldEndBuffer
     std::vector<optional<ScreenLine>>(insertedScreenLineLengths.size())
   );
 
-  /*return {
-    start: Point(startScreenRow, 0),
-    oldExtent: Point(oldScreenRowCount, 0),
-    newExtent: Point(insertedScreenLineLengths.length, 0)
-  };*/
+  return {
+    Point(startScreenRow, 0),
+    Point(oldScreenRowCount, 0),
+    Point(insertedScreenLineLengths.size(), 0)
+  };
 }
 
 void DisplayLayer::populateSpatialIndexIfNeeded(double endBufferRow, double endScreenRow) {

@@ -22,6 +22,7 @@ class TextBuffer {
 
 public:
   LanguageMode *languageMode;
+  double transactCallDepth;
 
   TextBuffer();
   TextBuffer(const std::u16string &text);
@@ -48,6 +49,7 @@ public:
   Range setText(std::u16string);
   Range setTextInRange(Range, std::u16string);
   Range applyChange(Change, bool);
+  void emitDidChangeEvent(Range, Range);
   MarkerLayer *addMarkerLayer();
   MarkerLayer *getMarkerLayer(unsigned);
   MarkerLayer *getDefaultMarkerLayer();
@@ -70,6 +72,8 @@ public:
   Point clipPosition(Point);
   DisplayLayer *addDisplayLayer();
   DisplayLayer *getDisplayLayer(unsigned);
+  void markerCreated(MarkerLayer *, Marker *);
+  void markersUpdated(MarkerLayer *);
   unsigned getNextMarkerId();
 };
 

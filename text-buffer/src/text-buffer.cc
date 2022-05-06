@@ -11,7 +11,8 @@ TextBuffer::TextBuffer() :
   nextDisplayLayerId{0},
   defaultMarkerLayer{new MarkerLayer(this, this->nextMarkerLayerId++)},
   nextMarkerId{1},
-  languageMode{new LanguageMode()} {
+  languageMode{new LanguageMode()},
+  transactCallDepth{0} {
   this->markerLayers[this->defaultMarkerLayer->id] = this->defaultMarkerLayer;
 }
 
@@ -20,7 +21,8 @@ TextBuffer::TextBuffer(const std::u16string &text) :
   nextMarkerLayerId{0},
   defaultMarkerLayer{new MarkerLayer(this, this->nextMarkerLayerId++)},
   nextMarkerId{1},
-  languageMode{new LanguageMode()} {
+  languageMode{new LanguageMode()},
+  transactCallDepth{0} {
   this->markerLayers[this->defaultMarkerLayer->id] = this->defaultMarkerLayer;
 }
 
@@ -137,28 +139,33 @@ Range TextBuffer::applyChange(Change change, bool pushToHistory) {
     }
   }*/
 
-  /*const changeEvent = {oldRange, newRange, oldText, newText}
-  for (const id in this.displayLayers) {
-    const displayLayer = this.displayLayers[id]
-    displayLayer.bufferWillChange(changeEvent)
-  }*/
+  //const changeEvent = {oldRange, newRange, oldText, newText}
+  for (auto &displayLayer : this->displayLayers) {
+    displayLayer.second->bufferWillChange(oldRange);
+  }
 
   //this.emitWillChangeEvent()
   this->buffer->set_text_in_range(oldRange, std::move(newText));
 
-  /*if (this.markerLayers) {
-    for (const id in this.markerLayers) {
-      const markerLayer = this.markerLayers[id]
-      markerLayer.splice(oldRange.start, oldExtent, newExtent)
-      this.markerLayersWithPendingUpdateEvents.add(markerLayer)
-    }
-  }*/
+  for (auto &markerLayer : this->markerLayers) {
+    markerLayer.second->splice(oldRange.start, oldExtent, newExtent);
+    //this.markerLayersWithPendingUpdateEvents.add(markerLayer)
+  }
 
   //this.cachedText = null
   //this.changesSinceLastDidChangeTextEvent.push(change)
   //this.changesSinceLastStoppedChangingEvent.push(change)
-  //this.emitDidChangeEvent(changeEvent)
+  this->emitDidChangeEvent(oldRange, newRange);
   return newRange;
+}
+
+void TextBuffer::emitDidChangeEvent(Range oldRange, Range newRange) {
+  if (!oldRange.isEmpty() || !newRange.isEmpty()) {
+    this->languageMode->bufferDidChange();
+    for (auto &displayLayer : this->displayLayers) {
+      displayLayer.second->bufferDidChange(oldRange, newRange);
+    }
+  }
 }
 
 /*
@@ -314,5 +321,22 @@ Section: Private History Delegate Methods
 /*
 Section: Private MarkerLayer Delegate Methods
 */
+
+void TextBuffer::markerCreated(MarkerLayer *layer, Marker *marker) {
+  if (layer == this->defaultMarkerLayer) {
+    //return this.emitter.emit('did-create-marker', marker)
+  }
+}
+
+void TextBuffer::markersUpdated(MarkerLayer *layer) {
+  if (this->transactCallDepth == 0) {
+    //layer.emitUpdateEvent();
+    if (layer == this->defaultMarkerLayer) {
+      //return this.emitter.emit('did-update-markers')
+    }
+  } else {
+    //return this.markerLayersWithPendingUpdateEvents.add(layer)
+  }
+}
 
 unsigned TextBuffer::getNextMarkerId() { return this->nextMarkerId++; }

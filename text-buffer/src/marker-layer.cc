@@ -182,15 +182,26 @@ int MarkerLayer::compareMarkers(unsigned id1, unsigned id2) {
   return this->index->compare(id1, id2);
 }
 
-void MarkerLayer::setMarkerRange(unsigned id, Range range) {
-  // TODO: clip
+void MarkerLayer::setMarkerRange(unsigned id, const Range &range) {
+  Point start = range.start, end = range.end;
+  start = this->delegate->clipPosition(start);
+  end = this->delegate->clipPosition(end);
   this->index->remove(id);
-  this->index->insert(id, range.start, range.end);
+  this->index->insert(id, start, end);
 }
 
-Marker *MarkerLayer::createMarker(const Range &range) {
+Marker *MarkerLayer::createMarker(const Range &range, bool suppressMarkerLayerUpdateEvents) {
   unsigned id = this->delegate->getNextMarkerId();
   Marker *marker = this->addMarker(id, range);
+  this->delegate->markerCreated(this, marker);
+  if (!suppressMarkerLayerUpdateEvents) {
+    this->delegate->markersUpdated(this);
+  }
+  //marker.trackDestruction = (ref = this.trackDestructionInOnDidCreateMarkerCallbacks) != null ? ref : false;
+  /*if (this.emitCreateMarkerEvents) {
+    this.emitter.emit('did-create-marker', marker);
+  }*/
+  //marker.trackDestruction = false;
   this->didCreateMarkerEmitter.emit(marker);
   return marker;
 }

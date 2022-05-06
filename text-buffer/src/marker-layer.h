@@ -37,10 +37,10 @@ public:
   Point getMarkerStartPosition(unsigned) const;
   Point getMarkerEndPosition(unsigned) const;
   int compareMarkers(unsigned, unsigned);
-  void setMarkerRange(unsigned, Range);
+  void setMarkerRange(unsigned, const Range &);
 
 private:
-  Marker *createMarker(const Range &);
+  Marker *createMarker(const Range &, bool = false);
   Marker *addMarker(unsigned, const Range &);
 };
 

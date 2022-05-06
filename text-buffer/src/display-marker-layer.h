@@ -2,10 +2,10 @@
 #define DISPLAY_MARKER_LAYER_H_
 
 #include "range.h"
+#include "display-layer.h"
 #include <unordered_map>
 #include <functional>
 
-class DisplayLayer;
 class MarkerLayer;
 class DisplayMarker;
 
@@ -28,10 +28,10 @@ public:
   DisplayMarker *markBufferPosition(Point);
   DisplayMarker *getMarker(unsigned);
   std::size_t getMarkerCount() const;
-  Point translateBufferPosition(Point);
-  Range translateBufferRange(Range);
-  Point translateScreenPosition(Point);
-  Range translateScreenRange(Range);
+  Point translateBufferPosition(Point, DisplayLayer::ClipDirection = DisplayLayer::ClipDirection::closest);
+  Range translateBufferRange(Range, DisplayLayer::ClipDirection = DisplayLayer::ClipDirection::closest);
+  Point translateScreenPosition(Point, DisplayLayer::ClipDirection = DisplayLayer::ClipDirection::closest, bool = false);
+  Range translateScreenRange(Range, DisplayLayer::ClipDirection = DisplayLayer::ClipDirection::closest, bool = false);
 };
 
 #endif  // DISPLAY_MARKER_LAYER_H_

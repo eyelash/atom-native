@@ -1,5 +1,4 @@
 #include "display-marker-layer.h"
-#include "display-layer.h"
 #include "marker-layer.h"
 #include "display-marker.h"
 #include "marker.h"
@@ -77,18 +76,18 @@ std::size_t DisplayMarkerLayer::getMarkerCount() const {
 /*
 Section: Private
 */
-Point DisplayMarkerLayer::translateBufferPosition(Point bufferPosition) {
-  return this->displayLayer->translateBufferPosition(bufferPosition);
+Point DisplayMarkerLayer::translateBufferPosition(Point bufferPosition, DisplayLayer::ClipDirection clipDirection) {
+  return this->displayLayer->translateBufferPosition(bufferPosition, clipDirection);
 }
 
-Range DisplayMarkerLayer::translateBufferRange(Range bufferRange) {
-  return this->displayLayer->translateBufferRange(bufferRange);
+Range DisplayMarkerLayer::translateBufferRange(Range bufferRange, DisplayLayer::ClipDirection clipDirection) {
+  return this->displayLayer->translateBufferRange(bufferRange, clipDirection);
 }
 
-Point DisplayMarkerLayer::translateScreenPosition(Point screenPosition) {
-  return this->displayLayer->translateScreenPosition(screenPosition);
+Point DisplayMarkerLayer::translateScreenPosition(Point screenPosition, DisplayLayer::ClipDirection clipDirection, bool skipSoftWrapIndentation) {
+  return this->displayLayer->translateScreenPosition(screenPosition, clipDirection, skipSoftWrapIndentation);
 }
 
-Range DisplayMarkerLayer::translateScreenRange(Range screenRange) {
-  return this->displayLayer->translateScreenRange(screenRange);
+Range DisplayMarkerLayer::translateScreenRange(Range screenRange, DisplayLayer::ClipDirection clipDirection, bool skipSoftWrapIndentation) {
+  return this->displayLayer->translateScreenRange(screenRange, clipDirection, skipSoftWrapIndentation);
 }

@@ -27,6 +27,11 @@ public:
     forward,
     closest
   };
+  struct UpdateResult {
+    Point start;
+    Point oldExtent;
+    Point newExtent;
+  };
 
   unsigned id;
 private:
@@ -37,6 +42,7 @@ private:
   std::unordered_map<int32_t, std::u16string> builtInClassNamesByScopeId;
   int32_t nextBuiltInScopeId;
   std::unordered_map<unsigned, DisplayMarkerLayer *> displayMarkerLayersById;
+  Patch changesSinceLastEvent;
   Invisibles invisibles;
   double tabLength;
   double softWrapColumn;
@@ -61,12 +67,12 @@ public:
   DisplayMarkerLayer *addMarkerLayer();
   DisplayMarkerLayer *getMarkerLayer(unsigned);
   Range bufferRangeForFold(unsigned);
-  Point translateBufferPosition(Point);
+  Point translateBufferPosition(Point, ClipDirection = ClipDirection::closest);
   Point translateBufferPositionWithSpatialIndex(Point, ClipDirection = ClipDirection::closest);
-  Range translateBufferRange(Range);
-  Point translateScreenPosition(Point);
+  Range translateBufferRange(Range, ClipDirection = ClipDirection::closest);
+  Point translateScreenPosition(Point, ClipDirection = ClipDirection::closest, bool = false);
   Point translateScreenPositionWithSpatialIndex(Point, ClipDirection = ClipDirection::forward, bool = false);
-  Range translateScreenRange(Range);
+  Range translateScreenRange(Range, ClipDirection = ClipDirection::closest, bool = false);
   Point clipScreenPosition(Point);
   Point constrainScreenPosition(Point, ClipDirection);
   Point expandHardTabs(Point, Point, double);
@@ -75,6 +81,7 @@ public:
   double lineLengthForScreenRow(double);
   double getLastScreenRow();
   double getScreenLineCount();
+  double getApproximateScreenLineCount();
   Point getRightmostScreenPosition();
   Point getApproximateRightmostScreenPosition();
   std::vector<double> bufferRowsForScreenRows(double, double);
@@ -93,7 +100,11 @@ public:
   int32_t closeTagForScopeId(int32_t);
   bool isOpenTag(int32_t) const;
   bool isCloseTag(int32_t) const;
-  void updateSpatialIndex(double, double, double, double /*, deadline = NullDeadline */);
+  void bufferWillChange(Range);
+  void bufferDidChange(Range, Range);
+  void didChange(UpdateResult);
+  void emitDeferredChangeEvents();
+  UpdateResult updateSpatialIndex(double, double, double, double /*, deadline = NullDeadline */);
   void populateSpatialIndexIfNeeded(double, double);
   double findBoundaryPrecedingBufferRow(double);
   double findBoundaryFollowingBufferRow(double);

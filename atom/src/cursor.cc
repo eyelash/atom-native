@@ -1,6 +1,7 @@
 #include "cursor.h"
 #include "text-editor.h"
 #include <display-marker.h>
+#include <cmath>
 
 Cursor::Cursor(TextEditor *editor, DisplayMarker *marker) {
   this->editor = editor;
@@ -49,19 +50,23 @@ double Cursor::getBufferColumn() {
   return this->getBufferPosition().column;
 }
 
-/*getCurrentBufferLine() {
-  return this.editor.lineTextForBufferRow(this.getBufferRow());
-}*/
+std::u16string Cursor::getCurrentBufferLine() {
+  return *this->editor->lineTextForBufferRow(this->getBufferRow());
+}
 
 bool Cursor::isAtBeginningOfLine() {
   return this->getBufferPosition().column == 0;
 }
 
-/*bool Cursor::isAtEndOfLine() {
+bool Cursor::isAtEndOfLine() {
   return this->getBufferPosition().isEqual(
     this->getCurrentLineBufferRange().end
   );
-}*/
+}
+
+/*
+Section: Cursor Position Details
+*/
 
 DisplayMarker *Cursor::getMarker() {
   return this->marker;
@@ -129,9 +134,9 @@ DisplayMarker *Cursor::getMarker() {
   }
 }*/
 
-/*isLastCursor() {
-  return this === this.editor.getLastCursor();
-}*/
+bool Cursor::isLastCursor() {
+  return this == this->editor->getLastCursor();
+}
 
 /*
 Section: Moving the Cursor
@@ -141,35 +146,34 @@ void Cursor::moveUp(double rowCount, bool moveToEndOfSelection) {
   Point position;
   const Range range = this->marker->getScreenRange();
   if (moveToEndOfSelection && !range.isEmpty()) {
-    (position = range.start);
+    position = range.start;
   } else {
-    (position = this->getScreenPosition());
+    position = this->getScreenPosition();
   }
 
-  //if (this.goalColumn != null) column = this.goalColumn;
+  if (this->goalColumn) position.column = *this->goalColumn;
   this->setScreenPosition(
     Point(position.row - rowCount, position.column) /* ,
     { skipSoftWrapIndentation: true } */
   );
-  //this.goalColumn = column;
+  this->goalColumn = position.column;
 }
 
 void Cursor::moveDown(double rowCount, bool moveToEndOfSelection) {
   Point position;
   const Range range = this->marker->getScreenRange();
   if (moveToEndOfSelection && !range.isEmpty()) {
-    //({ row, column } = range.end);
     position = range.end;
   } else {
     position = this->getScreenPosition();
   }
 
-  //if (this.goalColumn != null) column = this.goalColumn;
+  if (this->goalColumn) position.column = *this->goalColumn;
   this->setScreenPosition(
     Point(position.row + rowCount, position.column) /* ,
     { skipSoftWrapIndentation: true } */
   );
-  //this.goalColumn = column;
+  this->goalColumn = position.column;
 }
 
 void Cursor::moveLeft(double columnCount, bool moveToEndOfSelection) {
@@ -216,6 +220,36 @@ void Cursor::moveRight(double columnCount, bool moveToEndOfSelection) {
   }
 }
 
+void Cursor::moveToTop() {
+  this->setBufferPosition(Point(0, 0));
+}
+
+void Cursor::moveToBottom() {
+  const optional<double> column = this->goalColumn;
+  this->setBufferPosition(this->editor->getEofBufferPosition());
+  this->goalColumn = column;
+}
+
+void Cursor::moveToBeginningOfScreenLine() {
+  this->setScreenPosition(Point(this->getScreenRow(), 0));
+}
+
+void Cursor::moveToBeginningOfLine() {
+  this->setBufferPosition(Point(this->getBufferRow(), 0));
+}
+
+void Cursor::moveToEndOfScreenLine() {
+  this->setScreenPosition(Point(this->getScreenRow(), INFINITY));
+}
+
+void Cursor::moveToEndOfLine() {
+  this->setBufferPosition(Point(this->getBufferRow(), INFINITY));
+}
+
+Range Cursor::getCurrentLineBufferRange(bool includeNewline) {
+  return this->editor->bufferRangeForBufferRow(this->getBufferRow(), includeNewline);
+}
+
 /*
 Section: Visibility
 */
@@ -223,6 +257,10 @@ Section: Visibility
 /*
 Section: Comparing to another cursor
 */
+
+int Cursor::compare(Cursor *otherCursor) {
+  return this->getBufferPosition().compare(otherCursor->getBufferPosition());
+}
 
 /*
 Section: Utilities
@@ -239,7 +277,7 @@ Section: Private
 void Cursor::changePosition(optional<bool> options_autoscroll, std::function<void()> fn) {
   this->clearSelection(false);
   fn();
-  //this.goalColumn = null;
+  this->goalColumn = optional<double>();
   //const bool autoscroll =
   //  options_autoscroll
   //    ? *options_autoscroll

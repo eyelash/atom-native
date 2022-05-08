@@ -48,7 +48,12 @@ public:
   optional<uint32_t> lineLengthForRow(uint32_t);
   Range setText(std::u16string);
   Range setTextInRange(Range, std::u16string);
+  Range insert(Point position, std::u16string text);
+  Range append(std::u16string text);
   Range applyChange(Change, bool);
+  Range delete_(Range range);
+  Range deleteRow(double row);
+  Range deleteRows(double startRow, double endRow);
   void emitDidChangeEvent(Range, Range);
   MarkerLayer *addMarkerLayer();
   MarkerLayer *getMarkerLayer(unsigned);

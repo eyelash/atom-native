@@ -28,7 +28,6 @@ void TextEditor::subscribeToBuffer() {
 
 void TextEditor::subscribeToDisplayLayer() {
   using namespace std::placeholders;
-  ;
   this->selectionsMarkerLayer->onDidCreateMarker(std::bind(&TextEditor::addSelection, this, _1));
 }
 
@@ -72,9 +71,9 @@ double TextEditor::getScreenLineCount() {
   return this->displayLayer->getScreenLineCount();
 }
 
-/*getApproximateScreenLineCount() {
-  return this.displayLayer.getApproximateScreenLineCount();
-}*/
+double TextEditor::getApproximateScreenLineCount() {
+  return this->displayLayer->getApproximateScreenLineCount();
+}
 
 unsigned TextEditor::getLastBufferRow() {
   return this->buffer->getLastRow();
@@ -178,6 +177,20 @@ void TextEditor::insertText(const std::u16string &text) {
   });
 }
 
+void TextEditor::insertNewline() {
+  return this->insertText(u"\n");
+}
+
+void TextEditor::delete_() {
+  //if (!this->ensureWritable('delete', options)) return;
+  return this->mutateSelectedText([&](Selection *selection) { selection->delete_(); });
+}
+
+void TextEditor::backspace() {
+  //if (!this->ensureWritable('backspace', options)) return;
+  return this->mutateSelectedText([&](Selection *selection) { selection->backspace(); });
+}
+
 void TextEditor::mutateSelectedText(std::function<void(Selection *)> fn /* , groupingInterval = 0 */ ) {
   //return this.mergeIntersectingSelections(() => {
     //return this.transact(groupingInterval, () => {
@@ -193,6 +206,48 @@ Section: History
 /*
 Section: TextEditor Coordinates
 */
+
+Point TextEditor::screenPositionForBufferPosition(Point bufferPosition) {
+  return this->displayLayer->translateBufferPosition(bufferPosition);
+}
+
+Point TextEditor::bufferPositionForScreenPosition(Point screenPosition) {
+  return this->displayLayer->translateScreenPosition(screenPosition);
+}
+
+Range TextEditor::screenRangeForBufferRange(Range bufferRange) {
+  const Point start = this->screenPositionForBufferPosition(
+    bufferRange.start
+  );
+  const Point end = this->screenPositionForBufferPosition(bufferRange.end);
+  return Range(start, end);
+}
+
+Range TextEditor::bufferRangeForScreenRange(Range screenRange) {
+  const Point start = this->bufferPositionForScreenPosition(screenRange.start);
+  const Point end = this->bufferPositionForScreenPosition(screenRange.end);
+  return Range(start, end);
+}
+
+Point TextEditor::clipBufferPosition(Point bufferPosition) {
+  return this->buffer->clipPosition(bufferPosition);
+}
+
+Range TextEditor::clipBufferRange(Range range) {
+  return this->buffer->clipRange(range);
+}
+
+Point TextEditor::clipScreenPosition(Point screenPosition) {
+  return this->displayLayer->clipScreenPosition(screenPosition);
+}
+
+Range TextEditor::clipScreenRange(Range screenRange) {
+  const Point start = this->displayLayer->clipScreenPosition(
+    screenRange.start
+  );
+  const Point end = this->displayLayer->clipScreenPosition(screenRange.end);
+  return Range(start, end);
+}
 
 /*
 Section: Decorations
@@ -210,8 +265,22 @@ DisplayMarkerLayer *TextEditor::addMarkerLayer() {
 Section: Cursors
 */
 
+Point TextEditor::getCursorBufferPosition() {
+  return this->getLastCursor()->getBufferPosition();
+}
+
+void TextEditor::setCursorBufferPosition(Point position) {
+  return this->moveCursors([&](Cursor *cursor) {
+    cursor->setBufferPosition(position);
+  });
+}
+
+Point TextEditor::getCursorScreenPosition() {
+  return this->getLastCursor()->getScreenPosition();
+}
+
 void TextEditor::setCursorScreenPosition(Point position) {
-  this->moveCursors([position](Cursor *cursor) {
+  this->moveCursors([&](Cursor *cursor) {
     cursor->setScreenPosition(position);
   });
 }
@@ -258,8 +327,19 @@ void TextEditor::moveRight(double columnCount) {
   });
 }
 
+Cursor *TextEditor::getLastCursor() {
+  this->createLastSelectionIfNeeded();
+  return this->cursors.back();
+}
+
 std::vector<Cursor *> TextEditor::getCursors() const {
   return cursors;
+}
+
+std::vector<Cursor *> TextEditor::getCursorsOrderedByBufferPosition() {
+  return sort(this->getCursors(), [](Cursor *a, Cursor *b) {
+    return a->compare(b);
+  });
 }
 
 Cursor *TextEditor::addCursor(DisplayMarker *marker) {
@@ -296,6 +376,18 @@ void TextEditor::mergeCursors() {
 Section: Selections
 */
 
+std::u16string TextEditor::getSelectedText() {
+  return this->getLastSelection()->getText();
+}
+
+Range TextEditor::getSelectedBufferRange() {
+  return this->getLastSelection()->getBufferRange();
+}
+
+Range TextEditor::getSelectedScreenRange() {
+  return this->getLastSelection()->getScreenRange();
+}
+
 Selection *TextEditor::addSelectionForBufferRange(Range bufferRange) {
   this->selectionsMarkerLayer->markBufferRange(bufferRange /* , {
     invalidate: 'never',
@@ -304,9 +396,70 @@ Selection *TextEditor::addSelectionForBufferRange(Range bufferRange) {
   return this->getLastSelection();
 }
 
+Selection *TextEditor::addSelectionForScreenRange(Range screenRange /* , options = {} */ ) {
+  return this->addSelectionForBufferRange(
+    this->bufferRangeForScreenRange(screenRange) /* ,
+    options */
+  );
+}
+
 Selection *TextEditor::getLastSelection() {
   this->createLastSelectionIfNeeded();
   return this->selections.back();
+}
+
+void TextEditor::selectUp(double rowCount) {
+  return this->expandSelectionsBackward([&](Selection *selection) {
+    selection->selectUp(rowCount);
+  });
+}
+
+void TextEditor::selectDown(double rowCount) {
+  return this->expandSelectionsForward([&](Selection *selection) {
+    selection->selectDown(rowCount);
+  });
+}
+
+void TextEditor::selectLeft(double columnCount) {
+  return this->expandSelectionsBackward([&](Selection *selection) {
+    selection->selectLeft(columnCount);
+  });
+}
+
+void TextEditor::selectRight(double columnCount) {
+  return this->expandSelectionsForward([&](Selection *selection) {
+    selection->selectRight(columnCount);
+  });
+}
+
+void TextEditor::selectToTop() {
+  return this->expandSelectionsBackward([&](Selection *selection) {
+    selection->selectToTop();
+  });
+}
+
+void TextEditor::selectToBottom() {
+  return this->expandSelectionsForward([&](Selection *selection) {
+    selection->selectToBottom();
+  });
+}
+
+void TextEditor::selectAll() {
+  return this->expandSelectionsForward([&](Selection *selection) {
+    selection->selectAll();
+  });
+}
+
+void TextEditor::selectToBeginningOfLine() {
+  return this->expandSelectionsBackward([&](Selection *selection) {
+    selection->selectToBeginningOfLine();
+  });
+}
+
+void TextEditor::selectToEndOfLine() {
+  return this->expandSelectionsForward([&](Selection *selection) {
+    selection->selectToEndOfLine();
+  });
 }
 
 std::vector<Selection *> TextEditor::getSelections() {
@@ -320,16 +473,72 @@ std::vector<Selection *> TextEditor::getSelectionsOrderedByBufferPosition() {
   });
 }
 
+void TextEditor::expandSelectionsForward(std::function<void(Selection *)> fn) {
+  this->mergeIntersectingSelections([&]() {
+    for (Selection *selection : this->getSelections()) {
+      fn(selection);
+    }
+  });
+}
+
+void TextEditor::expandSelectionsBackward(std::function<void(Selection *)> fn) {
+  this->mergeIntersectingSelections(/* { reversed: true }, */ [&]() {
+    for (Selection *selection : this->getSelections()) {
+      fn(selection);
+    }
+  });
+}
+
+void TextEditor::mergeIntersectingSelections( /* options, */ std::function<void()> fn) {
+  return this->mergeSelections(
+    fn,
+    [](Selection *previousSelection, Selection *currentSelection) {
+      const bool exclusive =
+        !currentSelection->isEmpty() && !previousSelection->isEmpty();
+      return previousSelection->intersectsWith(currentSelection, exclusive);
+    }
+  );
+}
+
+void TextEditor::mergeIntersectingSelections(/* options */) {
+  return this->mergeIntersectingSelections([]() {});
+}
+
+void TextEditor::avoidMergingSelections(std::function<void()> fn) {
+  return this->mergeSelections(fn, [](Selection *, Selection *) {
+    return false;
+  });
+}
+
+void TextEditor::mergeSelections( /* options, */ std::function<void()> fn, std::function<bool(Selection *, Selection *)> mergePredicate) {
+  //if (this.suppressSelectionMerging) return fn();
+
+  //this.suppressSelectionMerging = true;
+  fn();
+  //this.suppressSelectionMerging = false;
+
+  auto selections = this->getSelectionsOrderedByBufferPosition();
+  Selection *lastSelection = selections.front();
+  selections.erase(selections.begin());
+  for (Selection *selection : selections) {
+    if (mergePredicate(lastSelection, selection)) {
+      lastSelection->merge(selection);
+    } else {
+      lastSelection = selection;
+    }
+  }
+}
+
 void TextEditor::addSelection(DisplayMarker *marker) {
   Cursor *cursor = this->addCursor(marker);
   Selection *selection = new Selection(
     this, marker, cursor
   );
   this->selections.push_back(selection);
-  /*const selectionBufferRange = selection.getBufferRange();
-  this.mergeIntersectingSelections({ preserveFolds: options.preserveFolds });
+  const Range selectionBufferRange = selection->getBufferRange();
+  this->mergeIntersectingSelections( /* { preserveFolds: options.preserveFolds } */ );
 
-  if (selection.destroyed) {
+  /*if (selection.destroyed) {
     for (selection of this.getSelections()) {
       if (selection.intersectsBufferRange(selectionBufferRange))
         return selection;

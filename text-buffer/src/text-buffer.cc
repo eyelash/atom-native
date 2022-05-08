@@ -115,6 +115,14 @@ Range TextBuffer::setTextInRange(Range range, std::u16string newText) {
   return newRange;
 }
 
+Range TextBuffer::insert(Point position, std::u16string text) {
+  return this->setTextInRange(Range(position, position), std::move(text));
+}
+
+Range TextBuffer::append(std::u16string text) {
+  return this->insert(this->getEndPosition(), std::move(text));
+}
+
 Range TextBuffer::applyChange(Change change, bool pushToHistory) {
   const Point newStart = change.newStart;
   const Point newEnd = change.newEnd;
@@ -166,6 +174,46 @@ void TextBuffer::emitDidChangeEvent(Range oldRange, Range newRange) {
       displayLayer.second->bufferDidChange(oldRange, newRange);
     }
   }
+}
+
+Range TextBuffer::delete_(Range range) {
+  return this->setTextInRange(range, u"");
+}
+
+Range TextBuffer::deleteRow(double row) {
+  return this->deleteRows(row, row);
+}
+
+Range TextBuffer::deleteRows(double startRow, double endRow) {
+  Point endPoint, startPoint;
+  const double lastRow = this->getLastRow();
+
+  if (startRow > endRow) { std::swap(startRow, endRow); }
+
+  if (endRow < 0) {
+    return Range(this->getFirstPosition(), this->getFirstPosition());
+  }
+
+  if (startRow > lastRow) {
+    return Range(this->getEndPosition(), this->getEndPosition());
+  }
+
+  startRow = std::max(0.0, startRow);
+  endRow = std::min(lastRow, endRow);
+
+  if (endRow < lastRow) {
+    startPoint = Point(startRow, 0);
+    endPoint = Point(endRow + 1, 0);
+  } else {
+    if (startRow == 0) {
+      startPoint = Point(startRow, 0);
+    } else {
+      startPoint = Point(startRow - 1, this->lineLengthForRow(startRow - 1));
+    }
+    endPoint = Point(endRow, this->lineLengthForRow(endRow));
+  }
+
+  return this->delete_(Range(startPoint, endPoint));
 }
 
 /*

@@ -1,7 +1,7 @@
 #ifndef CURSOR_H_
 #define CURSOR_H_
 
-#include <point.h>
+#include <range.h>
 #include <optional.h>
 #include <functional>
 
@@ -11,6 +11,7 @@ class DisplayMarker;
 class Cursor {
   TextEditor *editor;
   DisplayMarker *marker;
+  optional<double> goalColumn;
 
 public:
   Cursor(TextEditor *, DisplayMarker *);
@@ -25,12 +26,23 @@ public:
   double getScreenColumn();
   double getBufferRow();
   double getBufferColumn();
+  std::u16string getCurrentBufferLine();
   bool isAtBeginningOfLine();
+  bool isAtEndOfLine();
   DisplayMarker *getMarker();
+  bool isLastCursor();
   void moveUp(double = 1, bool = false);
   void moveDown(double = 1, bool = false);
   void moveLeft(double = 1, bool = false);
   void moveRight(double = 1, bool = false);
+  void moveToTop();
+  void moveToBottom();
+  void moveToBeginningOfScreenLine();
+  void moveToBeginningOfLine();
+  void moveToEndOfScreenLine();
+  void moveToEndOfLine();
+  Range getCurrentLineBufferRange(bool = false);
+  int compare(Cursor *);
   void clearSelection(bool);
 
 private:

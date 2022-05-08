@@ -2,10 +2,11 @@
 #include "display-marker-layer.h"
 #include "marker.h"
 
-DisplayMarker::DisplayMarker(DisplayMarkerLayer *layer, Marker *bufferMarker) :
-  layer{layer},
-  bufferMarker{bufferMarker},
-  id{bufferMarker->id} {}
+DisplayMarker::DisplayMarker(DisplayMarkerLayer *layer, Marker *bufferMarker) {
+  this->layer = layer;
+  this->bufferMarker = bufferMarker;
+  this->id = this->bufferMarker->id;
+}
 
 DisplayMarker::~DisplayMarker() {}
 

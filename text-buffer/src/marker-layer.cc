@@ -8,20 +8,21 @@
 Section: Lifecycle
 */
 
-MarkerLayer::MarkerLayer(TextBuffer *delegate, unsigned id) :
-  delegate{delegate},
-  index{new MarkerIndex()},
-  id{id} {}
+MarkerLayer::MarkerLayer(TextBuffer *delegate, unsigned id) {
+  this->delegate = delegate;
+  this->id = id;
+  this->index = new MarkerIndex();
+}
 
 MarkerLayer::~MarkerLayer() {
-  for (auto& marker : this->markersById) {
+  for (auto &marker : this->markersById) {
     delete marker.second;
   }
   delete this->index;
 }
 
 void MarkerLayer::clear() {
-  for (auto& marker : this->markersById) {
+  for (auto &marker : this->markersById) {
     delete marker.second;
   }
   this->markersById.clear();

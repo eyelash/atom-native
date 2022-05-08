@@ -1,8 +1,12 @@
 #include "marker.h"
 #include "marker-layer.h"
 
-Marker::Marker(unsigned id, MarkerLayer *layer, Range range, bool exclusivitySet) :
-  layer{layer}, tailed{false}, reversed{false}, invalidate{InvalidationStrategy::overlap}, id{id} {
+Marker::Marker(unsigned id, MarkerLayer *layer, Range range, bool exclusivitySet) {
+  this->id = id;
+  this->layer = layer;
+  this->tailed = true;
+  this->reversed = false;
+  this->invalidate = InvalidationStrategy::overlap;
   if (!exclusivitySet) {
     this->layer->setMarkerIsExclusive(this->id, this->isExclusive());
   }

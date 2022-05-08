@@ -46,14 +46,13 @@ std::vector<DisplayLayer::ScreenLine> ScreenLineBuilder::buildScreenLines(double
   // Loop through all characters spanning the given screen row range, building
   // up screen lines based on the contents of the spatial index and the
   // buffer.
-  screenRowLoop:
   while (this->screenRow < endScreenRow) {
     optional<DisplayLayer::ScreenLine> cachedScreenLine = this->screenRow < this->displayLayer->cachedScreenLines.size() ? this->displayLayer->cachedScreenLines[this->screenRow] : optional<DisplayLayer::ScreenLine>();
     if (cachedScreenLine) {
       this->pushScreenLine(*cachedScreenLine);
 
-      Patch::Change *nextHunk = &hunks[hunkIndex];
-      while (hunkIndex < hunks.size() && nextHunk->new_start.row <= this->screenRow) {
+      const Patch::Change *nextHunk = hunkIndex < hunks.size() ? &hunks[hunkIndex] : nullptr;
+      while (nextHunk && nextHunk->new_start.row <= this->screenRow) {
         if (nextHunk->new_start.row == this->screenRow) {
           if (nextHunk->new_end.row > nextHunk->new_start.row) {
             this->screenRow++;
@@ -67,7 +66,7 @@ std::vector<DisplayLayer::ScreenLine> ScreenLineBuilder::buildScreenLines(double
         }
 
         hunkIndex++;
-        nextHunk = &hunks[hunkIndex];
+        nextHunk = hunkIndex < hunks.size() ? &hunks[hunkIndex] : nullptr;
       }
 
       this->screenRow++;
@@ -102,8 +101,8 @@ std::vector<DisplayLayer::ScreenLine> ScreenLineBuilder::buildScreenLines(double
     // multiple screen rows if there are soft wraps.
     while (this->bufferPosition.column <= this->bufferLineLength) {
       // Handle folds or soft wraps at the current position.
-      Patch::Change *nextHunk = &hunks[hunkIndex];
-      while (hunkIndex < hunks.size() && nextHunk->old_start.row == this->bufferPosition.row && nextHunk->old_start.column == this->bufferPosition.column) {
+      const Patch::Change *nextHunk = hunkIndex < hunks.size() ? &hunks[hunkIndex] : nullptr;
+      while (nextHunk && nextHunk->old_start.row == this->bufferPosition.row && nextHunk->old_start.column == this->bufferPosition.column) {
         if (this->displayLayer->isSoftWrapHunk(*nextHunk)) {
           this->emitSoftWrap(*nextHunk);
           if (this->screenRow == endScreenRow) {
@@ -114,7 +113,7 @@ std::vector<DisplayLayer::ScreenLine> ScreenLineBuilder::buildScreenLines(double
         }
 
         hunkIndex++;
-        nextHunk = &hunks[hunkIndex];
+        nextHunk = hunkIndex < hunks.size() ? &hunks[hunkIndex] : nullptr;
       }
 
       char16_t nextCharacter = this->displayLayer->buffer->getCharacterAtPosition(this->bufferPosition);

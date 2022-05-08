@@ -173,9 +173,9 @@ DisplayLayer::~DisplayLayer() {
 void DisplayLayer::clearSpatialIndex() {
   this->indexedBufferRowCount = 0;
   this->spatialIndex->splice_old(Point::ZERO, Point::INFINITY_, Point::INFINITY_);
-  this->cachedScreenLines.clear();
-  this->screenLineLengths.clear();
-  this->tabCounts.clear();
+  this->cachedScreenLines.resize(0);
+  this->screenLineLengths.resize(0);
+  this->tabCounts.resize(0);
   this->rightmostScreenPosition = Point(0, 0);
 }
 
@@ -484,8 +484,8 @@ Point DisplayLayer::expandHardTabs(Point targetScreenPosition, Point targetBuffe
       break;
     }
 
-    const Patch::Change *nextHunk = &hunks[hunkIndex];
-    if (hunkIndex < hunks.size() && nextHunk->old_start.row == bufferRow && nextHunk->old_start.column == bufferColumn) {
+    const Patch::Change *nextHunk = hunkIndex < hunks.size() ? &hunks[hunkIndex] : nullptr;
+    if (nextHunk && nextHunk->old_start.row == bufferRow && nextHunk->old_start.column == bufferColumn) {
       if (this->isSoftWrapHunk(*nextHunk)) {
         //if (hunkIndex != 0) throw new Error('Unexpected soft wrap hunk');
         unexpandedScreenColumn = hunks[0].new_end.column;
@@ -536,14 +536,14 @@ Point DisplayLayer::collapseHardTabs(Point targetScreenPosition, double tabCount
       break;
     }
 
-    const auto& nextHunk = hunks[hunkIndex];
-    if (hunkIndex < hunks.size() && nextHunk.old_start.row == bufferRow && nextHunk.old_start.column == bufferColumn) {
-      if (this->isSoftWrapHunk(nextHunk)) {
-        //if (hunkIndex !== 0) throw new Error('Unexpected soft wrap hunk')
-        unexpandedScreenColumn = std::min(targetScreenPosition.column, (double)nextHunk.new_end.column);
+    const Patch::Change *nextHunk = hunkIndex < hunks.size() ? &hunks[hunkIndex] : nullptr;
+    if (nextHunk && nextHunk->old_start.row == bufferRow && nextHunk->old_start.column == bufferColumn) {
+      if (this->isSoftWrapHunk(*nextHunk)) {
+        //if (hunkIndex != 0) throw new Error('Unexpected soft wrap hunk')
+        unexpandedScreenColumn = std::min(targetScreenPosition.column, (double)nextHunk->new_end.column);
         expandedScreenColumn = unexpandedScreenColumn;
       } else {
-        bufferRow = nextHunk.old_end.row, bufferColumn = nextHunk.old_end.column;
+        bufferRow = nextHunk->old_end.row, bufferColumn = nextHunk->old_end.column;
         bufferLine = this->buffer->lineForRow(bufferRow);
         unexpandedScreenColumn++;
         expandedScreenColumn++;
@@ -908,7 +908,7 @@ DisplayLayer::UpdateResult DisplayLayer::updateSpatialIndex(double startBufferRo
     auto bufferLine = this->buffer->lineForRow(bufferRow);
     if (!bufferLine) break;
     double bufferLineLength = bufferLine->size();
-    currentScreenLineTabColumns.clear();
+    currentScreenLineTabColumns.resize(0);
     double screenLineWidth = 0;
     double lastWrapBoundaryUnexpandedScreenColumn = 0;
     double lastWrapBoundaryExpandedScreenColumn = 0;

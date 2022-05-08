@@ -10,7 +10,11 @@ DisplayMarkerLayer::DisplayMarkerLayer(DisplayLayer *displayLayer, MarkerLayer *
   this->bufferMarkerLayer->displayMarkerLayers.insert(this);
 }
 
-DisplayMarkerLayer::~DisplayMarkerLayer() {}
+DisplayMarkerLayer::~DisplayMarkerLayer() {
+  for (auto& marker : this->markersById) {
+    delete marker.second;
+  }
+}
 
 /*
 Section: Lifecycle

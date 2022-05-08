@@ -15,6 +15,7 @@ class Cursor {
 public:
   Cursor(TextEditor *, DisplayMarker *);
   ~Cursor();
+  void destroy();
 
   void setScreenPosition(Point, optional<bool> = optional<bool>());
   Point getScreenPosition();

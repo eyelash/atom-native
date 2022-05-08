@@ -6,7 +6,9 @@
 DisplayMarkerLayer::DisplayMarkerLayer(DisplayLayer *displayLayer, MarkerLayer *bufferMarkerLayer, bool ownsBufferMarkerLayer) :
   displayLayer{displayLayer},
   bufferMarkerLayer{bufferMarkerLayer},
-  id{bufferMarkerLayer->id} {}
+  id{bufferMarkerLayer->id} {
+  this->bufferMarkerLayer->displayMarkerLayers.insert(this);
+}
 
 DisplayMarkerLayer::~DisplayMarkerLayer() {}
 
@@ -90,4 +92,17 @@ Point DisplayMarkerLayer::translateScreenPosition(Point screenPosition, DisplayL
 
 Range DisplayMarkerLayer::translateScreenRange(Range screenRange, DisplayLayer::ClipDirection clipDirection, bool skipSoftWrapIndentation) {
   return this->displayLayer->translateScreenRange(screenRange, clipDirection, skipSoftWrapIndentation);
+}
+
+void DisplayMarkerLayer::destroyMarker(unsigned id) {
+  auto iter = this->markersById.find(id);
+  if (iter != this->markersById.end()) {
+    return iter->second->didDestroyBufferMarker();
+  }
+}
+
+void DisplayMarkerLayer::didDestroyMarker(DisplayMarker *marker) {
+  //this.markersWithDestroyListeners.delete(marker);
+  this->markersById.erase(marker->id);
+  return delete marker;
 }

@@ -32,6 +32,8 @@ public:
   Range translateBufferRange(Range, DisplayLayer::ClipDirection = DisplayLayer::ClipDirection::closest);
   Point translateScreenPosition(Point, DisplayLayer::ClipDirection = DisplayLayer::ClipDirection::closest, bool = false);
   Range translateScreenRange(Range, DisplayLayer::ClipDirection = DisplayLayer::ClipDirection::closest, bool = false);
+  void destroyMarker(unsigned);
+  void didDestroyMarker(DisplayMarker *);
 };
 
 #endif  // DISPLAY_MARKER_LAYER_H_

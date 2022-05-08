@@ -4,9 +4,29 @@
 
 DisplayMarker::DisplayMarker(DisplayMarkerLayer *layer, Marker *bufferMarker) :
   layer{layer},
-  bufferMarker{bufferMarker} {}
+  bufferMarker{bufferMarker},
+  id{bufferMarker->id} {}
 
 DisplayMarker::~DisplayMarker() {}
+
+void DisplayMarker::destroy() {
+  //if (!this.isDestroyed()) {
+    return this->bufferMarker->destroy();
+  //}
+}
+
+void DisplayMarker::didDestroyBufferMarker() {
+  this->didDestroyEmitter.emit();
+  this->layer->didDestroyMarker(this);
+  //this.emitter.dispose();
+  //this.emitter.clear();
+  //return (ref = this.bufferMarkerSubscription) != null ? ref.dispose() : void 0;
+}
+
+void DisplayMarker::onDidDestroy(std::function<void()> callback) {
+  //this.layer.markersWithDestroyListeners.add(this);
+  return this->didDestroyEmitter.on(callback);
+}
 
 bool DisplayMarker::isReversed() const {
   return this->bufferMarker->isReversed();

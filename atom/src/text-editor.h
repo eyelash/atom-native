@@ -64,6 +64,7 @@ public:
   std::vector<Selection *> getSelections();
   std::vector<Selection *> getSelectionsOrderedByBufferPosition();
   void addSelection(DisplayMarker *);
+  void removeSelection(Selection *);
 
 private:
   void moveCursors(std::function<void(Cursor *)>);

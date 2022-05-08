@@ -7,15 +7,28 @@
 class MarkerLayer;
 
 class Marker {
+public:
+  enum class InvalidationStrategy {
+    never,
+    surround,
+    overlap,
+    inside,
+    touch
+  };
+
+private:
   MarkerLayer *layer;
   bool tailed;
   bool reversed;
+  InvalidationStrategy invalidate;
+  optional<bool> exclusive;
 
 public:
   unsigned id;
 
-  Marker(unsigned, MarkerLayer *, Range);
+  Marker(unsigned, MarkerLayer *, Range, bool = false);
   ~Marker();
+  void destroy(bool = false);
 
   Range getRange() const;
   bool setRange(const Range &, optional<bool> = optional<bool>());
@@ -29,7 +42,9 @@ public:
   bool plantTail();
   bool isReversed() const;
   bool hasTail() const;
+  bool isExclusive();
   bool isEqual(const Marker *) const;
+  InvalidationStrategy getInvalidationStrategy() const;
   int compare(const Marker *) const;
 
 private:

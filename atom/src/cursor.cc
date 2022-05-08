@@ -9,6 +9,10 @@ Cursor::Cursor(TextEditor *editor, DisplayMarker *marker) {
 
 Cursor::~Cursor() {}
 
+void Cursor::destroy() {
+  this->marker->destroy();
+}
+
 void Cursor::setScreenPosition(Point screenPosition, optional<bool> options_autoscroll) {
   this->changePosition(options_autoscroll, [&]() {
     this->marker->setHeadScreenPosition(screenPosition);

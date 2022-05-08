@@ -285,7 +285,7 @@ void TextEditor::mergeCursors() {
   for (Cursor *cursor: getCursors()) {
     const Point position = cursor->getBufferPosition();
     if (positions.count(position)) {
-      //cursor.destroy();
+      cursor->destroy();
     } else {
       positions.insert(position);
     }
@@ -339,6 +339,11 @@ void TextEditor::addSelection(DisplayMarker *marker) {
     this.emitter.emit('did-add-selection', selection);
     return selection;
   }*/
+}
+
+void TextEditor::removeSelection(Selection *selection) {
+  this->cursors.erase(std::find(this->cursors.begin(), this->cursors.end(), selection->cursor));
+  this->selections.erase(std::find(this->selections.begin(), this->selections.end(), selection));
 }
 
 void TextEditor::createLastSelectionIfNeeded() {

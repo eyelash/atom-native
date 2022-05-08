@@ -2,6 +2,7 @@
 #define DISPLAY_MARKER_H_
 
 #include "range.h"
+#include "event-kit.h"
 
 class DisplayMarkerLayer;
 class Marker;
@@ -9,10 +10,16 @@ class Marker;
 class DisplayMarker {
   DisplayMarkerLayer *layer;
   Marker *bufferMarker;
+  Emitter<> didDestroyEmitter;
 
 public:
+  unsigned id;
+
   DisplayMarker(DisplayMarkerLayer *, Marker *);
   ~DisplayMarker();
+  void destroy();
+  void didDestroyBufferMarker();
+  void onDidDestroy(std::function<void()>);
 
   bool isReversed() const;
   int compare(const DisplayMarker *) const;

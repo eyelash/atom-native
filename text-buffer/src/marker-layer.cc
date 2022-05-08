@@ -1,6 +1,11 @@
 #include "marker-layer.h"
 #include "text-buffer.h"
 #include "marker.h"
+#include "display-marker-layer.h"
+
+/*
+Section: Lifecycle
+*/
 
 MarkerLayer::MarkerLayer(TextBuffer *delegate, unsigned id) :
   delegate{delegate},
@@ -166,6 +171,30 @@ void MarkerLayer::splice(Point start, Point oldExtent, Point newExtent) {
   // TODO: destroy invalidated markers
 }
 
+/*
+Section: Private - Marker interface
+*/
+
+void MarkerLayer::destroyMarker(Marker *marker, bool suppressMarkerLayerUpdateEvents) {
+  if (this->markersById.count(marker->id)) {
+    this->markersById.erase(marker->id);
+    delete marker;
+    this->index->remove(marker->id);
+    //this.markersWithChangeListeners.delete(marker);
+    //this.markersWithDestroyListeners.delete(marker);
+    for (DisplayMarkerLayer *displayMarkerLayer : this->displayMarkerLayers) {
+      displayMarkerLayer->destroyMarker(marker->id);
+    }
+    if (!suppressMarkerLayerUpdateEvents) {
+      return this->delegate->markersUpdated(this);
+    }
+  }
+}
+
+bool MarkerLayer::hasMarker(unsigned id) {
+  return /* !this->destroyed && */ this->index->has(id);
+}
+
 Range MarkerLayer::getMarkerRange(unsigned id) const {
   return this->index->get_range(id);
 }
@@ -188,6 +217,10 @@ void MarkerLayer::setMarkerRange(unsigned id, const Range &range) {
   end = this->delegate->clipPosition(end);
   this->index->remove(id);
   this->index->insert(id, start, end);
+}
+
+void MarkerLayer::setMarkerIsExclusive(unsigned id, bool exclusive) {
+  this->index->set_exclusive(id, exclusive);
 }
 
 Marker *MarkerLayer::createMarker(const Range &range, bool suppressMarkerLayerUpdateEvents) {

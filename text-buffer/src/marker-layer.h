@@ -6,10 +6,12 @@
 #include <marker-index.h>
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <functional>
 
 class TextBuffer;
 class Marker;
+class DisplayMarkerLayer;
 
 class MarkerLayer {
   TextBuffer *delegate;
@@ -19,6 +21,7 @@ class MarkerLayer {
 
 public:
   unsigned id;
+  std::unordered_set<DisplayMarkerLayer *> displayMarkerLayers;
 
   MarkerLayer(TextBuffer *, unsigned);
   ~MarkerLayer();
@@ -33,11 +36,14 @@ public:
   Marker *markPosition(Point);
   void onDidCreateMarker(std::function<void(Marker *)>);
   void splice(Point, Point, Point);
+  void destroyMarker(Marker *, bool = false);
+  bool hasMarker(unsigned);
   Range getMarkerRange(unsigned) const;
   Point getMarkerStartPosition(unsigned) const;
   Point getMarkerEndPosition(unsigned) const;
   int compareMarkers(unsigned, unsigned);
   void setMarkerRange(unsigned, const Range &);
+  void setMarkerIsExclusive(unsigned, bool);
 
 private:
   Marker *createMarker(const Range &, bool = false);

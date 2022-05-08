@@ -16,11 +16,14 @@ public:
 
   Selection(TextEditor *, DisplayMarker *, Cursor *);
   ~Selection();
+  void destroy();
 
   Range getScreenRange();
   Range getBufferRange();
+  bool isReversed();
   void insertText(const std::u16string &);
   int compare(Selection *);
+  void markerDidDestroy();
 };
 
 #endif  // SELECTION_H_

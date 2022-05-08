@@ -1,10 +1,28 @@
 #include "marker.h"
 #include "marker-layer.h"
 
-Marker::Marker(unsigned id, MarkerLayer *layer, Range range) :
-  layer{layer}, tailed{false}, reversed{false}, id{id} {}
+Marker::Marker(unsigned id, MarkerLayer *layer, Range range, bool exclusivitySet) :
+  layer{layer}, tailed{false}, reversed{false}, invalidate{InvalidationStrategy::overlap}, id{id} {
+  if (!exclusivitySet) {
+    this->layer->setMarkerIsExclusive(this->id, this->isExclusive());
+  }
+}
 
 Marker::~Marker() {}
+
+void Marker::destroy(bool suppressMarkerLayerUpdateEvents) {
+  /*if (this.isDestroyed()) {
+    return;
+  }*/
+  /*if (this.trackDestruction) {
+    error = new Error();
+    Error.captureStackTrace(error);
+    this.destroyStackTrace = error.stack;
+  }*/
+  this->layer->destroyMarker(this, suppressMarkerLayerUpdateEvents);
+  //this.emitter.emit('did-destroy');
+  //return this.emitter.clear();
+}
 
 Range Marker::getRange() const {
   return this->layer->getMarkerRange(this->id);
@@ -117,8 +135,20 @@ bool Marker::hasTail() const {
   return this->tailed;
 }
 
+bool Marker::isExclusive() {
+  if (this->exclusive) {
+    return *this->exclusive;
+  } else {
+    return this->getInvalidationStrategy() == InvalidationStrategy::inside || !this->hasTail();
+  }
+}
+
 bool Marker::isEqual(const Marker *other) const {
-  return this->tailed == other->tailed && this->reversed == other->reversed /* && this->exclusive == other->exclusive */ && this->getRange().isEqual(other->getRange());
+  return this->invalidate == other->invalidate && this->tailed == other->tailed && this->reversed == other->reversed && this->exclusive == other->exclusive && this->getRange().isEqual(other->getRange());
+}
+
+Marker::InvalidationStrategy Marker::getInvalidationStrategy() const {
+  return this->invalidate;
 }
 
 int Marker::compare(const Marker *other) const {
@@ -126,6 +156,7 @@ int Marker::compare(const Marker *other) const {
 }
 
 bool Marker::update(const Range &oldRange, const UpdateParams &params) {
+  bool wasExclusive = this->isExclusive();
   bool updated = false;
   if (params.range && !params.range->isEqual(oldRange)) {
     this->layer->setMarkerRange(this->id, *params.range);
@@ -137,6 +168,10 @@ bool Marker::update(const Range &oldRange, const UpdateParams &params) {
   }
   if (params.tailed && *params.tailed != this->tailed) {
     this->tailed = *params.tailed;
+    updated = true;
+  }
+  if (wasExclusive != this->isExclusive()) {
+    this->layer->setMarkerIsExclusive(this->id, this->isExclusive());
     updated = true;
   }
   return updated;

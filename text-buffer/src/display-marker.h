@@ -8,11 +8,10 @@ class DisplayMarkerLayer;
 class Marker;
 
 class DisplayMarker {
+public:
   DisplayMarkerLayer *layer;
   Marker *bufferMarker;
   Emitter<> didDestroyEmitter;
-
-public:
   unsigned id;
 
   DisplayMarker(DisplayMarkerLayer *, Marker *);

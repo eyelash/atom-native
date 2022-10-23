@@ -11,13 +11,16 @@ class Cursor;
 class Selection;
 class TextBuffer;
 class DisplayMarker;
+class DecorationManager;
 
 class TextEditor {
   std::vector<Cursor *> cursors;
   std::vector<Selection *> selections;
   TextBuffer *buffer;
+public:
   DisplayLayer *displayLayer;
   DisplayMarkerLayer *selectionsMarkerLayer;
+  DecorationManager *decorationManager;
 
 public:
   TextEditor();

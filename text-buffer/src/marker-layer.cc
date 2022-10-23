@@ -2,6 +2,7 @@
 #include "text-buffer.h"
 #include "marker.h"
 #include "display-marker-layer.h"
+#include "set-helpers.h"
 
 /*
 Section: Lifecycle
@@ -131,18 +132,34 @@ MarkerLayer::FindParam containedInRange(Range range) {
   };
 }
 
-std::vector<Marker *> MarkerLayer::findMarkers(FindParam param) {
-  auto markerIds = param(this->index);
+std::vector<Marker *> MarkerLayer::findMarkers(Slice<FindParam> params) {
   std::vector<Marker *> result;
-  for (unsigned markerId : markerIds) {
-    Marker *marker = this->markersById[markerId];
-    result.push_back(marker);
+  auto iter = params.begin();
+  if (iter != params.end()) {
+    auto markerIds = (*iter)(this->index);
+    ++iter;
+    while (iter != params.end()) {
+      intersectSet(markerIds, (*iter)(this->index));
+      ++iter;
+    }
+    for (unsigned markerId : markerIds) {
+      Marker *marker = this->markersById[markerId];
+      result.push_back(marker);
+    }
+  } else {
+    for (auto& marker : this->markersById) {
+      result.push_back(marker.second);
+    }
   }
   std::sort(result.begin(), result.end(), [](Marker *a, Marker *b) {
     return a->compare(b) < 0;
   });
   return result;
 }
+
+/*
+Section: Marker creation
+*/
 
 Marker *MarkerLayer::markRange(Range range) {
   return this->createMarker(this->delegate->clipRange(range));

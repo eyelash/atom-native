@@ -3,6 +3,7 @@
 
 #include "range.h"
 #include "event-kit.h"
+#include "helpers.h"
 #include <marker-index.h>
 #include <vector>
 #include <unordered_map>
@@ -31,7 +32,7 @@ public:
   std::vector<Marker *> getMarkers();
   std::size_t getMarkerCount() const;
   using FindParam = std::function<flat_set<unsigned>(MarkerIndex *)>;
-  std::vector<Marker *> findMarkers(FindParam);
+  std::vector<Marker *> findMarkers(Slice<FindParam>);
   Marker *markRange(Range);
   Marker *markPosition(Point);
   void onDidCreateMarker(std::function<void(Marker *)>);

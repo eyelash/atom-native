@@ -37,4 +37,24 @@ template <class T, class C> std::vector<T> sort(std::vector<T> &&v, C comp) {
 
 Point extentForText(const std::u16string &);
 
+template <class T> class Slice {
+  const T *data_;
+  std::size_t size_;
+public:
+  Slice(std::initializer_list<T> l): data_(l.begin()), size_(l.size()) {}
+  Slice(const std::vector<T> &v): data_(v.data()), size_(v.size()) {}
+  const T &operator [](std::size_t i) const {
+    return data_[i];
+  }
+  std::size_t size() const {
+    return size_;
+  }
+  const T *begin() const {
+    return data_;
+  }
+  const T *end() const {
+    return data_ + size_;
+  }
+};
+
 #endif  // HELPERS_H_

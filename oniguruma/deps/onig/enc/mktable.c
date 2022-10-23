@@ -261,15 +261,6 @@ static int IsAlpha(int enc, int c)
   return 0;
 }
 
-#ifdef _WIN32
-static int isblank(int c) {
-  if (c == ' ' || c == '\t')
-    return 1;
-  else
-    return 0;
-}
-#endif
-
 static int IsBlank(int enc, int c)
 {
   if (enc == ASCII)

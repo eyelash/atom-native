@@ -1166,9 +1166,9 @@ std::pair<double, double> DisplayLayer::findBoundaryFollowingScreenRow(double sc
 // fold start row -> fold start column -> fold end point
 std::unordered_map<double, std::unordered_map<double, Point>> DisplayLayer::computeFoldsInBufferRowRange(double startBufferRow, double endBufferRow) {
   std::unordered_map<double, std::unordered_map<double, Point>> folds;
-  auto foldMarkers = this->foldsMarkerLayer->findMarkers(
+  auto foldMarkers = this->foldsMarkerLayer->findMarkers({
     intersectsRowRange(startBufferRow, endBufferRow - 1)
-  );
+  });
 
   // If the given buffer range exceeds the indexed range, we need to ensure
   // we consider any folds that intersect the combined row range of the
@@ -1180,9 +1180,9 @@ std::unordered_map<double, std::unordered_map<double, Point>> DisplayLayer::comp
       const auto& nextMarker = foldMarkers[i + 1];
       if (marker->getEndPosition().row >= endBufferRow &&
           (!(i + 1 < foldMarkers.size()) || nextMarker->getEndPosition().row < marker->getEndPosition().row)) {
-        const auto intersectingMarkers = this->foldsMarkerLayer->findMarkers(
+        const auto intersectingMarkers = this->foldsMarkerLayer->findMarkers({
           intersectsRow(marker->getEndPosition().row)
-        );
+        });
         endBufferRow = marker->getEndPosition().row + 1;
         foldMarkers.erase(foldMarkers.begin() + i, foldMarkers.end());
         foldMarkers.insert(foldMarkers.end(), intersectingMarkers.begin(), intersectingMarkers.end());

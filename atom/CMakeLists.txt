@@ -5,6 +5,9 @@ add_library(atom)
 target_link_libraries(atom text-buffer)
 target_sources(atom PRIVATE
   src/cursor.cc
+  src/decoration.cc
+  src/decoration-manager.cc
+  src/layer-decoration.cc
   src/selection.cc
   src/text-editor.cc
 )

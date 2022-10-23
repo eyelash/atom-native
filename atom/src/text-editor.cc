@@ -1,6 +1,7 @@
 #include "text-editor.h"
 #include "cursor.h"
 #include "selection.h"
+#include "decoration-manager.h"
 #include <text-buffer.h>
 #include <display-marker-layer.h>
 #include <helpers.h>
@@ -11,6 +12,8 @@ TextEditor::TextEditor() {
   this->displayLayer = this->buffer->addDisplayLayer();
   //this->defaultMarkerLayer = this->displayLayer->addMarkerLayer();
   this->selectionsMarkerLayer = this->addMarkerLayer();
+  this->decorationManager = new DecorationManager(this);
+  this->decorateMarkerLayer(this->selectionsMarkerLayer, { Decoration::Type::cursor });
 
   this->subscribeToBuffer();
   this->subscribeToDisplayLayer();
@@ -252,6 +255,17 @@ Range TextEditor::clipScreenRange(Range screenRange) {
 /*
 Section: Decorations
 */
+
+Decoration *TextEditor::decorateMarker(DisplayMarker *marker, Decoration::Properties decorationParams) {
+  return this->decorationManager->decorateMarker(marker, decorationParams);
+}
+
+LayerDecoration *TextEditor::decorateMarkerLayer(DisplayMarkerLayer *markerLayer, Decoration::Properties decorationParams) {
+  return this->decorationManager->decorateMarkerLayer(
+    markerLayer,
+    decorationParams
+  );
+}
 
 /*
 Section: Markers

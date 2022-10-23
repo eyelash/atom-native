@@ -1,6 +1,7 @@
 #ifndef TEXT_EDITOR_H_
 #define TEXT_EDITOR_H_
 
+#include "decoration.h"
 #include <vector>
 #include <functional>
 #include <range.h>
@@ -11,13 +12,17 @@ class Cursor;
 class Selection;
 class TextBuffer;
 class DisplayMarker;
+class DecorationManager;
+class LayerDecoration;
 
 class TextEditor {
   std::vector<Cursor *> cursors;
   std::vector<Selection *> selections;
   TextBuffer *buffer;
+public:
   DisplayLayer *displayLayer;
   DisplayMarkerLayer *selectionsMarkerLayer;
+  DecorationManager *decorationManager;
 
 public:
   TextEditor();
@@ -60,6 +65,8 @@ public:
   Range clipBufferRange(Range);
   Point clipScreenPosition(Point);
   Range clipScreenRange(Range);
+  Decoration *decorateMarker(DisplayMarker *, Decoration::Properties);
+  LayerDecoration *decorateMarkerLayer(DisplayMarkerLayer *, Decoration::Properties);
   DisplayMarkerLayer *addMarkerLayer();
   Point getCursorBufferPosition();
   void setCursorBufferPosition(Point);

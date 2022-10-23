@@ -75,6 +75,158 @@ std::size_t DisplayMarkerLayer::getMarkerCount() const {
   return this->bufferMarkerLayer->getMarkerCount();
 }
 
+DisplayMarkerLayer::FindParam startBufferPosition(Point position) {
+  return [position](DisplayLayer *displayLayer) {
+    return startPosition(position);
+  };
+}
+
+DisplayMarkerLayer::FindParam endBufferPosition(Point position) {
+  return [position](DisplayLayer *displayLayer) {
+    return endPosition(position);
+  };
+}
+
+DisplayMarkerLayer::FindParam startScreenPosition(Point position) {
+  return [position](DisplayLayer *displayLayer) {
+    return startPosition(displayLayer->translateScreenPosition(position));
+  };
+}
+
+DisplayMarkerLayer::FindParam endScreenPosition(Point position) {
+  return [position](DisplayLayer *displayLayer) {
+    return endPosition(displayLayer->translateScreenPosition(position));
+  };
+}
+
+DisplayMarkerLayer::FindParam startsInBufferRange(Range range) {
+  return [range](DisplayLayer *displayLayer) {
+    return startsInRange(range);
+  };
+}
+
+DisplayMarkerLayer::FindParam endsInBufferRange(Range range) {
+  return [range](DisplayLayer *displayLayer) {
+    return endsInRange(range);
+  };
+}
+
+DisplayMarkerLayer::FindParam startsInScreenRange(Range range) {
+  return [range](DisplayLayer *displayLayer) {
+    return startsInRange(displayLayer->translateScreenRange(range));
+  };
+}
+
+DisplayMarkerLayer::FindParam endsInScreenRange(Range range) {
+  return [range](DisplayLayer *displayLayer) {
+    return endsInRange(displayLayer->translateScreenRange(range));
+  };
+}
+
+DisplayMarkerLayer::FindParam startBufferRow(double row) {
+  return [row](DisplayLayer *displayLayer) {
+    return startRow(row);
+  };
+}
+
+DisplayMarkerLayer::FindParam endBufferRow(double row) {
+  return [row](DisplayLayer *displayLayer) {
+    return endRow(row);
+  };
+}
+
+DisplayMarkerLayer::FindParam startScreenRow(double row) {
+  return [row](DisplayLayer *displayLayer) {
+    const Point startBufferPosition = displayLayer->translateScreenPosition(Point(row, 0));
+    const Point endBufferPosition = displayLayer->translateScreenPosition(Point(row, INFINITY));
+    return startsInRange(Range(startBufferPosition, endBufferPosition));
+  };
+}
+
+DisplayMarkerLayer::FindParam endScreenRow(double row) {
+  return [row](DisplayLayer *displayLayer) {
+    const Point startBufferPosition = displayLayer->translateScreenPosition(Point(row, 0));
+    const Point endBufferPosition = displayLayer->translateScreenPosition(Point(row, INFINITY));
+    return endsInRange(Range(startBufferPosition, endBufferPosition));
+  };
+}
+
+DisplayMarkerLayer::FindParam intersectsBufferRowRange(std::pair<double, double> rowRange) {
+  return [rowRange](DisplayLayer *displayLayer) {
+    return intersectsRowRange(rowRange);
+  };
+}
+
+DisplayMarkerLayer::FindParam intersectsScreenRowRange(std::pair<double, double> rowRange) {
+  return [rowRange](DisplayLayer *displayLayer) {
+    const double startScreenRow = rowRange.first;
+    const double endScreenRow = rowRange.second;
+    const Point startBufferPosition = displayLayer->translateScreenPosition(Point(startScreenRow, 0));
+    const Point endBufferPosition = displayLayer->translateScreenPosition(Point(endScreenRow, INFINITY));
+    return intersectsRange(Range(startBufferPosition, endBufferPosition));
+  };
+}
+
+DisplayMarkerLayer::FindParam containsBufferRange(Range range) {
+  return [range](DisplayLayer *displayLayer) {
+    return containsRange(range);
+  };
+}
+
+DisplayMarkerLayer::FindParam containsScreenRange(Range range) {
+  return [range](DisplayLayer *displayLayer) {
+    return containsRange(displayLayer->translateScreenRange(range));
+  };
+}
+
+DisplayMarkerLayer::FindParam containsBufferPosition(Point position) {
+  return [position](DisplayLayer *displayLayer) {
+    return containsPosition(position);
+  };
+}
+
+DisplayMarkerLayer::FindParam containsScreenPosition(Point position) {
+  return [position](DisplayLayer *displayLayer) {
+    return containsPosition(displayLayer->translateScreenPosition(position));
+  };
+}
+
+DisplayMarkerLayer::FindParam containedInBufferRange(Range range) {
+  return [range](DisplayLayer *displayLayer) {
+    return containedInRange(range);
+  };
+}
+
+DisplayMarkerLayer::FindParam containedInScreenRange(Range range) {
+  return [range](DisplayLayer *displayLayer) {
+    return containedInRange(displayLayer->translateScreenRange(range));
+  };
+}
+
+DisplayMarkerLayer::FindParam intersectsBufferRange(Range range) {
+  return [range](DisplayLayer *displayLayer) {
+    return intersectsRange(range);
+  };
+}
+
+DisplayMarkerLayer::FindParam intersectsScreenRange(Range range) {
+  return [range](DisplayLayer *displayLayer) {
+    return intersectsRange(displayLayer->translateScreenRange(range));
+  };
+}
+
+std::vector<DisplayMarker *> DisplayMarkerLayer::findMarkers(Slice<FindParam> params) {
+  std::vector<MarkerLayer::FindParam> bufferMarkerLayerFindParams;
+  for (const FindParam &param : params) {
+    bufferMarkerLayerFindParams.push_back(param(this->displayLayer));
+  }
+  std::vector<DisplayMarker *> result;
+  for (Marker *stringMarker : this->bufferMarkerLayer->findMarkers(bufferMarkerLayerFindParams)) {
+    result.push_back(this->getMarker(stringMarker->id));
+  }
+  return result;
+}
+
 /*
 Section: Private
 */

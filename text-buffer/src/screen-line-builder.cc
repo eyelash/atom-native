@@ -11,8 +11,9 @@ constexpr int32_t FOLD = 1 << 7;
 
 unsigned nextScreenLineId = 1;
 
-ScreenLineBuilder::ScreenLineBuilder(DisplayLayer *displayLayer) :
-  displayLayer{displayLayer} {}
+ScreenLineBuilder::ScreenLineBuilder(DisplayLayer *displayLayer) {
+  this->displayLayer = displayLayer;
+}
 
 ScreenLineBuilder::~ScreenLineBuilder() {}
 

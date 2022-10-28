@@ -9,7 +9,18 @@ DecorationManager::DecorationManager(TextEditor *editor) {
   this->displayLayer = this->editor->displayLayer;
 }
 
-DecorationManager::~DecorationManager() {}
+DecorationManager::~DecorationManager() {
+  for (auto &decorations : this->decorationsByMarker) {
+    for (Decoration *decoration : decorations.second) {
+      delete decoration;
+    }
+  }
+  for (auto &layerDecorations : this->layerDecorationsByMarkerLayer) {
+    for (LayerDecoration *layerDecoration : layerDecorations.second) {
+      delete layerDecoration;
+    }
+  }
+}
 
 std::unordered_map<DisplayMarker *, std::vector<Decoration::Properties>> DecorationManager::decorationPropertiesByMarkerForScreenRowRange(double startScreenRow, double endScreenRow) {
   std::unordered_map<DisplayMarker *, std::vector<Decoration::Properties>> decorationPropertiesByMarker;
@@ -19,7 +30,7 @@ std::unordered_map<DisplayMarker *, std::vector<Decoration::Properties>> Decorat
     auto markers = markerLayer->findMarkers({
       intersectsScreenRowRange(std::make_pair(startScreenRow, endScreenRow - 1))
     });
-    const auto& layerDecorations = this->layerDecorationsByMarkerLayer[
+    const auto &layerDecorations = this->layerDecorationsByMarkerLayer[
       markerLayer
     ];
     const bool hasMarkerDecorations =
@@ -29,16 +40,9 @@ std::unordered_map<DisplayMarker *, std::vector<Decoration::Properties>> Decorat
       DisplayMarker *marker = markers[i];
       //if (!marker.isValid()) continue;
 
-      auto& decorationPropertiesForMarker = decorationPropertiesByMarker[
+      auto &decorationPropertiesForMarker = decorationPropertiesByMarker[
         marker
       ];
-      /*if (decorationPropertiesForMarker == decorationPropertiesByMarker.end()) {
-        decorationPropertiesForMarker = [];
-        decorationPropertiesByMarker.set(
-          marker,
-          decorationPropertiesForMarker
-        );
-      }*/
 
       //if (layerDecorations) {
         for (LayerDecoration *layerDecoration : layerDecorations) {

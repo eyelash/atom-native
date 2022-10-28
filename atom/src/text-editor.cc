@@ -22,7 +22,14 @@ TextEditor::TextEditor() {
 }
 
 TextEditor::~TextEditor() {
+  for (Cursor *cursor : this->cursors) {
+    delete cursor;
+  }
+  for (Selection *selection : this->selections) {
+    delete selection;
+  }
   delete buffer;
+  delete decorationManager;
 }
 
 void TextEditor::subscribeToBuffer() {

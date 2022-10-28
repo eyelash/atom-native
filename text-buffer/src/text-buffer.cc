@@ -5,14 +5,14 @@
 #include "point-helpers.h"
 #include "language-mode.h"
 
-TextBuffer::TextBuffer() :
-  buffer{new NativeTextBuffer()},
-  nextMarkerLayerId{0},
-  nextDisplayLayerId{0},
-  defaultMarkerLayer{new MarkerLayer(this, this->nextMarkerLayerId++)},
-  nextMarkerId{1},
-  languageMode{new LanguageMode()},
-  transactCallDepth{0} {
+TextBuffer::TextBuffer() {
+  this->buffer = new NativeTextBuffer();
+  this->languageMode = new LanguageMode();
+  this->nextMarkerLayerId = 0;
+  this->nextDisplayLayerId = 0;
+  this->defaultMarkerLayer = new MarkerLayer(this, this->nextMarkerLayerId++);
+  this->nextMarkerId = 1;
+  this->transactCallDepth = 0;
   this->markerLayers[this->defaultMarkerLayer->id] = this->defaultMarkerLayer;
 }
 
@@ -34,6 +34,7 @@ TextBuffer::~TextBuffer() {
     delete markerLayer.second;
   }
   delete buffer;
+  delete languageMode;
 }
 
 /*

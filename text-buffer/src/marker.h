@@ -28,7 +28,6 @@ public:
 
   Marker(unsigned, MarkerLayer *, Range, bool = false);
   ~Marker();
-  void destroy(bool = false);
 
   Range getRange() const;
   bool setRange(const Range &, optional<bool> = optional<bool>());
@@ -45,6 +44,7 @@ public:
   bool isExclusive();
   bool isEqual(const Marker *) const;
   InvalidationStrategy getInvalidationStrategy() const;
+  void destroy(bool = false);
   int compare(const Marker *) const;
 
 private:

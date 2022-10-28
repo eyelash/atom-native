@@ -3,15 +3,15 @@
 #include "display-marker.h"
 #include "marker.h"
 
-DisplayMarkerLayer::DisplayMarkerLayer(DisplayLayer *displayLayer, MarkerLayer *bufferMarkerLayer, bool ownsBufferMarkerLayer) :
-  displayLayer{displayLayer},
-  bufferMarkerLayer{bufferMarkerLayer},
-  id{bufferMarkerLayer->id} {
+DisplayMarkerLayer::DisplayMarkerLayer(DisplayLayer *displayLayer, MarkerLayer *bufferMarkerLayer, bool ownsBufferMarkerLayer) {
+  this->displayLayer = displayLayer;
+  this->bufferMarkerLayer = bufferMarkerLayer;
+  this->id = this->bufferMarkerLayer->id;
   this->bufferMarkerLayer->displayMarkerLayers.insert(this);
 }
 
 DisplayMarkerLayer::~DisplayMarkerLayer() {
-  for (auto& marker : this->markersById) {
+  for (auto &marker : this->markersById) {
     delete marker.second;
   }
 }

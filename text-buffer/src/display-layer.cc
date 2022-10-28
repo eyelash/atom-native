@@ -10,45 +10,33 @@
 #include "constants.h"
 #include "language-mode.h"
 
-/*
-const {Patch} = require('superstring')
-const {Emitter} = require('event-kit')
-const Point = require('./point')
-const Range = require('./range')
-const DisplayMarkerLayer = require('./display-marker-layer')
-const {traverse, traversal, compare, max, isEqual} = require('./point-helpers')
-const isCharacterPair = require('./is-character-pair')
-const ScreenLineBuilder = require('./screen-line-builder')
-const {spliceArray} = require('./helpers')
-const {MAX_BUILT_IN_SCOPE_ID} = require('./constants')
-*/
+static bool isWordStart(char16_t, char16_t);
+static double unitRatio(char16_t);
 
-static double unitRatio(char16_t c) {
-  return 1;
+DisplayLayer::DisplayLayer(unsigned id, TextBuffer *buffer) {
+  this->id = id;
+  this->buffer = buffer;
+  this->screenLineBuilder = new ScreenLineBuilder(this);
+  this->nextBuiltInScopeId = 1;
+  this->tabLength = 4;
+  this->softWrapColumn = INFINITY;
+  this->softWrapHangingIndent = 0;
+  this->showIndentGuides = false;
+  this->ratioForCharacter = unitRatio;
+  this->isWrapBoundary = isWordStart;
+  this->foldCharacter = u'\u22EF';
+  this->eolInvisibles[u"\r"] = this->invisibles.cr;
+  this->eolInvisibles[u"\n"] = this->invisibles.eol;
+  //this->eolInvisibles[u"\r\n"] = this->invisibles.cr + this->invisibles.eol;
+  this->foldsMarkerLayer = buffer->addMarkerLayer(/*{
+    maintainHistory: false,
+    persistent: true,
+    destroyInvalidatedMarkers: true
+  }*/);
+  this->spatialIndex = new Patch(/*{mergeAdjacentHunks: false}*/);
+  this->rightmostScreenPosition = Point(0, 0);
+  this->indexedBufferRowCount = 0;
 }
-
-static bool isWordStart(char16_t previousCharacter, char16_t character) {
-  return (previousCharacter == u' ' || previousCharacter == u'\t') &&
-    (character != u' ' && character != u'\t');
-}
-
-DisplayLayer::DisplayLayer(unsigned id, TextBuffer *buffer) :
-  id{id},
-  buffer{buffer},
-  screenLineBuilder{new ScreenLineBuilder(this)},
-  nextBuiltInScopeId{1},
-  invisibles{nullptr, nullptr},
-  tabLength{4},
-  softWrapColumn{INFINITY},
-  softWrapHangingIndent{0},
-  showIndentGuides{false},
-  ratioForCharacter{unitRatio},
-  isWrapBoundary{isWordStart},
-  foldCharacter{u'\u22EF'},
-  foldsMarkerLayer{buffer->addMarkerLayer()},
-  spatialIndex{new Patch()},
-  rightmostScreenPosition{Point(0, 0)},
-  indexedBufferRowCount{0} {}
 
 DisplayLayer::~DisplayLayer() {
   delete screenLineBuilder;
@@ -58,118 +46,6 @@ DisplayLayer::~DisplayLayer() {
   delete spatialIndex;
 }
 
-/*constructor (id, buffer, params = {}) {
-  this.id = id
-  this.buffer = buffer
-  this.emitter = new Emitter()
-  this.screenLineBuilder = new ScreenLineBuilder(this)
-  this.cachedScreenLines = []
-  this.builtInScopeIdsByFlags = new Map()
-  this.builtInClassNamesByScopeId = new Map()
-  this.nextBuiltInScopeId = 1
-  this.displayMarkerLayersById = new Map()
-  this.destroyed = false
-  this.changesSinceLastEvent = new Patch()
-
-  this.invisibles = params.invisibles != null ? params.invisibles : {}
-  this.tabLength = params.tabLength != null ? params.tabLength : 4
-  this.softWrapColumn = params.softWrapColumn != null ? Math.max(1, params.softWrapColumn) : Infinity
-  this.softWrapHangingIndent = params.softWrapHangingIndent != null ? params.softWrapHangingIndent : 0
-  this.showIndentGuides = params.showIndentGuides != null ? params.showIndentGuides : false
-  this.ratioForCharacter = params.ratioForCharacter != null ? params.ratioForCharacter : unitRatio
-  this.isWrapBoundary = params.isWrapBoundary != null ? params.isWrapBoundary : isWordStart
-  this.foldCharacter = params.foldCharacter != null ? params.foldCharacter : '⋯'
-  this.atomicSoftTabs = params.atomicSoftTabs != null ? params.atomicSoftTabs : true
-
-  this.eolInvisibles = {
-    '\r': this.invisibles.cr,
-    '\n': this.invisibles.eol,
-    '\r\n': this.invisibles.cr + this.invisibles.eol
-  }
-
-  this.foldsMarkerLayer = params.foldsMarkerLayer || buffer.addMarkerLayer({
-    maintainHistory: false,
-    persistent: true,
-    destroyInvalidatedMarkers: true
-  })
-  this.foldIdCounter = params.foldIdCounter || 1
-
-  if (params.spatialIndex) {
-    this.spatialIndex = params.spatialIndex
-    this.tabCounts = params.tabCounts
-    this.screenLineLengths = params.screenLineLengths
-    this.rightmostScreenPosition = params.rightmostScreenPosition
-    this.indexedBufferRowCount = params.indexedBufferRowCount
-  } else {
-    this.spatialIndex = new Patch({mergeAdjacentHunks: false})
-    this.tabCounts = []
-    this.screenLineLengths = []
-    this.rightmostScreenPosition = Point(0, 0)
-    this.indexedBufferRowCount = 0
-  }
-
-  this.bufferDidChangeLanguageMode()
-}*/
-
-/*static deserialize (buffer, params) {
-  const foldsMarkerLayer = buffer.getMarkerLayer(params.foldsMarkerLayerId)
-  return new DisplayLayer(params.id, buffer, {foldsMarkerLayer})
-}*/
-
-/*serialize () {
-  return {
-    id: this.id,
-    foldsMarkerLayerId: this.foldsMarkerLayer.id,
-    foldIdCounter: this.foldIdCounter
-  }
-}*/
-
-/*reset (params) {
-  if (!this.isDestroyed() && this.setParams(params)) {
-    this.clearSpatialIndex()
-    this.emitter.emit('did-reset')
-    this.notifyObserversIfMarkerScreenPositionsChanged()
-  }
-}*/
-
-/*copy () {
-  const copyId = this.buffer.nextDisplayLayerId++
-  const copy = new DisplayLayer(copyId, this.buffer, {
-    foldsMarkerLayer: this.foldsMarkerLayer.copy(),
-    foldIdCounter: this.foldIdCounter,
-    spatialIndex: this.spatialIndex.copy(),
-    tabCounts: this.tabCounts.slice(),
-    screenLineLengths: this.screenLineLengths.slice(),
-    rightmostScreenPosition: this.rightmostScreenPosition.copy(),
-    indexedBufferRowCount: this.indexedBufferRowCount,
-    invisibles: this.invisibles,
-    tabLength: this.tabLength,
-    softWrapColumn: this.softWrapColumn,
-    softWrapHangingIndent: this.softWrapHangingIndent,
-    showIndentGuides: this.showIndentGuides,
-    ratioForCharacter: this.ratioForCharacter,
-    isWrapBoundary: this.isWrapBoundary,
-    foldCharacter: this.foldCharacter,
-    atomicSoftTabs: this.atomicSoftTabs
-  })
-  this.buffer.displayLayers[copyId] = copy
-  return copy
-}*/
-
-/*destroy () {
-  if (this.destroyed) return
-  this.destroyed = true
-  this.clearSpatialIndex()
-  this.foldsMarkerLayer.destroy()
-  this.displayMarkerLayersById.forEach((layer) => layer.destroy())
-  if (this.languageModeDisposable) this.languageModeDisposable.dispose()
-  delete this.buffer.displayLayers[this.id]
-}*/
-
-/*isDestroyed () {
-  return this.destroyed
-}*/
-
 void DisplayLayer::clearSpatialIndex() {
   this->indexedBufferRowCount = 0;
   this->spatialIndex->splice_old(Point::ZERO, Point::INFINITY_, Point::INFINITY_);
@@ -178,31 +54,6 @@ void DisplayLayer::clearSpatialIndex() {
   this->tabCounts.resize(0);
   this->rightmostScreenPosition = Point(0, 0);
 }
-
-/*doBackgroundWork (deadline) {
-  this.populateSpatialIndexIfNeeded(this.buffer.getLineCount(), Infinity, deadline)
-  return this.indexedBufferRowCount < this.buffer.getLineCount()
-}*/
-
-/*bufferDidChangeLanguageMode () {
-  this.cachedScreenLines.length = 0
-  if (this.languageModeDisposable) this.languageModeDisposable.dispose()
-  this.languageModeDisposable = this.buffer.languageMode.onDidChangeHighlighting((bufferRange) => {
-    bufferRange = Range.fromObject(bufferRange)
-    this.populateSpatialIndexIfNeeded(bufferRange.end.row + 1, Infinity)
-    const startBufferRow = this.findBoundaryPrecedingBufferRow(bufferRange.start.row)
-    const endBufferRow = this.findBoundaryFollowingBufferRow(bufferRange.end.row + 1)
-    const startRow = this.translateBufferPositionWithSpatialIndex(Point(startBufferRow, 0), 'backward').row
-    const endRow = this.translateBufferPositionWithSpatialIndex(Point(endBufferRow, 0), 'backward').row
-    const extent = Point(endRow - startRow, 0)
-    spliceArray(this.cachedScreenLines, startRow, extent.row, new Array(extent.row))
-    this.didChange({
-      start: Point(startRow, 0),
-      oldExtent: extent,
-      newExtent: extent
-    })
-  })
-}*/
 
 DisplayMarkerLayer *DisplayLayer::addMarkerLayer() {
   DisplayMarkerLayer *markerLayer = new DisplayMarkerLayer(this, this->buffer->addMarkerLayer(), true);
@@ -225,108 +76,9 @@ DisplayMarkerLayer *DisplayLayer::getMarkerLayer(unsigned id) {
   return nullptr;
 }
 
-/*didDestroyMarkerLayer (id) {
-  this.displayMarkerLayersById.delete(id)
-}*/
-
-/*onDidChange (callback) {
-  return this.emitter.on('did-change', callback)
-}*/
-
-/*onDidReset (callback) {
-  return this.emitter.on('did-reset', callback)
-}*/
-
 Range DisplayLayer::bufferRangeForFold(unsigned foldId) {
   return this->foldsMarkerLayer->getMarkerRange(foldId);
 }
-
-/*foldBufferRange (bufferRange) {
-  bufferRange = Range.fromObject(bufferRange)
-  const containingFoldMarkers = this.foldsMarkerLayer.findMarkers({containsRange: bufferRange})
-  if (containingFoldMarkers.length === 0) {
-    this.populateSpatialIndexIfNeeded(bufferRange.end.row + 1, Infinity)
-  }
-  const foldId = this.foldsMarkerLayer.markRange(bufferRange, {invalidate: 'overlap', exclusive: true}).id
-  if (containingFoldMarkers.length === 0) {
-    const foldStartRow = bufferRange.start.row
-    const foldEndRow = bufferRange.end.row + 1
-    this.didChange(this.updateSpatialIndex(foldStartRow, foldEndRow, foldEndRow, Infinity))
-    this.notifyObserversIfMarkerScreenPositionsChanged()
-  }
-  return foldId
-}*/
-
-/*destroyFold (foldId) {
-  const foldMarker = this.foldsMarkerLayer.getMarker(foldId)
-  if (foldMarker) {
-    this.destroyFoldMarkers([foldMarker])
-  }
-}*/
-
-/*destroyAllFolds () {
-  return this.destroyFoldMarkers(this.foldsMarkerLayer.findMarkers({}))
-}*/
-
-/*destroyFoldsIntersectingBufferRange (bufferRange) {
-  return this.destroyFoldMarkers(
-    this.foldsMarkerLayer.findMarkers({
-      intersectsRange: this.buffer.clipRange(bufferRange)
-    })
-  )
-}*/
-
-/*destroyFoldsContainingBufferPositions (bufferPositions, excludeEndpoints) {
-  const markersContainingPositions = new Set()
-  for (const position of bufferPositions) {
-    const clippedPosition = this.buffer.clipPosition(position)
-    const foundMarkers = this.foldsMarkerLayer.findMarkers({
-      containsPosition: clippedPosition
-    })
-    for (const marker of foundMarkers) {
-      if (!excludeEndpoints || marker.getRange().containsPoint(clippedPosition, true)) {
-        markersContainingPositions.add(marker)
-      }
-    }
-  }
-  const sortedMarkers = Array.from(markersContainingPositions).sort((a, b) => a.compare(b))
-  return this.destroyFoldMarkers(sortedMarkers)
-}*/
-
-/*destroyFoldMarkers (foldMarkers) {
-  const foldedRanges = []
-  if (foldMarkers.length === 0) return foldedRanges
-
-  const combinedRangeStart = foldMarkers[0].getStartPosition()
-  let combinedRangeEnd = combinedRangeStart
-  for (const foldMarker of foldMarkers) {
-    const foldedRange = foldMarker.getRange()
-    foldedRanges.push(foldedRange)
-    combinedRangeEnd = max(combinedRangeEnd, foldedRange.end)
-  }
-
-  this.populateSpatialIndexIfNeeded(combinedRangeEnd.row + 1, Infinity)
-
-  for (const foldMarker of foldMarkers) {
-    foldMarker.destroy()
-  }
-
-  this.didChange(this.updateSpatialIndex(
-    combinedRangeStart.row,
-    combinedRangeEnd.row + 1,
-    combinedRangeEnd.row + 1,
-    Infinity
-  ))
-  this.notifyObserversIfMarkerScreenPositionsChanged()
-
-  return foldedRanges
-}*/
-
-/*foldsIntersectingBufferRange (bufferRange) {
-  return this.foldsMarkerLayer.findMarkers({
-    intersectsRange: this.buffer.clipRange(bufferRange)
-  }).map((marker) => marker.id)
-}*/
 
 Point DisplayLayer::translateBufferPosition(Point bufferPosition, ClipDirection clipDirection) {
   bufferPosition = this->buffer->clipPosition(bufferPosition);
@@ -869,12 +621,6 @@ void DisplayLayer::emitDeferredChangeEvents() {
   }
 }
 
-/*notifyObserversIfMarkerScreenPositionsChanged () {
-  this.displayMarkerLayersById.forEach((layer) => {
-    layer.notifyObserversIfMarkerScreenPositionsChanged()
-  })
-}*/
-
 DisplayLayer::UpdateResult DisplayLayer::updateSpatialIndex(double startBufferRow, double oldEndBufferRow, double newEndBufferRow, double endScreenRow /*, deadline = NullDeadline */) {
   const double originalOldEndBufferRow = oldEndBufferRow;
   startBufferRow = this->findBoundaryPrecedingBufferRow(startBufferRow);
@@ -1217,72 +963,15 @@ std::unordered_map<double, std::unordered_map<double, Point>> DisplayLayer::comp
   return folds;
 }
 
-/*setParams (params) {
-  let paramsChanged = false
-  if (params.hasOwnProperty('tabLength') && params.tabLength !== this.tabLength) {
-    paramsChanged = true
-    this.tabLength = params.tabLength
-  }
-  if (params.hasOwnProperty('invisibles') && !invisiblesEqual(params.invisibles, this.invisibles)) {
-    paramsChanged = true
-    this.invisibles = params.invisibles
-    this.eolInvisibles = {
-      '\r': this.invisibles.cr,
-      '\n': this.invisibles.eol,
-      '\r\n': this.invisibles.cr + this.invisibles.eol
-    }
-  }
-  if (params.hasOwnProperty('showIndentGuides') && params.showIndentGuides !== this.showIndentGuides) {
-    paramsChanged = true
-    this.showIndentGuides = params.showIndentGuides
-  }
-  if (params.hasOwnProperty('softWrapColumn')) {
-    let softWrapColumn = params.softWrapColumn != null
-      ? Math.max(1, params.softWrapColumn)
-      : Infinity
-    if (softWrapColumn !== this.softWrapColumn) {
-      paramsChanged = true
-      this.softWrapColumn = softWrapColumn
-    }
-  }
-  if (params.hasOwnProperty('softWrapHangingIndent') && params.softWrapHangingIndent !== this.softWrapHangingIndent) {
-    paramsChanged = true
-    this.softWrapHangingIndent = params.softWrapHangingIndent
-  }
-  if (params.hasOwnProperty('ratioForCharacter') && params.ratioForCharacter !== this.ratioForCharacter) {
-    paramsChanged = true
-    this.ratioForCharacter = params.ratioForCharacter
-  }
-  if (params.hasOwnProperty('isWrapBoundary') && params.isWrapBoundary !== this.isWrapBoundary) {
-    paramsChanged = true
-    this.isWrapBoundary = params.isWrapBoundary
-  }
-  if (params.hasOwnProperty('foldCharacter') && params.foldCharacter !== this.foldCharacter) {
-    paramsChanged = true
-    this.foldCharacter = params.foldCharacter
-  }
-  if (params.hasOwnProperty('atomicSoftTabs') && params.atomicSoftTabs !== this.atomicSoftTabs) {
-    paramsChanged = true
-    this.atomicSoftTabs = params.atomicSoftTabs
-  }
-  return paramsChanged
-}*/
-
 bool DisplayLayer::isSoftWrapHunk(const Patch::Change &hunk) {
   return isEqual(hunk.old_start, hunk.old_end);
 }
 
-/*function invisiblesEqual (left, right) {
-  let leftKeys = Object.keys(left)
-  let rightKeys = Object.keys(right)
-  if (leftKeys.length !== rightKeys.length) return false
-  for (let key of leftKeys) {
-    if (left[key] !== right[key]) return false
-  }
-  return true
-}*/
+static bool isWordStart(char16_t previousCharacter, char16_t character) {
+  return (previousCharacter == u' ' || previousCharacter == u'\t') &&
+    (character != u' ' && character != u'\t');
+}
 
-/*const NullDeadline = {
-  didTimeout: false,
-  timeRemaining () { return Infinity }
-}*/
+static double unitRatio(char16_t c) {
+  return 1;
+}

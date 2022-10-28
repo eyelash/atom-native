@@ -14,20 +14,6 @@ Marker::Marker(unsigned id, MarkerLayer *layer, Range range, bool exclusivitySet
 
 Marker::~Marker() {}
 
-void Marker::destroy(bool suppressMarkerLayerUpdateEvents) {
-  /*if (this.isDestroyed()) {
-    return;
-  }*/
-  /*if (this.trackDestruction) {
-    error = new Error();
-    Error.captureStackTrace(error);
-    this.destroyStackTrace = error.stack;
-  }*/
-  this->layer->destroyMarker(this, suppressMarkerLayerUpdateEvents);
-  //this.emitter.emit('did-destroy');
-  //return this.emitter.clear();
-}
-
 Range Marker::getRange() const {
   return this->layer->getMarkerRange(this->id);
 }
@@ -153,6 +139,20 @@ bool Marker::isEqual(const Marker *other) const {
 
 Marker::InvalidationStrategy Marker::getInvalidationStrategy() const {
   return this->invalidate;
+}
+
+void Marker::destroy(bool suppressMarkerLayerUpdateEvents) {
+  /*if (this.isDestroyed()) {
+    return;
+  }*/
+  /*if (this.trackDestruction) {
+    error = new Error();
+    Error.captureStackTrace(error);
+    this.destroyStackTrace = error.stack;
+  }*/
+  this->layer->destroyMarker(this, suppressMarkerLayerUpdateEvents);
+  //this->didDestroyEmitter.emit();
+  //return this.emitter.clear();
 }
 
 int Marker::compare(const Marker *other) const {

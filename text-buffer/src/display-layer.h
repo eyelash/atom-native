@@ -19,8 +19,10 @@ public:
     double softWrapIndent;
   };
   struct Invisibles {
-    const char16_t *space;
-    const char16_t *tab;
+    const char16_t *eol = u"\u00AC";
+    const char16_t *space = u"\u00B7";
+    const char16_t *tab = u"\u00BB";
+    const char16_t *cr = u"\u00A4";
   };
   enum class ClipDirection {
     backward,

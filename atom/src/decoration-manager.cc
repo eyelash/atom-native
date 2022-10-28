@@ -40,14 +40,14 @@ std::unordered_map<DisplayMarker *, std::vector<Decoration::Properties>> Decorat
         );
       }*/
 
-      /*if (layerDecorations) {
-        layerDecorations.forEach(layerDecoration => {
-          const properties =
-            layerDecoration.getPropertiesForMarker(marker) ||
-            layerDecoration.getProperties();
-          decorationPropertiesForMarker.push(properties);
-        });
-      }*/
+      //if (layerDecorations) {
+        for (LayerDecoration *layerDecoration : layerDecorations) {
+          auto properties =
+            /* layerDecoration.getPropertiesForMarker(marker) || */
+            layerDecoration->getProperties();
+          decorationPropertiesForMarker.push_back(properties);
+        }
+      //}
 
       if (hasMarkerDecorations) {
         auto decorationsForMarker = this->decorationsByMarker.find(marker);

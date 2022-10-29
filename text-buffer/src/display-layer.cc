@@ -663,20 +663,20 @@ DisplayLayer::UpdateResult DisplayLayer::updateSpatialIndex(double startBufferRo
 
     while (bufferColumn <= bufferLineLength) {
       const optional<Point> foldEnd = folds.count(bufferRow) && folds[bufferRow].count(bufferColumn) ? folds[bufferRow][bufferColumn] : optional<Point>();
-      const char16_t previousCharacter = (*bufferLine)[bufferColumn - 1];
-      const char16_t character = foldEnd ? this->foldCharacter : (*bufferLine)[bufferColumn];
+      const optional<char16_t> previousCharacter = bufferColumn >= 1 ? optional<char16_t>((*bufferLine)[bufferColumn - 1]) : optional<char16_t>();
+      const optional<char16_t> character = foldEnd ? optional<char16_t>(this->foldCharacter) : bufferColumn <= bufferLineLength - 1 ? optional<char16_t>((*bufferLine)[bufferColumn]) : optional<char16_t>();
 
       // Are we in leading whitespace? If yes, record the *end* of the leading
       // whitespace if we've reached a non whitespace character. If no, record
       // the current column if it is a viable soft wrap boundary.
       if (firstNonWhitespaceScreenColumn < 0) {
-        if (character != u' ' && character != u'\t') {
+        if (!character || *character != u' ' && *character != u'\t') {
           firstNonWhitespaceScreenColumn = expandedScreenColumn;
         }
       } else {
         if (previousCharacter &&
             character &&
-            this->isWrapBoundary(previousCharacter, character)) {
+            this->isWrapBoundary(*previousCharacter, *character)) {
           lastWrapBoundaryUnexpandedScreenColumn = unexpandedScreenColumn;
           lastWrapBoundaryExpandedScreenColumn = expandedScreenColumn;
           lastWrapBoundaryScreenLineWidth = screenLineWidth;
@@ -685,11 +685,11 @@ DisplayLayer::UpdateResult DisplayLayer::updateSpatialIndex(double startBufferRo
 
       // Determine the on-screen width of the character for soft-wrap calculations
       double characterWidth;
-      if (character == u'\t') {
+      if (character && *character == u'\t') {
         const double distanceToNextTabStop = this->tabLength - std::fmod(expandedScreenColumn, this->tabLength);
         characterWidth = this->ratioForCharacter(' ') * distanceToNextTabStop;
       } else if (character) {
-        characterWidth = this->ratioForCharacter(character);
+        characterWidth = this->ratioForCharacter(*character);
       } else {
         characterWidth = 0;
       }
@@ -698,7 +698,7 @@ DisplayLayer::UpdateResult DisplayLayer::updateSpatialIndex(double startBufferRo
         screenLineWidth > 0 && characterWidth > 0 &&
         screenLineWidth + characterWidth > this->softWrapColumn &&
         previousCharacter && character &&
-        !isCharacterPair(previousCharacter, character);
+        !isCharacterPair(*previousCharacter, *character);
 
       if (insertSoftLineBreak) {
         double indentLength = (firstNonWhitespaceScreenColumn < this->softWrapColumn)
@@ -773,7 +773,7 @@ DisplayLayer::UpdateResult DisplayLayer::updateSpatialIndex(double startBufferRo
       } else {
         // If there is no fold at this position, check if we need to handle
         // a hard tab at this position and advance by a single buffer column.
-        if (character == u'\t') {
+        if (character && *character == u'\t') {
           currentScreenLineTabColumns.push_back(unexpandedScreenColumn);
           const double distanceToNextTabStop = this->tabLength - std::fmod(expandedScreenColumn, this->tabLength);
           expandedScreenColumn += distanceToNextTabStop;

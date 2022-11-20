@@ -4,7 +4,7 @@ project(superstring)
 add_library(superstring_core STATIC)
 target_compile_features(superstring_core PUBLIC cxx_std_11)
 target_link_libraries(superstring_core
-  pcre
+  pcre2
   $<$<PLATFORM_ID:Darwin>:iconv>
 )
 target_sources(superstring_core PRIVATE

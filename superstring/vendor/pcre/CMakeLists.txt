@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
 project(pcre)
 
-add_library(pcre STATIC)
-target_sources(pcre PRIVATE
+add_library(pcre2 STATIC)
+target_sources(pcre2 PRIVATE
   pcre2_chartables.c
   10.23/src/pcre2_auto_possess.c
   10.23/src/pcre2_compile.c
@@ -28,18 +28,18 @@ target_sources(pcre PRIVATE
   10.23/src/pcre2_valid_utf.c
   10.23/src/pcre2_xclass.c
 )
-target_include_directories(pcre PRIVATE
+target_include_directories(pcre2 PRIVATE
   include
   10.23/src
 )
-target_compile_definitions(pcre PRIVATE
+target_compile_definitions(pcre2 PRIVATE
   HAVE_CONFIG_H
   PCRE2_CODE_UNIT_WIDTH=16
   SUPPORT_JIT
 )
-target_include_directories(pcre INTERFACE
+target_include_directories(pcre2 INTERFACE
   include
 )
-target_compile_definitions(pcre INTERFACE
+target_compile_definitions(pcre2 INTERFACE
   PCRE2_CODE_UNIT_WIDTH=16
 )

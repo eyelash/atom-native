@@ -1,0 +1,47 @@
+{
+  "name": "git-utils",
+  "description": "A package for using Git repositories",
+  "version": "5.7.1",
+  "license": "MIT",
+  "author": {
+    "name": "Kevin Sawicki",
+    "email": "kevin@github.com"
+  },
+  "contributors": [
+    {
+      "name": "Garen J. Torikian",
+      "email": "gjtorikian@gmail.com"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/atom/git-utils.git"
+  },
+  "bugs": {
+    "url": "https://github.com/atom/git-utils/issues"
+  },
+  "homepage": "http://atom.github.io/git-utils",
+  "keywords": [
+    "git",
+    "libgit2",
+    "dvcs",
+    "vcs"
+  ],
+  "main": "./src/git.js",
+  "devDependencies": {
+    "jasmine-focused": "^1.0.4",
+    "standard": "^10.0.3",
+    "temp": "~0.9.4",
+    "underscore": "~1.5.2",
+    "wrench": "~1.4.4"
+  },
+  "dependencies": {
+    "nan": "^2.14.0",
+    "fs-plus": "^3.0.0"
+  },
+  "scripts": {
+    "lint": "standard src spec",
+    "test": "jasmine-focused --captureExceptions spec",
+    "prepare": "git submodule update --init --recursive"
+  }
+}

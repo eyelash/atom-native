@@ -7,6 +7,7 @@
 
 class TextEditor;
 class DisplayMarker;
+class Selection;
 
 class Cursor {
   TextEditor *editor;
@@ -14,6 +15,8 @@ class Cursor {
   optional<double> goalColumn;
 
 public:
+  Selection *selection;
+
   Cursor(TextEditor *, DisplayMarker *);
   ~Cursor();
   void destroy();

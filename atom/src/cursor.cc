@@ -1,4 +1,5 @@
 #include "cursor.h"
+#include "selection.h"
 #include "text-editor.h"
 #include <display-marker.h>
 #include <cmath>
@@ -6,6 +7,7 @@
 Cursor::Cursor(TextEditor *editor, DisplayMarker *marker) {
   this->editor = editor;
   this->marker = marker;
+  this->selection = nullptr;
 }
 
 Cursor::~Cursor() {}
@@ -267,7 +269,7 @@ Section: Utilities
 */
 
 void Cursor::clearSelection(bool autoscroll) {
-  //if (this.selection) this.selection.clear(options);
+  if (this->selection) this->selection->clear();
 }
 
 /*

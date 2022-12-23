@@ -8,6 +8,7 @@ Selection::Selection(TextEditor *editor, DisplayMarker *marker, Cursor *cursor) 
   this->editor = editor;
   this->marker = marker;
   this->cursor = cursor;
+  this->cursor->selection = this;
   this->marker->onDidDestroy([this]() { this->markerDidDestroy(); });
 }
 

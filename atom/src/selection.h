@@ -11,6 +11,7 @@ class TextEditor;
 class Selection {
   TextEditor *editor;
   DisplayMarker *marker;
+  bool retainSelection;
 
 public:
   Cursor *cursor;

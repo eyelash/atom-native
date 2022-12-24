@@ -7,6 +7,7 @@
 Selection::Selection(TextEditor *editor, DisplayMarker *marker, Cursor *cursor) {
   this->editor = editor;
   this->marker = marker;
+  this->retainSelection = false;
   this->cursor = cursor;
   this->cursor->selection = this;
   this->marker->onDidDestroy([this]() { this->markerDidDestroy(); });
@@ -128,7 +129,7 @@ Section: Modifying the selected range
 
 void Selection::clear() {
   //this.goalScreenRange = null;
-  /* if (!this.retainSelection) */ this->marker->clearTail();
+  if (!this->retainSelection) this->marker->clearTail();
   /*const autoscroll =
     options && options.autoscroll != null
       ? options.autoscroll
@@ -281,10 +282,10 @@ void Selection::markerDidDestroy() {
 }
 
 void Selection::modifySelection(std::function<void()> fn) {
-  //this->retainSelection = true;
+  this->retainSelection = true;
   this->plantTail();
   fn();
-  //this->retainSelection = false;
+  this->retainSelection = false;
 }
 
 void Selection::plantTail() {

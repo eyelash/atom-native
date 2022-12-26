@@ -7,6 +7,8 @@
 #include <helpers.h>
 #include <set>
 
+constexpr const char16_t *DEFAULT_NON_WORD_CHARACTERS = u"/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…";
+
 TextEditor::TextEditor() {
   this->buffer = new TextBuffer();
   this->displayLayer = this->buffer->addDisplayLayer();
@@ -56,6 +58,14 @@ TextBuffer *TextEditor::getBuffer() {
 /*
 Section: File Details
 */
+
+bool TextEditor::isModified() {
+  return this->buffer->isModified();
+}
+
+bool TextEditor::isEmpty() {
+  return this->buffer->isEmpty();
+}
 
 /*
 Section: File Operations
@@ -348,6 +358,72 @@ void TextEditor::moveRight(double columnCount) {
   });
 }
 
+void TextEditor::moveToBeginningOfLine() {
+  return this->moveCursors([](Cursor *cursor) { cursor->moveToBeginningOfLine(); });
+}
+
+void TextEditor::moveToBeginningOfScreenLine() {
+  return this->moveCursors([](Cursor *cursor) { cursor->moveToBeginningOfScreenLine(); });
+}
+
+void TextEditor::moveToFirstCharacterOfLine() {
+  return this->moveCursors([](Cursor *cursor) { cursor->moveToFirstCharacterOfLine(); });
+}
+
+void TextEditor::moveToEndOfLine() {
+  return this->moveCursors([](Cursor *cursor) { cursor->moveToEndOfLine(); });
+}
+
+void TextEditor::moveToEndOfScreenLine() {
+  return this->moveCursors([](Cursor *cursor) { cursor->moveToEndOfScreenLine(); });
+}
+
+void TextEditor::moveToBeginningOfWord() {
+  return this->moveCursors([](Cursor *cursor) { cursor->moveToBeginningOfWord(); });
+}
+
+void TextEditor::moveToEndOfWord() {
+  return this->moveCursors([](Cursor *cursor) { cursor->moveToEndOfWord(); });
+}
+
+void TextEditor::moveToTop() {
+  return this->moveCursors([](Cursor *cursor) { cursor->moveToTop(); });
+}
+
+void TextEditor::moveToBottom() {
+  return this->moveCursors([](Cursor *cursor) { cursor->moveToBottom(); });
+}
+
+void TextEditor::moveToBeginningOfNextWord() {
+  return this->moveCursors([](Cursor *cursor) { cursor->moveToBeginningOfNextWord(); });
+}
+
+void TextEditor::moveToPreviousWordBoundary() {
+  return this->moveCursors([](Cursor *cursor) { cursor->moveToPreviousWordBoundary(); });
+}
+
+void TextEditor::moveToNextWordBoundary() {
+  return this->moveCursors([](Cursor *cursor) { cursor->moveToNextWordBoundary(); });
+}
+
+void TextEditor::moveToPreviousSubwordBoundary() {
+  return this->moveCursors([](Cursor *cursor) { cursor->moveToPreviousSubwordBoundary(); });
+}
+
+void TextEditor::moveToNextSubwordBoundary() {
+  return this->moveCursors([](Cursor *cursor) { cursor->moveToNextSubwordBoundary(); });
+}
+
+void TextEditor::moveToBeginningOfNextParagraph() {
+  return this->moveCursors([](Cursor *cursor) { cursor->moveToBeginningOfNextParagraph(); });
+}
+
+void TextEditor::moveToBeginningOfPreviousParagraph() {
+  return this->moveCursors([](Cursor *cursor) {
+    cursor->moveToBeginningOfPreviousParagraph();
+  });
+}
+
 Cursor *TextEditor::getLastCursor() {
   this->createLastSelectionIfNeeded();
   return this->cursors.back();
@@ -477,9 +553,77 @@ void TextEditor::selectToBeginningOfLine() {
   });
 }
 
+void TextEditor::selectToFirstCharacterOfLine() {
+  return this->expandSelectionsBackward([](Selection *selection) {
+    selection->selectToFirstCharacterOfLine();
+  });
+}
+
 void TextEditor::selectToEndOfLine() {
   return this->expandSelectionsForward([&](Selection *selection) {
     selection->selectToEndOfLine();
+  });
+}
+
+void TextEditor::selectToBeginningOfWord() {
+  return this->expandSelectionsBackward([](Selection *selection) {
+    selection->selectToBeginningOfWord();
+  });
+}
+
+void TextEditor::selectToEndOfWord() {
+  return this->expandSelectionsForward([](Selection *selection) {
+    selection->selectToEndOfWord();
+  });
+}
+
+void TextEditor::selectToPreviousSubwordBoundary() {
+  return this->expandSelectionsBackward([](Selection *selection) {
+    selection->selectToPreviousSubwordBoundary();
+  });
+}
+
+void TextEditor::selectToNextSubwordBoundary() {
+  return this->expandSelectionsForward([](Selection *selection) {
+    selection->selectToNextSubwordBoundary();
+  });
+}
+
+void TextEditor::selectLinesContainingCursors() {
+  //return this->expandSelectionsForward([](Selection *selection) { selection->selectLine(); });
+}
+
+void TextEditor::selectWordsContainingCursors() {
+  //return this->expandSelectionsForward([](Selection *selection) { selection->selectWord(); });
+}
+
+void TextEditor::selectToPreviousWordBoundary() {
+  return this->expandSelectionsBackward([](Selection *selection) {
+    selection->selectToPreviousWordBoundary();
+  });
+}
+
+void TextEditor::selectToNextWordBoundary() {
+  return this->expandSelectionsForward([](Selection *selection) {
+    selection->selectToNextWordBoundary();
+  });
+}
+
+void TextEditor::selectToBeginningOfNextWord() {
+  return this->expandSelectionsForward([](Selection *selection) {
+    selection->selectToBeginningOfNextWord();
+  });
+}
+
+void TextEditor::selectToBeginningOfNextParagraph() {
+  return this->expandSelectionsForward([](Selection *selection) {
+    selection->selectToBeginningOfNextParagraph();
+  });
+}
+
+void TextEditor::selectToBeginningOfPreviousParagraph() {
+  return this->expandSelectionsBackward([](Selection *selection) {
+    selection->selectToBeginningOfPreviousParagraph();
   });
 }
 
@@ -589,6 +733,18 @@ void TextEditor::createLastSelectionIfNeeded() {
 Section: Searching and Replacing
 */
 
+void TextEditor::scan(const Regex &regex, /* options = {}, */ TextBuffer::ScanIterator iterator) {
+  return this->buffer->scan(regex, /* options, */ iterator);
+}
+
+void TextEditor::scanInBufferRange(const Regex &regex, Range range, TextBuffer::ScanIterator iterator) {
+  return this->buffer->scanInRange(regex, range, iterator);
+}
+
+void TextEditor::backwardsScanInBufferRange(const Regex &regex, Range range, TextBuffer::ScanIterator iterator) {
+  return this->buffer->backwardsScanInRange(regex, range, iterator);
+}
+
 /*
 Section: Tab Behavior
 */
@@ -628,6 +784,15 @@ Section: Scrolling the TextEditor
 /*
 Section: Config
 */
+
+const char16_t *TextEditor::getNonWordCharacters(Point position) {
+  //const languageMode = this->buffer->getLanguageMode();
+  return (
+    //(languageMode.getNonWordCharacters &&
+    //  languageMode.getNonWordCharacters(position || Point(0, 0))) ||
+    DEFAULT_NON_WORD_CHARACTERS
+  );
+}
 
 /*
 Section: Event Handlers

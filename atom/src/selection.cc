@@ -199,12 +199,54 @@ void Selection::selectToBeginningOfLine() {
   this->modifySelection([&]() { this->cursor->moveToBeginningOfLine(); });
 }
 
+void Selection::selectToFirstCharacterOfLine() {
+  this->modifySelection([&]() { this->cursor->moveToFirstCharacterOfLine(); });
+}
+
 void Selection::selectToEndOfLine() {
   this->modifySelection([&]() { this->cursor->moveToEndOfScreenLine(); });
 }
 
 void Selection::selectToEndOfBufferLine() {
   this->modifySelection([&]() { this->cursor->moveToEndOfLine(); });
+}
+
+void Selection::selectToBeginningOfWord() {
+  this->modifySelection([&]() { this->cursor->moveToBeginningOfWord(); });
+}
+
+void Selection::selectToEndOfWord() {
+  this->modifySelection([&]() { this->cursor->moveToEndOfWord(); });
+}
+
+void Selection::selectToBeginningOfNextWord() {
+  this->modifySelection([&]() { this->cursor->moveToBeginningOfNextWord(); });
+}
+
+void Selection::selectToPreviousWordBoundary() {
+  this->modifySelection([&]() { this->cursor->moveToPreviousWordBoundary(); });
+}
+
+void Selection::selectToNextWordBoundary() {
+  this->modifySelection([&]() { this->cursor->moveToNextWordBoundary(); });
+}
+
+void Selection::selectToPreviousSubwordBoundary() {
+  this->modifySelection([&]() { this->cursor->moveToPreviousSubwordBoundary(); });
+}
+
+void Selection::selectToNextSubwordBoundary() {
+  this->modifySelection([&]() { this->cursor->moveToNextSubwordBoundary(); });
+}
+
+void Selection::selectToBeginningOfNextParagraph() {
+  this->modifySelection([&]() { this->cursor->moveToBeginningOfNextParagraph(); });
+}
+
+void Selection::selectToBeginningOfPreviousParagraph() {
+  this->modifySelection([&]() {
+    this->cursor->moveToBeginningOfPreviousParagraph();
+  });
 }
 
 /*

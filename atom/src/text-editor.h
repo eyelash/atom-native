@@ -7,10 +7,10 @@
 #include <range.h>
 #include <optional.h>
 #include <display-layer.h>
+#include <text-buffer.h>
 
 class Cursor;
 class Selection;
-class TextBuffer;
 class DisplayMarker;
 class DecorationManager;
 class LayerDecoration;
@@ -31,6 +31,8 @@ public:
   void subscribeToBuffer();
   void subscribeToDisplayLayer();
   TextBuffer *getBuffer();
+  bool isModified();
+  bool isEmpty();
   std::u16string getText();
   std::u16string getTextInBufferRange(Range);
   unsigned getLineCount();
@@ -79,6 +81,22 @@ public:
   void moveDown(double = 1);
   void moveLeft(double = 1);
   void moveRight(double = 1);
+  void moveToBeginningOfLine();
+  void moveToBeginningOfScreenLine();
+  void moveToFirstCharacterOfLine();
+  void moveToEndOfLine();
+  void moveToEndOfScreenLine();
+  void moveToBeginningOfWord();
+  void moveToEndOfWord();
+  void moveToTop();
+  void moveToBottom();
+  void moveToBeginningOfNextWord();
+  void moveToPreviousWordBoundary();
+  void moveToNextWordBoundary();
+  void moveToPreviousSubwordBoundary();
+  void moveToNextSubwordBoundary();
+  void moveToBeginningOfNextParagraph();
+  void moveToBeginningOfPreviousParagraph();
   Cursor *getLastCursor();
   std::vector<Cursor *> getCursors() const;
   std::vector<Cursor *> getCursorsOrderedByBufferPosition();
@@ -97,7 +115,19 @@ public:
   void selectToBottom();
   void selectAll();
   void selectToBeginningOfLine();
+  void selectToFirstCharacterOfLine();
   void selectToEndOfLine();
+  void selectToBeginningOfWord();
+  void selectToEndOfWord();
+  void selectToPreviousSubwordBoundary();
+  void selectToNextSubwordBoundary();
+  void selectLinesContainingCursors();
+  void selectWordsContainingCursors();
+  void selectToPreviousWordBoundary();
+  void selectToNextWordBoundary();
+  void selectToBeginningOfNextWord();
+  void selectToBeginningOfNextParagraph();
+  void selectToBeginningOfPreviousParagraph();
   std::vector<Selection *> getSelections();
   std::vector<Selection *> getSelectionsOrderedByBufferPosition();
   void expandSelectionsForward(std::function<void(Selection *)>);
@@ -108,6 +138,10 @@ public:
   void mergeSelections(std::function<void()>, std::function<bool(Selection *, Selection *)>);
   void addSelection(DisplayMarker *);
   void removeSelection(Selection *);
+  void scan(const Regex &, TextBuffer::ScanIterator);
+  void scanInBufferRange(const Regex &, Range, TextBuffer::ScanIterator);
+  void backwardsScanInBufferRange(const Regex &, Range, TextBuffer::ScanIterator);
+  const char16_t *getNonWordCharacters(Point);
 
 private:
   void moveCursors(std::function<void(Cursor *)>);

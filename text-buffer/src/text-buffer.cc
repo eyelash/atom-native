@@ -41,6 +41,14 @@ TextBuffer::~TextBuffer() {
 Section: File Details
 */
 
+bool TextBuffer::isModified() {
+  //if (this.file) {
+    return /* !this.file.existsSync() || */ this->buffer->is_modified();
+  //} else {
+  //  return this.buffer.getLength() > 0
+  //}
+}
+
 /*
 Section: Reading Text
 */
@@ -88,9 +96,31 @@ optional<uint32_t> TextBuffer::lineLengthForRow(uint32_t row) {
   return this->buffer->line_length_for_row(row);
 }
 
-/*isRowBlank (row) {
-  return !/\S/.test(this.lineForRow(row))
-}*/
+bool TextBuffer::isRowBlank(double row) {
+  static const Regex regex(u"\\S", nullptr);
+  Regex::MatchData match_data(regex);
+  optional<std::u16string> line = this->lineForRow(row);
+  return regex.match(line->data(), line->size(), match_data).type != Regex::MatchResult::Full;
+}
+
+optional<double> TextBuffer::previousNonBlankRow(double startRow) {
+  if (startRow == 0) return optional<double>();
+  startRow = std::min(startRow, this->getLastRow());
+  for (double row = startRow - 1; row >= 0; row--) {
+    if (!this->isRowBlank(row)) return row;
+  }
+  return optional<double>();
+}
+
+optional<double> TextBuffer::nextNonBlankRow(double startRow) {
+  const double lastRow = this->getLastRow();
+  if (startRow < lastRow) {
+    for (double row = startRow + 1; row <= lastRow; row++) {
+      if (!this->isRowBlank(row)) return row;
+    }
+  }
+  return optional<double>();
+}
 
 /*
 Section: Mutating Text
@@ -263,6 +293,83 @@ Section: History
 Section: Search And Replace
 */
 
+void TextBuffer::scan(const Regex &regex, /* options = {}, */ ScanIterator iterator) {
+  /*if (_.isFunction(options)) {
+    iterator = options
+    options = {}
+  }*/
+
+  return this->scanInRange(regex, this->getRange(), /* options, */ iterator);
+}
+
+void TextBuffer::backwardsScan(const Regex &regex, /* options = {}, */ ScanIterator iterator) {
+  /*if (_.isFunction(options)) {
+    iterator = options
+    options = {}
+  }*/
+
+  return this->backwardsScanInRange(regex, this->getRange(), /* options, */ iterator);
+}
+
+void TextBuffer::scanInRange(const Regex &regex, Range range, /* options = {}, */ ScanIterator callback, bool reverse) {
+  /*if (_.isFunction(options)) {
+    reverse = callback
+    callback = options
+    options = {}
+  }*/
+
+  range = this->clipRange(range);
+  const auto matchRanges = this->findAllInRangeSync(regex, range);
+  double startIndex = 0;
+  double endIndex = matchRanges.size();
+  double increment = 1;
+  double previousRow = -1;
+  double replacementColumnDelta = 0;
+  if (reverse) {
+    startIndex = matchRanges.size() - 1;
+    endIndex = -1;
+    increment = -1;
+  }
+
+  for (double i = startIndex; i != endIndex; i += increment) {
+    Range matchRange = matchRanges[i];
+    if (range.end.isEqual(matchRange.start) && (range.end.column > 0)) continue;
+    if (matchRange.start.row != previousRow) {
+      replacementColumnDelta = 0;
+    }
+    previousRow = matchRange.start.row;
+    matchRange.start.column += replacementColumnDelta;
+    matchRange.end.column += replacementColumnDelta;
+
+    SearchCallbackArgument argument = SearchCallbackArgument(this, matchRange /*, regex, options*/);
+    callback(argument);
+    if (argument.stopped /* || !regex.global */) break;
+
+    if (!reverse && argument.replacementText) {
+      replacementColumnDelta +=
+        (matchRange.start.column + argument.replacementText->size()) -
+        matchRange.end.column;
+    }
+  }
+}
+
+void TextBuffer::backwardsScanInRange(const Regex &regex, Range range, /* options = {}, */ ScanIterator iterator) {
+  /*if (_.isFunction(options)) {
+    iterator = options
+    options = {}
+  }*/
+
+  return this->scanInRange(regex, range, /* options, */ iterator, true);
+}
+
+optional<NativeRange> TextBuffer::findSync(const Regex &regex) { return this->buffer->find(regex); }
+
+optional<NativeRange> TextBuffer::findInRangeSync(const Regex &regex, Range range) { return this->buffer->find(regex, range); }
+
+std::vector<NativeRange> TextBuffer::findAllSync(const Regex &regex) { return this->buffer->find_all(regex); }
+
+std::vector<NativeRange> TextBuffer::findAllInRangeSync(const Regex &regex, Range range) { return this->buffer->find_all(regex, range); }
+
 /*
 Section: Buffer Range Details
 */
@@ -273,7 +380,7 @@ Range TextBuffer::getRange() const {
 
 double TextBuffer::getLineCount() const { return this->buffer->extent().row + 1; }
 
-unsigned TextBuffer::getLastRow() const {
+double TextBuffer::getLastRow() const {
   return this->getLineCount() - 1;
 }
 
@@ -289,7 +396,7 @@ uint32_t TextBuffer::getMaxCharacterIndex() {
   return this->characterIndexForPosition({UINT32_MAX, UINT32_MAX});
 }
 
-Range TextBuffer::rangeForRow(unsigned row, bool includeNewline) {
+Range TextBuffer::rangeForRow(double row, bool includeNewline) {
   row = std::min(row, this->getLastRow());
   if (includeNewline && row < this->getLastRow()) {
     return Range(Point(row, 0), Point(row + 1, 0));
@@ -317,7 +424,7 @@ Range TextBuffer::clipRange(Range range) {
 }
 
 Point TextBuffer::clipPosition(Point position) {
-  const unsigned row = position.row, column = position.column;
+  const double row = position.row, column = position.column;
   if (row < 0) {
     return this->getFirstPosition();
   } else if (row > this->getLastRow()) {
@@ -389,3 +496,22 @@ void TextBuffer::markersUpdated(MarkerLayer *layer) {
 }
 
 unsigned TextBuffer::getNextMarkerId() { return this->nextMarkerId++; }
+
+TextBuffer::SearchCallbackArgument::SearchCallbackArgument(TextBuffer *buffer, Range Range) {
+  this->buffer = buffer;
+  this->range = range;
+  this->stopped = false;
+}
+
+std::u16string TextBuffer::SearchCallbackArgument::getMatchText() {
+  return this->buffer->getTextInRange(this->range);
+}
+
+Range TextBuffer::SearchCallbackArgument::replace(std::u16string text) {
+  this->replacementText = text;
+  return this->buffer->setTextInRange(this->range, std::move(text));
+}
+
+void TextBuffer::SearchCallbackArgument::stop() {
+  this->stopped = true;
+}

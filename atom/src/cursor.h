@@ -3,6 +3,7 @@
 
 #include <range.h>
 #include <optional.h>
+#include <regex.h>
 #include <functional>
 
 class TextEditor;
@@ -33,6 +34,7 @@ public:
   bool isAtBeginningOfLine();
   bool isAtEndOfLine();
   DisplayMarker *getMarker();
+  bool isInsideWord();
   bool isLastCursor();
   void moveUp(double = 1, bool = false);
   void moveDown(double = 1, bool = false);
@@ -42,14 +44,33 @@ public:
   void moveToBottom();
   void moveToBeginningOfScreenLine();
   void moveToBeginningOfLine();
+  void moveToFirstCharacterOfLine();
   void moveToEndOfScreenLine();
   void moveToEndOfLine();
+  void moveToBeginningOfWord();
+  void moveToEndOfWord();
+  void moveToBeginningOfNextWord();
+  void moveToPreviousWordBoundary();
+  void moveToNextWordBoundary();
+  void moveToPreviousSubwordBoundary();
+  void moveToNextSubwordBoundary();
+  void moveToBeginningOfNextParagraph();
+  void moveToBeginningOfPreviousParagraph();
+  Point getPreviousWordBoundaryBufferPosition();
+  Point getNextWordBoundaryBufferPosition();
+  Point getBeginningOfCurrentWordBufferPosition();
+  Point getEndOfCurrentWordBufferPosition();
+  Point getBeginningOfNextWordBufferPosition();
   Range getCurrentLineBufferRange(bool = false);
   int compare(Cursor *);
   void clearSelection(bool);
+  Regex wordRegExp(bool = true);
 
 private:
+  const char16_t *getNonWordCharacters();
   void changePosition(optional<bool>, std::function<void()>);
+  Point getBeginningOfNextParagraphBufferPosition();
+  Point getBeginningOfPreviousParagraphBufferPosition();
 };
 
 #endif  // CURSOR_H_

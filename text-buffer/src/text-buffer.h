@@ -37,6 +37,20 @@ public:
     std::u16string newText;
   };
 
+  class SearchCallbackArgument {
+    TextBuffer *buffer;
+  public:
+    Range range;
+    bool stopped;
+    optional<std::u16string> replacementText;
+    SearchCallbackArgument(TextBuffer *, Range);
+    std::u16string getMatchText();
+    Range replace(std::u16string);
+    void stop();
+  };
+  using ScanIterator = std::function<void(SearchCallbackArgument &)>;
+
+  bool isModified();
   bool isEmpty() const;
   std::u16string getText();
   uint16_t getCharacterAtPosition(Point);
@@ -46,6 +60,9 @@ public:
   optional<std::u16string> lineForRow(uint32_t);
   const char16_t *lineEndingForRow(double);
   optional<uint32_t> lineLengthForRow(uint32_t);
+  bool isRowBlank(double);
+  optional<double> previousNonBlankRow(double);
+  optional<double> nextNonBlankRow(double);
   Range setText(std::u16string);
   Range setTextInRange(Range, std::u16string);
   Range insert(Point position, std::u16string text);
@@ -63,14 +80,23 @@ public:
   std::vector<Marker *> getMarkers();
   Marker *getMarker(unsigned);
   std::size_t getMarkerCount();
+  void scan(const Regex &, ScanIterator);
+  void backwardsScan(const Regex &, ScanIterator);
+  void scanInRange(const Regex &, Range, ScanIterator, bool = false);
+  void backwardsScanInRange(const Regex &, Range, ScanIterator);
+  double replace(const Regex &, std::u16string);
+  optional<NativeRange> findSync(const Regex &);
+  optional<NativeRange> findInRangeSync(const Regex &, Range);
+  std::vector<NativeRange> findAllSync(const Regex &);
+  std::vector<NativeRange> findAllInRangeSync(const Regex &, Range);
   Range getRange() const;
   double getLineCount() const;
-  unsigned getLastRow() const;
+  double getLastRow() const;
   Point getFirstPosition() const;
   Point getEndPosition() const;
   uint32_t getLength() const;
   uint32_t getMaxCharacterIndex();
-  Range rangeForRow(unsigned, bool);
+  Range rangeForRow(double, bool = false);
   uint32_t characterIndexForPosition(Point);
   Point positionForCharacterIndex(uint32_t);
   Range clipRange(Range);

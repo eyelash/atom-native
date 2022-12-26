@@ -48,8 +48,18 @@ public:
   void selectToBottom();
   void selectAll();
   void selectToBeginningOfLine();
+  void selectToFirstCharacterOfLine();
   void selectToEndOfLine();
   void selectToEndOfBufferLine();
+  void selectToBeginningOfWord();
+  void selectToEndOfWord();
+  void selectToBeginningOfNextWord();
+  void selectToPreviousWordBoundary();
+  void selectToNextWordBoundary();
+  void selectToPreviousSubwordBoundary();
+  void selectToNextSubwordBoundary();
+  void selectToBeginningOfNextParagraph();
+  void selectToBeginningOfPreviousParagraph();
   void insertText(const std::u16string &);
   void backspace();
   void delete_();

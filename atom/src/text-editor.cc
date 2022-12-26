@@ -638,6 +638,18 @@ std::vector<Selection *> TextEditor::getSelectionsOrderedByBufferPosition() {
   });
 }
 
+void TextEditor::addSelectionBelow() {
+  return this->expandSelectionsForward([](Selection *selection) {
+    selection->addSelectionBelow();
+  });
+}
+
+void TextEditor::addSelectionAbove() {
+  return this->expandSelectionsBackward([](Selection *selection) {
+    selection->addSelectionAbove();
+  });
+}
+
 void TextEditor::expandSelectionsForward(std::function<void(Selection *)> fn) {
   this->mergeIntersectingSelections([&]() {
     for (Selection *selection : this->getSelections()) {

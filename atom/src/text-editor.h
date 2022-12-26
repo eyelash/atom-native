@@ -130,6 +130,8 @@ public:
   void selectToBeginningOfPreviousParagraph();
   std::vector<Selection *> getSelections();
   std::vector<Selection *> getSelectionsOrderedByBufferPosition();
+  void addSelectionBelow();
+  void addSelectionAbove();
   void expandSelectionsForward(std::function<void(Selection *)>);
   void expandSelectionsBackward(std::function<void(Selection *)>);
   void mergeIntersectingSelections(std::function<void()>);

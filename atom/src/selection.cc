@@ -2,6 +2,7 @@
 #include "cursor.h"
 #include "text-editor.h"
 #include <display-marker.h>
+#include <display-marker-layer.h>
 #include <text-buffer.h>
 
 Selection::Selection(TextEditor *editor, DisplayMarker *marker, Cursor *cursor) {
@@ -307,6 +308,69 @@ void Selection::merge(Selection *otherSelection /*, options = {} */) {
 Section: Managing multiple selections
 */
 
+void Selection::addSelectionBelow() {
+  Range range = this->getGoalScreenRange();
+  const double nextRow = range.end.row + 1;
+
+  for (
+    double row = nextRow, end = this->editor->getLastScreenRow();
+    row <= end;
+    row++
+  ) {
+    range.start.row = row;
+    range.end.row = row;
+    const Range clippedRange = this->editor->clipScreenRange(range /* , {
+      skipSoftWrapIndentation: true
+    } */);
+
+    if (range.isEmpty()) {
+      if (range.end.column > 0 && clippedRange.end.column == 0) continue;
+    } else {
+      if (clippedRange.isEmpty()) continue;
+    }
+
+    const auto containingSelections = this->editor->selectionsMarkerLayer->findMarkers({
+      containsScreenRange(clippedRange)
+    });
+    if (containingSelections.size() == 0) {
+      Selection *selection = this->editor->addSelectionForScreenRange(clippedRange);
+      selection->setGoalScreenRange(range);
+    }
+
+    break;
+  }
+}
+
+void Selection::addSelectionAbove() {
+  Range range = this->getGoalScreenRange();
+  const double previousRow = range.end.row - 1;
+
+  for (double row = previousRow; row >= 0; row--) {
+    range.start.row = row;
+    range.end.row = row;
+    const Range clippedRange = this->editor->clipScreenRange(range /* , {
+      skipSoftWrapIndentation: true
+    } */);
+
+    if (range.isEmpty()) {
+      if (range.end.column > 0 && clippedRange.end.column == 0) continue;
+    } else {
+      if (clippedRange.isEmpty()) continue;
+    }
+
+    const auto containingSelections = this->editor->selectionsMarkerLayer->findMarkers({
+      //{ containsScreenRange: clippedRange }
+      containsScreenRange(clippedRange)
+    });
+    if (containingSelections.size() == 0) {
+      Selection *selection = this->editor->addSelectionForScreenRange(clippedRange);
+      selection->setGoalScreenRange(range);
+    }
+
+    break;
+  }
+}
+
 /*
 Section: Comparing to other selections
 */
@@ -318,6 +382,14 @@ int Selection::compare(Selection *otherSelection) {
 /*
 Section: Private Utilities
 */
+
+void Selection::setGoalScreenRange(Range range) {
+  this->goalScreenRange = range;
+}
+
+Range Selection::getGoalScreenRange() {
+  return this->goalScreenRange ? *this->goalScreenRange : this->getScreenRange();
+}
 
 void Selection::markerDidDestroy() {
   this->editor->removeSelection(this);

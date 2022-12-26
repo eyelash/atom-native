@@ -2,6 +2,7 @@
 #define SELECTION_H_
 
 #include <range.h>
+#include <optional.h>
 #include <functional>
 
 class Cursor;
@@ -11,6 +12,7 @@ class TextEditor;
 class Selection {
   TextEditor *editor;
   DisplayMarker *marker;
+  optional<Range> goalScreenRange;
   bool retainSelection;
 
 public:
@@ -65,7 +67,11 @@ public:
   void delete_();
   void deleteSelectedText();
   void merge(Selection *);
+  void addSelectionBelow();
+  void addSelectionAbove();
   int compare(Selection *);
+  void setGoalScreenRange(Range);
+  Range getGoalScreenRange();
   void markerDidDestroy();
   void modifySelection(std::function<void()>);
   void plantTail();

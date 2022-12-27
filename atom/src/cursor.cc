@@ -246,40 +246,40 @@ void Cursor::moveToBeginningOfLine() {
 }
 
 void Cursor::moveToFirstCharacterOfLine() {
-  /*let targetBufferColumn;
-  const screenRow = this.getScreenRow();
-  const screenLineStart = this.editor.clipScreenPosition([screenRow, 0], {
+  double targetBufferColumn;
+  const double screenRow = this->getScreenRow();
+  const Point screenLineStart = this->editor->clipScreenPosition({screenRow, 0} /* , {
     skipSoftWrapIndentation: true
-  });
-  const screenLineEnd = [screenRow, Infinity];
-  const screenLineBufferRange = this.editor.bufferRangeForScreenRange([
+  } */);
+  const Point screenLineEnd = {screenRow, INFINITY};
+  const Range screenLineBufferRange = this->editor->bufferRangeForScreenRange({
     screenLineStart,
     screenLineEnd
-  ]);
+  });
 
-  let firstCharacterColumn = null;
-  this.editor.scanInBufferRange(
-    /\S/,
+  optional<double> firstCharacterColumn;
+  this->editor->scanInBufferRange(
+    Regex(u"\\S", nullptr),
     screenLineBufferRange,
-    ({ range, stop }) => {
-      firstCharacterColumn = range.start.column;
-      stop();
+    [&](TextBuffer::SearchCallbackArgument &argument) {
+      firstCharacterColumn = argument.range.start.column;
+      argument.stop();
     }
   );
 
   if (
-    firstCharacterColumn != null &&
-    firstCharacterColumn !== this.getBufferColumn()
+    firstCharacterColumn &&
+    *firstCharacterColumn != this->getBufferColumn()
   ) {
-    targetBufferColumn = firstCharacterColumn;
+    targetBufferColumn = *firstCharacterColumn;
   } else {
     targetBufferColumn = screenLineBufferRange.start.column;
   }
 
-  this.setBufferPosition([
+  this->setBufferPosition({
     screenLineBufferRange.start.row,
     targetBufferColumn
-  ]);*/
+  });
 }
 
 void Cursor::moveToEndOfScreenLine() {

@@ -497,7 +497,7 @@ void TextBuffer::markersUpdated(MarkerLayer *layer) {
 
 unsigned TextBuffer::getNextMarkerId() { return this->nextMarkerId++; }
 
-TextBuffer::SearchCallbackArgument::SearchCallbackArgument(TextBuffer *buffer, Range Range) {
+TextBuffer::SearchCallbackArgument::SearchCallbackArgument(TextBuffer *buffer, Range range) {
   this->buffer = buffer;
   this->range = range;
   this->stopped = false;

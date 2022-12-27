@@ -140,6 +140,7 @@ public:
   void mergeSelections(std::function<void()>, std::function<bool(Selection *, Selection *)>);
   void addSelection(DisplayMarker *);
   void removeSelection(Selection *);
+  bool consolidateSelections();
   void scan(const Regex &, TextBuffer::ScanIterator);
   void scanInBufferRange(const Regex &, Range, TextBuffer::ScanIterator);
   void backwardsScanInBufferRange(const Regex &, Range, TextBuffer::ScanIterator);

@@ -730,6 +730,21 @@ void TextEditor::addSelection(DisplayMarker *marker) {
 void TextEditor::removeSelection(Selection *selection) {
   this->cursors.erase(std::find(this->cursors.begin(), this->cursors.end(), selection->cursor));
   this->selections.erase(std::find(this->selections.begin(), this->selections.end(), selection));
+  delete selection->cursor;
+  delete selection;
+}
+
+bool TextEditor::consolidateSelections() {
+  const auto selections = this->getSelections();
+  if (selections.size() > 1) {
+    for (size_t i = 1; i < selections.size(); i++) {
+      selections[i]->destroy();
+    }
+    //selections[0].autoscroll({ center: true });
+    return true;
+  } else {
+    return false;
+  }
 }
 
 void TextEditor::createLastSelectionIfNeeded() {

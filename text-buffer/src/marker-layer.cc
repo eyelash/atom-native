@@ -196,13 +196,13 @@ Section: Private - Marker interface
 void MarkerLayer::destroyMarker(Marker *marker, bool suppressMarkerLayerUpdateEvents) {
   if (this->markersById.count(marker->id)) {
     this->markersById.erase(marker->id);
-    delete marker;
     this->index->remove(marker->id);
     //this.markersWithChangeListeners.delete(marker);
     //this.markersWithDestroyListeners.delete(marker);
     for (DisplayMarkerLayer *displayMarkerLayer : this->displayMarkerLayers) {
       displayMarkerLayer->destroyMarker(marker->id);
     }
+    delete marker;
     if (!suppressMarkerLayerUpdateEvents) {
       return this->delegate->markersUpdated(this);
     }

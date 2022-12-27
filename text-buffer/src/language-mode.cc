@@ -1,5 +1,7 @@
 #include "language-mode.h"
 
+LanguageMode::HighlightIterator::~HighlightIterator() {}
+
 std::vector<int32_t> LanguageMode::HighlightIterator::seek(Point position, double endRow) {
 	return std::vector<int32_t>();
 }
@@ -27,6 +29,8 @@ std::vector<int32_t> LanguageMode::HighlightIterator::getCloseScopeIds() {
 std::vector<int32_t> LanguageMode::HighlightIterator::getOpenScopeIds() {
   return std::vector<int32_t>();
 }
+
+LanguageMode::~LanguageMode() {}
 
 void LanguageMode::bufferDidChange() {}
 

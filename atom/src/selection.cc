@@ -136,7 +136,7 @@ Section: Modifying the selected range
 */
 
 void Selection::clear() {
-  //this.goalScreenRange = null;
+  this->goalScreenRange = optional<Range>();
   if (!this->retainSelection) this->marker->clearTail();
   /*const autoscroll =
     options && options.autoscroll != null
@@ -448,7 +448,6 @@ void Selection::addSelectionAbove() {
     }
 
     const auto containingSelections = this->editor->selectionsMarkerLayer->findMarkers({
-      //{ containsScreenRange: clippedRange }
       containsScreenRange(clippedRange)
     });
     if (containingSelections.size() == 0) {

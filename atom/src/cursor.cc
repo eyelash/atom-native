@@ -452,7 +452,7 @@ Point Cursor::getBeginningOfNextWordBufferPosition(/* options = {} */) {
   this->editor->scanInBufferRange(
     /* options.wordRegex || */ this->wordRegExp(),
     scanRange,
-    [&](TextBuffer::SearchCallbackArgument& argument) {
+    [&](TextBuffer::SearchCallbackArgument &argument) {
       beginningOfNextWordPosition = argument.range.start;
       argument.stop();
     }
@@ -549,7 +549,7 @@ Point Cursor::getBeginningOfNextParagraphBufferPosition() {
   this->editor->scanInBufferRange(
     EmptyLineRegExp,
     scanRange,
-    [&](TextBuffer::SearchCallbackArgument& argument) {
+    [&](TextBuffer::SearchCallbackArgument &argument) {
       position = argument.range.start.traverse(Point(1, 0));
       if (!position.isEqual(start)) argument.stop();
     }
@@ -566,7 +566,7 @@ Point Cursor::getBeginningOfPreviousParagraphBufferPosition() {
   this->editor->backwardsScanInBufferRange(
     EmptyLineRegExp,
     scanRange,
-    [&](TextBuffer::SearchCallbackArgument& argument) {
+    [&](TextBuffer::SearchCallbackArgument &argument) {
       position = argument.range.start.traverse(Point(1, 0));
       if (!position.isEqual(start)) argument.stop();
     }

@@ -8,6 +8,7 @@ class LanguageMode {
 public:
   class HighlightIterator {
   public:
+    virtual ~HighlightIterator();
     virtual std::vector<int32_t> seek(Point, double);
     virtual bool moveToSuccessor();
     virtual Point getPosition();
@@ -16,6 +17,7 @@ public:
     virtual std::vector<int32_t> getCloseScopeIds();
     virtual std::vector<int32_t> getOpenScopeIds();
   };
+  virtual ~LanguageMode();
   virtual void bufferDidChange();
   virtual void bufferDidFinishTransaction();
   virtual std::unique_ptr<HighlightIterator> buildHighlightIterator();

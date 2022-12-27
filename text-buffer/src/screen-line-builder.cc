@@ -9,7 +9,7 @@ constexpr int32_t INDENT_GUIDE = 1 << 5;
 constexpr int32_t LINE_ENDING = 1 << 6;
 constexpr int32_t FOLD = 1 << 7;
 
-unsigned nextScreenLineId = 1;
+static unsigned nextScreenLineId = 1;
 
 ScreenLineBuilder::ScreenLineBuilder(DisplayLayer *displayLayer) {
   this->displayLayer = displayLayer;

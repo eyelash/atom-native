@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 project(text-buffer)
 
-add_library(text-buffer)
+add_library(text-buffer STATIC)
 target_link_libraries(text-buffer superstring_core)
 target_sources(text-buffer PRIVATE
   src/display-layer.cc

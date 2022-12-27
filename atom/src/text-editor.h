@@ -35,10 +35,10 @@ public:
   bool isEmpty();
   std::u16string getText();
   std::u16string getTextInBufferRange(Range);
-  unsigned getLineCount();
+  double getLineCount();
   double getScreenLineCount();
   double getApproximateScreenLineCount();
-  unsigned getLastBufferRow();
+  double getLastBufferRow();
   double getLastScreenRow();
   optional<std::u16string> lineTextForBufferRow(uint32_t);
   std::u16string lineTextForScreenRow(double);

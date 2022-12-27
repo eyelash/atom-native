@@ -30,8 +30,8 @@ TextEditor::~TextEditor() {
   for (Selection *selection : this->selections) {
     delete selection;
   }
-  delete buffer;
-  delete decorationManager;
+  delete this->buffer;
+  delete this->decorationManager;
 }
 
 void TextEditor::subscribeToBuffer() {
@@ -83,7 +83,7 @@ std::u16string TextEditor::getTextInBufferRange(Range range) {
   return this->buffer->getTextInRange(range);
 }
 
-unsigned TextEditor::getLineCount() {
+double TextEditor::getLineCount() {
   return this->buffer->getLineCount();
 }
 
@@ -95,7 +95,7 @@ double TextEditor::getApproximateScreenLineCount() {
   return this->displayLayer->getApproximateScreenLineCount();
 }
 
-unsigned TextEditor::getLastBufferRow() {
+double TextEditor::getLastBufferRow() {
   return this->buffer->getLastRow();
 }
 
@@ -212,11 +212,11 @@ void TextEditor::backspace() {
 }
 
 void TextEditor::mutateSelectedText(std::function<void(Selection *)> fn /* , groupingInterval = 0 */ ) {
-  //return this.mergeIntersectingSelections(() => {
+  return this->mergeIntersectingSelections([&]() {
     //return this.transact(groupingInterval, () => {
       for (Selection *selection : this->getSelectionsOrderedByBufferPosition()) fn(selection);
     //});
-  //});
+  });
 }
 
 void TextEditor::duplicateLines(/* options = {} */) {
@@ -242,10 +242,6 @@ void TextEditor::duplicateLines(/* options = {} */) {
         const auto previousBufferRowRange = selections[i - 1]->getBufferRowRange();
         const double previousSelectionStartRow = previousBufferRowRange.first;
         const double previousSelectionEndRow = previousBufferRowRange.second;
-        /*const [
-          previousSelectionStartRow,
-          previousSelectionEndRow
-        ] = selections[i - 1].getBufferRowRange();*/
         if (previousSelectionEndRow == startRow) {
           startRow = previousSelectionStartRow;
           previousSelectionRanges[i - 1] = selections[i - 1]->getBufferRange();

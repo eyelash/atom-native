@@ -16,21 +16,22 @@ TextBuffer::TextBuffer() {
   this->markerLayers[this->defaultMarkerLayer->id] = this->defaultMarkerLayer;
 }
 
-TextBuffer::TextBuffer(const std::u16string &text) :
-  buffer{new NativeTextBuffer(text)},
-  nextMarkerLayerId{0},
-  defaultMarkerLayer{new MarkerLayer(this, this->nextMarkerLayerId++)},
-  nextMarkerId{1},
-  languageMode{new LanguageMode()},
-  transactCallDepth{0} {
+TextBuffer::TextBuffer(const std::u16string &text) {
+  this->buffer = new NativeTextBuffer(text);
+  this->languageMode = new LanguageMode();
+  this->nextMarkerLayerId = 0;
+  this->nextDisplayLayerId = 0;
+  this->defaultMarkerLayer = new MarkerLayer(this, this->nextMarkerLayerId++);
+  this->nextMarkerId = 1;
+  this->transactCallDepth = 0;
   this->markerLayers[this->defaultMarkerLayer->id] = this->defaultMarkerLayer;
 }
 
 TextBuffer::~TextBuffer() {
-  for (auto& displayLayer : this->displayLayers) {
+  for (auto &displayLayer : this->displayLayers) {
     delete displayLayer.second;
   }
-  for (auto& markerLayer : this->markerLayers) {
+  for (auto &markerLayer : this->markerLayers) {
     delete markerLayer.second;
   }
   delete buffer;
@@ -42,11 +43,11 @@ Section: File Details
 */
 
 bool TextBuffer::isModified() {
-  //if (this.file) {
+  if (/* this.file */ false) {
     return /* !this.file.existsSync() || */ this->buffer->is_modified();
-  //} else {
-  //  return this.buffer.getLength() > 0
-  //}
+  } else {
+    return this->buffer->size() > 0;
+  }
 }
 
 /*
@@ -170,13 +171,13 @@ Range TextBuffer::applyChange(Change change, bool pushToHistory) {
   const Range newRange = Range(newStart, traverse(newStart, newExtent));
   //newRange.freeze()
 
-  /*if (pushToHistory) {
-    if (!change.oldExtent) change.oldExtent = oldExtent
+  if (pushToHistory) {
+    /*if (!change.oldExtent) change.oldExtent = oldExtent
     if (!change.newExtent) change.newExtent = newExtent
     if (this.historyProvider) {
       this.historyProvider.pushChange(change)
-    }
-  }*/
+    }*/
+  }
 
   //const changeEvent = {oldRange, newRange, oldText, newText}
   for (auto &displayLayer : this->displayLayers) {
@@ -239,9 +240,9 @@ Range TextBuffer::deleteRows(double startRow, double endRow) {
     if (startRow == 0) {
       startPoint = Point(startRow, 0);
     } else {
-      startPoint = Point(startRow - 1, this->lineLengthForRow(startRow - 1));
+      startPoint = Point(startRow - 1, *this->lineLengthForRow(startRow - 1));
     }
-    endPoint = Point(endRow, this->lineLengthForRow(endRow));
+    endPoint = Point(endRow, *this->lineLengthForRow(endRow));
   }
 
   return this->delete_(Range(startPoint, endPoint));
@@ -401,7 +402,7 @@ Range TextBuffer::rangeForRow(double row, bool includeNewline) {
   if (includeNewline && row < this->getLastRow()) {
     return Range(Point(row, 0), Point(row + 1, 0));
   } else {
-    return Range(Point(row, 0), Point(row, this->lineLengthForRow(row)));
+    return Range(Point(row, 0), Point(row, *this->lineLengthForRow(row)));
   }
 }
 

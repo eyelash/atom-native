@@ -120,12 +120,12 @@ double TextEditor::bufferRowForScreenRow(double screenRow) {
   return this->displayLayer->translateScreenPosition(Point(screenRow, 0)).row;
 }
 
-/*bufferRowsForScreenRows(startScreenRow, endScreenRow) {
-  return this.displayLayer.bufferRowsForScreenRows(
+std::vector<double> TextEditor::bufferRowsForScreenRows(double startScreenRow, double endScreenRow) {
+  return this->displayLayer->bufferRowsForScreenRows(
     startScreenRow,
     endScreenRow + 1
   );
-}*/
+}
 
 double TextEditor::screenRowForBufferRow(double row) {
   return this->displayLayer->translateBufferPosition(Point(row, 0)).row;
@@ -163,13 +163,13 @@ std::u16string TextEditor::getTextInRange(Range range) {
   return this->buffer->getTextInRange(range);
 }
 
-/*isBufferRowBlank(bufferRow) {
-  return this.buffer.isRowBlank(bufferRow);
-}*/
+bool TextEditor::isBufferRowBlank(double bufferRow) {
+  return this->buffer->isRowBlank(bufferRow);
+}
 
-/*nextNonBlankBufferRow(bufferRow) {
-  return this.buffer.nextNonBlankRow(bufferRow);
-}*/
+optional<double> TextEditor::nextNonBlankBufferRow(double bufferRow) {
+  return this->buffer->nextNonBlankRow(bufferRow);
+}
 
 Point TextEditor::getEofBufferPosition() {
   return this->buffer->getEndPosition();
@@ -217,6 +217,97 @@ void TextEditor::mutateSelectedText(std::function<void(Selection *)> fn /* , gro
       for (Selection *selection : this->getSelectionsOrderedByBufferPosition()) fn(selection);
     //});
   //});
+}
+
+/*insertNewlineBelow(options = {}) {
+  if (!this.ensureWritable('insertNewlineBelow', options)) return;
+  this.transact(() => {
+    this.moveToEndOfLine();
+    this.insertNewline(options);
+  });
+}*/
+
+/*insertNewlineAbove(options = {}) {
+  if (!this.ensureWritable('insertNewlineAbove', options)) return;
+  this.transact(() => {
+    const bufferRow = this.getCursorBufferPosition().row;
+    const indentLevel = this.indentationForBufferRow(bufferRow);
+    const onFirstLine = bufferRow === 0;
+
+    this.moveToBeginningOfLine();
+    this.moveLeft();
+    this.insertNewline(options);
+
+    if (
+      this.shouldAutoIndent() &&
+      this.indentationForBufferRow(bufferRow) < indentLevel
+    ) {
+      this.setIndentationForBufferRow(bufferRow, indentLevel);
+    }
+
+    if (onFirstLine) {
+      this.moveUp();
+      this.moveToEndOfLine();
+    }
+  });
+}*/
+
+void TextEditor::deleteToBeginningOfWord(/* options = {} */) {
+  //if (!this.ensureWritable('deleteToBeginningOfWord', options)) return;
+  this->mutateSelectedText([](Selection *selection) {
+    selection->deleteToBeginningOfWord(/* options */);
+  });
+}
+
+void TextEditor::deleteToPreviousWordBoundary(/* options = {} */) {
+  //if (!this.ensureWritable('deleteToPreviousWordBoundary', options)) return;
+  this->mutateSelectedText([](Selection *selection) {
+    selection->deleteToPreviousWordBoundary(/* options */);
+  });
+}
+
+void TextEditor::deleteToNextWordBoundary(/* options = {} */) {
+  //if (!this.ensureWritable('deleteToNextWordBoundary', options)) return;
+  this->mutateSelectedText([](Selection *selection) {
+    selection->deleteToNextWordBoundary(/* options */);
+  });
+}
+
+void TextEditor::deleteToBeginningOfSubword(/* options = {} */) {
+  //if (!this.ensureWritable('deleteToBeginningOfSubword', options)) return;
+  this->mutateSelectedText([](Selection *selection) {
+    selection->deleteToBeginningOfSubword(/* options */);
+  });
+}
+
+void TextEditor::deleteToEndOfSubword(/* options = {} */) {
+  //if (!this.ensureWritable('deleteToEndOfSubword', options)) return;
+  this->mutateSelectedText([](Selection *selection) {
+    selection->deleteToEndOfSubword(/* options */);
+  });
+}
+
+void TextEditor::deleteToBeginningOfLine(/* options = {} */) {
+  //if (!this.ensureWritable('deleteToBeginningOfLine', options)) return;
+  this->mutateSelectedText([](Selection *selection) {
+    selection->deleteToBeginningOfLine(/* options */);
+  });
+}
+
+void TextEditor::deleteToEndOfLine(/* options = {} */) {
+  //if (!this.ensureWritable('deleteToEndOfLine', options)) return;
+  this->mutateSelectedText([](Selection *selection) { selection->deleteToEndOfLine(/* options */); });
+}
+
+void TextEditor::deleteToEndOfWord(/* options = {} */) {
+  //if (!this.ensureWritable('deleteToEndOfWord', options)) return;
+  this->mutateSelectedText([](Selection *selection) { selection->deleteToEndOfWord(/* options */); });
+}
+
+void TextEditor::deleteLine(/* options = {} */) {
+  //if (!this.ensureWritable('deleteLine', options)) return;
+  this->mergeSelectionsOnSameRows();
+  this->mutateSelectedText([](Selection *selection) { selection->deleteLine(/* options */); });
 }
 
 /*
@@ -679,6 +770,23 @@ void TextEditor::mergeIntersectingSelections( /* options, */ std::function<void(
 
 void TextEditor::mergeIntersectingSelections(/* options */) {
   return this->mergeIntersectingSelections([]() {});
+}
+
+void TextEditor::mergeSelectionsOnSameRows( /* options, */ std::function<void()> fn) {
+  return this->mergeSelections(
+    fn,
+    [](Selection *previousSelection, Selection *currentSelection) {
+      const Range screenRange = currentSelection->getScreenRange();
+      return previousSelection->intersectsScreenRowRange(
+        screenRange.start.row,
+        screenRange.end.row
+      );
+    }
+  );
+}
+
+void TextEditor::mergeSelectionsOnSameRows( /* options */) {
+  return this->mergeSelectionsOnSameRows([]() {});
 }
 
 void TextEditor::avoidMergingSelections(std::function<void()> fn) {

@@ -271,10 +271,68 @@ void Selection::backspace() {
   this->deleteSelectedText();
 }
 
+void Selection::deleteToPreviousWordBoundary(/* options = {} */) {
+  //if (!this->ensureWritable('deleteToPreviousWordBoundary', options)) return;
+  if (this->isEmpty()) this->selectToPreviousWordBoundary();
+  this->deleteSelectedText(/* options */);
+}
+
+void Selection::deleteToNextWordBoundary(/* options = {} */) {
+  //if (!this->ensureWritable('deleteToNextWordBoundary', options)) return;
+  if (this->isEmpty()) this->selectToNextWordBoundary();
+  this->deleteSelectedText(/* options */);
+}
+
+void Selection::deleteToBeginningOfWord(/* options = {} */) {
+  //if (!this->ensureWritable('deleteToBeginningOfWord', options)) return;
+  if (this->isEmpty()) this->selectToBeginningOfWord();
+  this->deleteSelectedText(/* options */);
+}
+
+void Selection::deleteToBeginningOfLine(/* options = {} */) {
+  //if (!this->ensureWritable('deleteToBeginningOfLine', options)) return;
+  if (this->isEmpty() && this->cursor->isAtBeginningOfLine()) {
+    this->selectLeft();
+  } else {
+    this->selectToBeginningOfLine();
+  }
+  this->deleteSelectedText(/* options */);
+}
+
 void Selection::delete_() {
   //if (!this->ensureWritable('delete', options)) return;
   if (this->isEmpty()) this->selectRight();
   this->deleteSelectedText();
+}
+
+void Selection::deleteToEndOfLine(/* options = {} */) {
+  //if (!this->ensureWritable('deleteToEndOfLine', options)) return;
+  if (this->isEmpty()) {
+    if (this->cursor->isAtEndOfLine()) {
+      this->delete_(/* options */);
+      return;
+    }
+    this->selectToEndOfLine();
+  }
+  this->deleteSelectedText(/* options */);
+}
+
+void Selection::deleteToEndOfWord(/* options = {} */) {
+  //if (!this->ensureWritable('deleteToEndOfWord', options)) return;
+  if (this->isEmpty()) this->selectToEndOfWord();
+  this->deleteSelectedText(/* options */);
+}
+
+void Selection::deleteToBeginningOfSubword(/* options = {} */) {
+  //if (!this->ensureWritable('deleteToBeginningOfSubword', options)) return;
+  if (this->isEmpty()) this->selectToPreviousSubwordBoundary();
+  this->deleteSelectedText(/* options */);
+}
+
+void Selection::deleteToEndOfSubword(/* options = {} */) {
+  //if (!this->ensureWritable('deleteToEndOfSubword', options)) return;
+  if (this->isEmpty()) this->selectToNextSubwordBoundary();
+  this->deleteSelectedText(/* options */);
 }
 
 void Selection::deleteSelectedText() {
@@ -282,6 +340,30 @@ void Selection::deleteSelectedText() {
   const Range bufferRange = this->getBufferRange();
   if (!bufferRange.isEmpty()) this->editor->getBuffer()->delete_(bufferRange);
   if (this->cursor) this->cursor->setBufferPosition(bufferRange.start);
+}
+
+void Selection::deleteLine(/* options = {} */) {
+  //if (!this->ensureWritable('deleteLine', options)) return;
+  const Range range = this->getBufferRange();
+  if (range.isEmpty()) {
+    const double start = this->cursor->getScreenRow();
+    const auto range = this->editor->bufferRowsForScreenRows(start, start + 1);
+    if (range[1] > range[0]) {
+      this->editor->getBuffer()->deleteRows(range[0], range[1] - 1);
+    } else {
+      this->editor->getBuffer()->deleteRow(range[0]);
+    }
+  } else {
+    const double start = range.start.row;
+    double end = range.end.row;
+    if (end != this->editor->getBuffer()->getLastRow() && range.end.column == 0)
+      end--;
+    this->editor->getBuffer()->deleteRows(start, end);
+  }
+  this->cursor->setBufferPosition({
+    this->cursor->getBufferRow(),
+    range.start.column
+  });
 }
 
 void Selection::merge(Selection *otherSelection /*, options = {} */) {

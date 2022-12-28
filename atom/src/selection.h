@@ -64,8 +64,17 @@ public:
   void selectToBeginningOfPreviousParagraph();
   void insertText(const std::u16string &);
   void backspace();
+  void deleteToPreviousWordBoundary();
+  void deleteToNextWordBoundary();
+  void deleteToBeginningOfWord();
+  void deleteToBeginningOfLine();
   void delete_();
+  void deleteToEndOfLine();
+  void deleteToEndOfWord();
+  void deleteToBeginningOfSubword();
+  void deleteToEndOfSubword();
   void deleteSelectedText();
+  void deleteLine();
   void merge(Selection *);
   void addSelectionBelow();
   void addSelectionAbove();

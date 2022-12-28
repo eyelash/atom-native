@@ -44,6 +44,7 @@ public:
   std::u16string lineTextForScreenRow(double);
   DisplayLayer::ScreenLine screenLineForScreenRow(double);
   double bufferRowForScreenRow(double);
+  std::vector<double> bufferRowsForScreenRows(double, double);
   double screenRowForBufferRow(double);
   Point getRightmostScreenPosition();
   double getMaxScreenLineLength();
@@ -51,6 +52,8 @@ public:
   double lineLengthForScreenRow(double);
   Range bufferRangeForBufferRow(double, bool = false);
   std::u16string getTextInRange(Range);
+  bool isBufferRowBlank(double);
+  optional<double> nextNonBlankBufferRow(double);
   Point getEofBufferPosition();
   void setText(std::u16string &&);
   Range setTextInBufferRange(Range, std::u16string &&);
@@ -59,6 +62,15 @@ public:
   void delete_();
   void backspace();
   void mutateSelectedText(std::function<void(Selection *)>);
+  void deleteToBeginningOfWord();
+  void deleteToPreviousWordBoundary();
+  void deleteToNextWordBoundary();
+  void deleteToBeginningOfSubword();
+  void deleteToEndOfSubword();
+  void deleteToBeginningOfLine();
+  void deleteToEndOfLine();
+  void deleteToEndOfWord();
+  void deleteLine();
   Point screenPositionForBufferPosition(Point);
   Point bufferPositionForScreenPosition(Point);
   Range screenRangeForBufferRange(Range);
@@ -136,6 +148,8 @@ public:
   void expandSelectionsBackward(std::function<void(Selection *)>);
   void mergeIntersectingSelections(std::function<void()>);
   void mergeIntersectingSelections();
+  void mergeSelectionsOnSameRows(std::function<void()>);
+  void mergeSelectionsOnSameRows();
   void avoidMergingSelections(std::function<void()>);
   void mergeSelections(std::function<void()>, std::function<bool(Selection *, Selection *)>);
   void addSelection(DisplayMarker *);

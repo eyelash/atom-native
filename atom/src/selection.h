@@ -76,9 +76,12 @@ public:
   void deleteToEndOfSubword();
   void deleteSelectedText();
   void deleteLine();
-  void merge(Selection *);
+  void outdentSelectedRows();
+  void indent(bool = false);
+  void indentSelectedRows();
   void addSelectionBelow();
   void addSelectionAbove();
+  void merge(Selection *);
   int compare(Selection *);
   void setGoalScreenRange(Range);
   Range getGoalScreenRange();

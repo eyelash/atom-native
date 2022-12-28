@@ -16,6 +16,7 @@ class DecorationManager;
 class LayerDecoration;
 
 class TextEditor {
+  bool softTabs;
   std::vector<Cursor *> cursors;
   std::vector<Selection *> selections;
   TextBuffer *buffer;
@@ -159,6 +160,13 @@ public:
   void scan(const Regex &, TextBuffer::ScanIterator);
   void scanInBufferRange(const Regex &, Range, TextBuffer::ScanIterator);
   void backwardsScanInBufferRange(const Regex &, Range, TextBuffer::ScanIterator);
+  bool getSoftTabs();
+  double getTabLength();
+  std::u16string getTabText();
+  void indentSelectedRows();
+  void outdentSelectedRows();
+  void indent();
+  std::u16string buildIndentString(double, double = 0);
   const char16_t *getNonWordCharacters(Point);
 
 private:

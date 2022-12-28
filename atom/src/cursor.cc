@@ -326,6 +326,18 @@ void Cursor::moveToNextSubwordBoundary() {
   /* if (position) */ this->setBufferPosition(position);
 }
 
+void Cursor::skipLeadingWhitespace() {
+  const Point position = this->getBufferPosition();
+  const Range scanRange = this->getCurrentLineBufferRange();
+  Point endOfLeadingWhitespace;
+  this->editor->scanInBufferRange(Regex(u"^[ \\t]*", nullptr), scanRange, [&](TextBuffer::SearchCallbackArgument &argument) {
+    endOfLeadingWhitespace = argument.range.end;
+  });
+
+  if (endOfLeadingWhitespace.isGreaterThan(position))
+    this->setBufferPosition(endOfLeadingWhitespace);
+}
+
 void Cursor::moveToBeginningOfNextParagraph() {
   const Point position = this->getBeginningOfNextParagraphBufferPosition();
   /* if (position) */ this->setBufferPosition(position);

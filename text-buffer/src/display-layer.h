@@ -36,6 +36,7 @@ public:
   };
 
   unsigned id;
+  double tabLength;
 private:
   TextBuffer *buffer;
   ScreenLineBuilder *screenLineBuilder;
@@ -46,7 +47,6 @@ private:
   std::unordered_map<unsigned, DisplayMarkerLayer *> displayMarkerLayersById;
   Patch changesSinceLastEvent;
   Invisibles invisibles;
-  double tabLength;
   double softWrapColumn;
   double softWrapHangingIndent;
   bool showIndentGuides;

@@ -373,24 +373,65 @@ void Selection::deleteLine(/* options = {} */) {
   });
 }
 
-void Selection::merge(Selection *otherSelection /*, options = {} */) {
-  //const Range myGoalScreenRange = this->getGoalScreenRange();
-  //const Range otherGoalScreenRange = otherSelection->getGoalScreenRange();
+static std::u16string toString(double n) {
+  // TODO: this only works for numbers between 0 and 9
+  std::u16string result;
+  result.push_back(u'0' + n);
+  return result;
+}
 
-  /*if (myGoalScreenRange && otherGoalScreenRange) {
-    options.goalScreenRange = myGoalScreenRange.union_(otherGoalScreenRange);
+void Selection::outdentSelectedRows(/* options = {} */) {
+  //if (!this->ensureWritable('outdentSelectedRows', options)) return;
+  const auto bufferRowRange = this->getBufferRowRange();
+  const double start = bufferRowRange.first, end = bufferRowRange.second;
+  TextBuffer *buffer = this->editor->getBuffer();
+  const Regex leadingTabRegex = Regex(
+    u"^( {1," + toString(this->editor->getTabLength()) + u"}|\\t)",
+    nullptr
+  );
+  Regex::MatchData match_data(leadingTabRegex);
+  for (double row = start; row <= end; row++) {
+    const auto line = buffer->lineForRow(row);
+    const auto match = leadingTabRegex.match(line->data(), line->size(), match_data, Regex::MatchOptions::IsBeginningOfLine);
+    if (match.type == Regex::MatchResult::Full && match.end_offset > match.start_offset) {
+      buffer->delete_({{row, 0}, {row, static_cast<double>(match.end_offset - match.start_offset)}});
+    }
+  }
+}
+
+void Selection::indent(bool autoIndent) {
+  //if (!this->ensureWritable('indent', { bypassReadOnly })) return;
+  const double row = this->cursor->getBufferPosition().row;
+
+  if (this->isEmpty()) {
+    this->cursor->skipLeadingWhitespace();
+    /*const desiredIndent = this->editor->suggestedIndentForBufferRow(row);
+    let delta = desiredIndent - this->cursor->getIndentLevel();
+
+    if (autoIndent && delta > 0) {
+      if (!this->editor->getSoftTabs()) delta = Math.max(delta, 1);
+      this->insertText(this->editor->buildIndentString(delta), {
+        bypassReadOnly
+      });
+    } else */ {
+      this->insertText(
+        this->editor->buildIndentString(1, this->cursor->getBufferColumn())
+      );
+    }
   } else {
-    options.goalScreenRange = myGoalScreenRange || otherGoalScreenRange;
-  }*/
+    this->indentSelectedRows();
+  }
+}
 
-  const Range bufferRange = this->getBufferRange().union_(
-    otherSelection->getBufferRange()
-  );
-  this->setBufferRange(
-    bufferRange /* ,
-    Object.assign({ autoscroll: false }, options) */
-  );
-  otherSelection->destroy();
+void Selection::indentSelectedRows(/* options = {} */) {
+  //if (!this->ensureWritable('indentSelectedRows', options)) return;
+  const auto bufferRowRange = this->getBufferRowRange();
+  const double start = bufferRowRange.first, end = bufferRowRange.second;
+  for (double row = start; row <= end; row++) {
+    if (this->editor->getBuffer()->lineLengthForRow(row) != 0) {
+      this->editor->getBuffer()->insert({row, 0}, this->editor->getTabText());
+    }
+  }
 }
 
 /*
@@ -457,6 +498,26 @@ void Selection::addSelectionAbove() {
 
     break;
   }
+}
+
+void Selection::merge(Selection *otherSelection /*, options = {} */) {
+  //const Range myGoalScreenRange = this->getGoalScreenRange();
+  //const Range otherGoalScreenRange = otherSelection->getGoalScreenRange();
+
+  /*if (myGoalScreenRange && otherGoalScreenRange) {
+    options.goalScreenRange = myGoalScreenRange.union_(otherGoalScreenRange);
+  } else {
+    options.goalScreenRange = myGoalScreenRange || otherGoalScreenRange;
+  }*/
+
+  const Range bufferRange = this->getBufferRange().union_(
+    otherSelection->getBufferRange()
+  );
+  this->setBufferRange(
+    bufferRange /* ,
+    Object.assign({ autoscroll: false }, options) */
+  );
+  otherSelection->destroy();
 }
 
 /*

@@ -10,6 +10,7 @@
 constexpr const char16_t *DEFAULT_NON_WORD_CHARACTERS = u"/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…";
 
 TextEditor::TextEditor() {
+  this->softTabs = true;
   this->buffer = new TextBuffer();
   this->displayLayer = this->buffer->addDisplayLayer();
   //this->defaultMarkerLayer = this->displayLayer->addMarkerLayer();
@@ -947,6 +948,18 @@ void TextEditor::backwardsScanInBufferRange(const Regex &regex, Range range, Tex
 Section: Tab Behavior
 */
 
+bool TextEditor::getSoftTabs() {
+  return this->softTabs;
+}
+
+double TextEditor::getTabLength() {
+  return this->displayLayer->tabLength;
+}
+
+std::u16string TextEditor::getTabText() {
+  return this->buildIndentString(1);
+}
+
 /*
 Section: Soft Wrap Behavior
 */
@@ -954,6 +967,53 @@ Section: Soft Wrap Behavior
 /*
 Section: Indentation
 */
+
+void TextEditor::indentSelectedRows(/* options = {} */) {
+  //if (!this->ensureWritable('indentSelectedRows', options)) return;
+  return this->mutateSelectedText([](Selection *selection) {
+    selection->indentSelectedRows(/* options */);
+  });
+}
+
+void TextEditor::outdentSelectedRows(/* options = {} */) {
+  //if (!this->ensureWritable('outdentSelectedRows', options)) return;
+  return this->mutateSelectedText([](Selection *selection) {
+    selection->outdentSelectedRows(/* options */);
+  });
+}
+
+void TextEditor::indent(/* options = {} */) {
+  //if (!this->ensureWritable('indent', options)) return;
+  //if (options.autoIndent == null)
+  //  options.autoIndent = this->shouldAutoIndent();
+  this->mutateSelectedText([](Selection *selection) { selection->indent(/* options */); });
+}
+
+static std::u16string multiplyString(const char16_t *string, double n) {
+  std::u16string finalString = u"";
+  double i = 0;
+  while (i < n) {
+    finalString += string;
+    i++;
+  }
+  return finalString;
+}
+
+std::u16string TextEditor::buildIndentString(double level, double column) {
+  if (this->getSoftTabs()) {
+    const double tabStopViolation = std::fmod(column, this->getTabLength());
+    return multiplyString(
+      u" ",
+      std::floor(level * this->getTabLength()) - tabStopViolation
+    );
+  } else {
+    const std::u16string excessWhitespace = multiplyString(
+      u" ",
+      std::round((level - std::floor(level)) * this->getTabLength())
+    );
+    return multiplyString(u"\t", std::floor(level)) + excessWhitespace;
+  }
+}
 
 /*
 Section: Grammars

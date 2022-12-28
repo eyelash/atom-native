@@ -54,6 +54,7 @@ public:
   void moveToNextWordBoundary();
   void moveToPreviousSubwordBoundary();
   void moveToNextSubwordBoundary();
+  void skipLeadingWhitespace();
   void moveToBeginningOfNextParagraph();
   void moveToBeginningOfPreviousParagraph();
   Point getPreviousWordBoundaryBufferPosition();

@@ -219,6 +219,73 @@ void TextEditor::mutateSelectedText(std::function<void(Selection *)> fn /* , gro
   //});
 }
 
+void TextEditor::duplicateLines(/* options = {} */) {
+  //if (!this.ensureWritable('duplicateLines', options)) return;
+  //this.transact(() => {
+    const auto selections = this->getSelectionsOrderedByBufferPosition();
+    std::vector<Range> previousSelectionRanges(selections.size());
+
+    double i = selections.size() - 1.0;
+    while (i >= 0) {
+      const double j = i;
+      previousSelectionRanges[i] = selections[i]->getBufferRange();
+      if (selections[i]->isEmpty()) {
+        const Point start = selections[i]->getScreenRange().start;
+        selections[i]->setScreenRange({{start.row, 0}, {start.row + 1, 0}} /* , {
+          preserveFolds: true
+        } */);
+      }
+      const auto bufferRowRange = selections[i]->getBufferRowRange();
+      double startRow = bufferRowRange.first, endRow = bufferRowRange.second;
+      endRow++;
+      while (i > 0) {
+        const auto previousBufferRowRange = selections[i - 1]->getBufferRowRange();
+        const double previousSelectionStartRow = previousBufferRowRange.first;
+        const double previousSelectionEndRow = previousBufferRowRange.second;
+        /*const [
+          previousSelectionStartRow,
+          previousSelectionEndRow
+        ] = selections[i - 1].getBufferRowRange();*/
+        if (previousSelectionEndRow == startRow) {
+          startRow = previousSelectionStartRow;
+          previousSelectionRanges[i - 1] = selections[i - 1]->getBufferRange();
+          i--;
+        } else {
+          break;
+        }
+      }
+
+      /*const intersectingFolds = this.displayLayer.foldsIntersectingBufferRange(
+        [[startRow, 0], [endRow, 0]]
+      );*/
+      auto textToDuplicate = this->getTextInBufferRange({
+        {startRow, 0},
+        {endRow, 0}
+      });
+      if (endRow > this->getLastBufferRow())
+        textToDuplicate = u"\n" + textToDuplicate;
+      this->buffer->insert({endRow, 0}, std::move(textToDuplicate));
+
+      const double insertedRowCount = endRow - startRow;
+
+      for (double k = i; k <= j; k++) {
+        selections[k]->setBufferRange(
+          previousSelectionRanges[k].translate({insertedRowCount, 0})
+        );
+      }
+
+      /*for (const fold of intersectingFolds) {
+        const foldRange = this.displayLayer.bufferRangeForFold(fold);
+        this.displayLayer.foldBufferRange(
+          foldRange.translate([insertedRowCount, 0])
+        );
+      }*/
+
+      i--;
+    }
+  //});
+}
+
 /*insertNewlineBelow(options = {}) {
   if (!this.ensureWritable('insertNewlineBelow', options)) return;
   this.transact(() => {

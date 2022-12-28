@@ -24,6 +24,7 @@ public:
 
   bool isLastSelection();
   Range getScreenRange();
+  void setScreenRange(Range);
   Range getBufferRange();
   void setBufferRange(Range);
   std::pair<double, double> getBufferRowRange();

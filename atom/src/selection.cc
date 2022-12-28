@@ -36,6 +36,13 @@ Range Selection::getScreenRange() {
   return this->marker->getScreenRange();
 }
 
+void Selection::setScreenRange(Range screenRange /* , options */) {
+  return this->setBufferRange(
+    this->editor->bufferRangeForScreenRange(screenRange) /* ,
+    options */
+  );
+}
+
 Range Selection::getBufferRange() {
   return this->marker->getBufferRange();
 }

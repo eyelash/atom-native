@@ -62,6 +62,7 @@ public:
   void delete_();
   void backspace();
   void mutateSelectedText(std::function<void(Selection *)>);
+  void duplicateLines();
   void deleteToBeginningOfWord();
   void deleteToPreviousWordBoundary();
   void deleteToNextWordBoundary();

@@ -66,6 +66,8 @@ public:
   void moveLineUp();
   void moveLineDown();
   void duplicateLines();
+  void insertNewlineBelow();
+  void insertNewlineAbove();
   void deleteToBeginningOfWord();
   void deleteToPreviousWordBoundary();
   void deleteToNextWordBoundary();
@@ -167,10 +169,14 @@ public:
   bool getSoftTabs();
   double getTabLength();
   std::u16string getTabText();
+  double indentationForBufferRow(double bufferRow);
+  Range setIndentationForBufferRow(double, double, bool = false);
   void indentSelectedRows();
   void outdentSelectedRows();
+  double indentLevelForLine(const std::u16string &);
   void indent();
   std::u16string buildIndentString(double, double = 0);
+  bool shouldAutoIndent();
   const char16_t *getNonWordCharacters(Point);
 
 private:

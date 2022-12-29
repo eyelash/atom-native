@@ -461,38 +461,38 @@ void TextEditor::duplicateLines(/* options = {} */) {
   //});
 }
 
-/*insertNewlineBelow(options = {}) {
-  if (!this.ensureWritable('insertNewlineBelow', options)) return;
-  this.transact(() => {
-    this.moveToEndOfLine();
-    this.insertNewline(options);
-  });
-}*/
+void TextEditor::insertNewlineBelow(/* options = {} */) {
+  //if (!this->ensureWritable('insertNewlineBelow', options)) return;
+  //this->transact(() => {
+    this->moveToEndOfLine();
+    this->insertNewline(/* options */);
+  //});
+}
 
-/*insertNewlineAbove(options = {}) {
-  if (!this.ensureWritable('insertNewlineAbove', options)) return;
-  this.transact(() => {
-    const bufferRow = this.getCursorBufferPosition().row;
-    const indentLevel = this.indentationForBufferRow(bufferRow);
-    const onFirstLine = bufferRow === 0;
+void TextEditor::insertNewlineAbove(/* options = {} */) {
+  //if (!this->ensureWritable('insertNewlineAbove', options)) return;
+  //this->transact(() => {
+    const double bufferRow = this->getCursorBufferPosition().row;
+    const double indentLevel = this->indentationForBufferRow(bufferRow);
+    const bool onFirstLine = bufferRow == 0;
 
-    this.moveToBeginningOfLine();
-    this.moveLeft();
-    this.insertNewline(options);
+    this->moveToBeginningOfLine();
+    this->moveLeft();
+    this->insertNewline(/* options */);
 
     if (
-      this.shouldAutoIndent() &&
-      this.indentationForBufferRow(bufferRow) < indentLevel
+      this->shouldAutoIndent() &&
+      this->indentationForBufferRow(bufferRow) < indentLevel
     ) {
-      this.setIndentationForBufferRow(bufferRow, indentLevel);
+      this->setIndentationForBufferRow(bufferRow, indentLevel);
     }
 
     if (onFirstLine) {
-      this.moveUp();
-      this.moveToEndOfLine();
+      this->moveUp();
+      this->moveToEndOfLine();
     }
-  });
-}*/
+  //});
+}
 
 void TextEditor::deleteToBeginningOfWord(/* options = {} */) {
   //if (!this.ensureWritable('deleteToBeginningOfWord', options)) return;
@@ -1175,6 +1175,31 @@ Section: Soft Wrap Behavior
 Section: Indentation
 */
 
+double TextEditor::indentationForBufferRow(double bufferRow) {
+  return this->indentLevelForLine(*this->lineTextForBufferRow(bufferRow));
+}
+
+Range TextEditor::setIndentationForBufferRow(
+  double bufferRow,
+  double newLevel,
+  bool preserveLeadingWhitespace
+) {
+  double endColumn;
+  if (preserveLeadingWhitespace) {
+    endColumn = 0;
+  } else {
+    const auto lineText = this->lineTextForBufferRow(bufferRow);
+    static const Regex regex(u"^\\s*", nullptr);
+    Regex::MatchData match_data(regex);
+    endColumn = regex.match(lineText->data(), lineText->size(), match_data, Regex::MatchOptions::IsBeginningOfLine).end_offset;
+  }
+  std::u16string newIndentString = this->buildIndentString(newLevel);
+  return this->buffer->setTextInRange(
+    {{bufferRow, 0}, {bufferRow, endColumn}},
+    std::move(newIndentString)
+  );
+}
+
 void TextEditor::indentSelectedRows(/* options = {} */) {
   //if (!this->ensureWritable('indentSelectedRows', options)) return;
   return this->mutateSelectedText([](Selection *selection) {
@@ -1187,6 +1212,22 @@ void TextEditor::outdentSelectedRows(/* options = {} */) {
   return this->mutateSelectedText([](Selection *selection) {
     selection->outdentSelectedRows(/* options */);
   });
+}
+
+double TextEditor::indentLevelForLine(const std::u16string &line) {
+  const double tabLength = this->getTabLength();
+  double indentLength = 0;
+  for (size_t i = 0, length = line.size(); i < length; i++) {
+    const char16_t char_ = line[i];
+    if (char_ == u'\t') {
+      indentLength += tabLength - std::fmod(indentLength, tabLength);
+    } else if (char_ == u' ') {
+      indentLength++;
+    } else {
+      break;
+    }
+  }
+  return indentLength / tabLength;
 }
 
 void TextEditor::indent(/* options = {} */) {
@@ -1249,6 +1290,11 @@ Section: Scrolling the TextEditor
 /*
 Section: Config
 */
+
+bool TextEditor::shouldAutoIndent() {
+  //return this.autoIndent;
+  return true;
+}
 
 const char16_t *TextEditor::getNonWordCharacters(Point position) {
   //const languageMode = this->buffer->getLanguageMode();

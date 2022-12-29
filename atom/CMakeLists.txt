@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 project(atom)
 
 add_library(atom)
-target_link_libraries(atom text-buffer)
+target_link_libraries(atom text-buffer oniguruma libgit2)
 target_sources(atom PRIVATE
   src/cursor.cc
   src/decoration.cc

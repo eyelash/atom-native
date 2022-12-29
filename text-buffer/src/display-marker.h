@@ -3,6 +3,7 @@
 
 #include "range.h"
 #include "event-kit.h"
+#include "display-layer.h"
 
 class DisplayMarkerLayer;
 class Marker;
@@ -30,7 +31,7 @@ public:
   Point getHeadBufferPosition() const;
   bool setHeadBufferPosition(const Point &);
   Point getHeadScreenPosition();
-  bool setHeadScreenPosition(const Point &);
+  bool setHeadScreenPosition(const Point &, DisplayLayer::ClipDirection = DisplayLayer::ClipDirection::closest);
   Point getTailBufferPosition() const;
   bool setTailBufferPosition(const Point &);
   Point getTailScreenPosition();

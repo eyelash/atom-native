@@ -85,7 +85,7 @@ optional<std::u16string> TextBuffer::getLastLine() {
   return this->lineForRow(this->getLastRow());
 }
 
-optional<std::u16string> TextBuffer::lineForRow(uint32_t row) {
+optional<std::u16string> TextBuffer::lineForRow(double row) {
   return this->buffer->line_for_row(row);
 }
 
@@ -93,8 +93,8 @@ const char16_t *TextBuffer::lineEndingForRow(double row) {
   return this->buffer->line_ending_for_row(row);
 }
 
-optional<uint32_t> TextBuffer::lineLengthForRow(uint32_t row) {
-  return this->buffer->line_length_for_row(row);
+double TextBuffer::lineLengthForRow(double row) {
+  return *this->buffer->line_length_for_row(row);
 }
 
 bool TextBuffer::isRowBlank(double row) {
@@ -240,9 +240,9 @@ Range TextBuffer::deleteRows(double startRow, double endRow) {
     if (startRow == 0) {
       startPoint = Point(startRow, 0);
     } else {
-      startPoint = Point(startRow - 1, *this->lineLengthForRow(startRow - 1));
+      startPoint = Point(startRow - 1, this->lineLengthForRow(startRow - 1));
     }
-    endPoint = Point(endRow, *this->lineLengthForRow(endRow));
+    endPoint = Point(endRow, this->lineLengthForRow(endRow));
   }
 
   return this->delete_(Range(startPoint, endPoint));
@@ -391,10 +391,10 @@ Point TextBuffer::getFirstPosition() const {
 
 Point TextBuffer::getEndPosition() const { return this->buffer->extent(); }
 
-uint32_t TextBuffer::getLength() const { return this->buffer->size(); }
+double TextBuffer::getLength() const { return this->buffer->size(); }
 
-uint32_t TextBuffer::getMaxCharacterIndex() {
-  return this->characterIndexForPosition({UINT32_MAX, UINT32_MAX});
+double TextBuffer::getMaxCharacterIndex() {
+  return this->characterIndexForPosition(Point::INFINITY_);
 }
 
 Range TextBuffer::rangeForRow(double row, bool includeNewline) {
@@ -402,15 +402,15 @@ Range TextBuffer::rangeForRow(double row, bool includeNewline) {
   if (includeNewline && row < this->getLastRow()) {
     return Range(Point(row, 0), Point(row + 1, 0));
   } else {
-    return Range(Point(row, 0), Point(row, *this->lineLengthForRow(row)));
+    return Range(Point(row, 0), Point(row, this->lineLengthForRow(row)));
   }
 }
 
-uint32_t TextBuffer::characterIndexForPosition(Point position) {
+double TextBuffer::characterIndexForPosition(Point position) {
   return this->buffer->clip_position(position).offset;
 }
 
-Point TextBuffer::positionForCharacterIndex(uint32_t offset) {
+Point TextBuffer::positionForCharacterIndex(double offset) {
   return this->buffer->position_for_offset(offset);
 }
 
@@ -433,7 +433,7 @@ Point TextBuffer::clipPosition(Point position) {
   } else if (column < 0) {
     return Point(row, 0);
   } else {
-    const uint32_t lineLength = *this->lineLengthForRow(row);
+    const double lineLength = this->lineLengthForRow(row);
     /*if (column >= lineLength && row < this.getLastRow() && options && options.clipDirection === 'forward') {
       return new Point(row + 1, 0)
     } else */ if (column > lineLength) {

@@ -41,7 +41,7 @@ public:
   double getApproximateScreenLineCount();
   double getLastBufferRow();
   double getLastScreenRow();
-  optional<std::u16string> lineTextForBufferRow(uint32_t);
+  optional<std::u16string> lineTextForBufferRow(double);
   std::u16string lineTextForScreenRow(double);
   DisplayLayer::ScreenLine screenLineForScreenRow(double);
   double bufferRowForScreenRow(double);
@@ -94,7 +94,7 @@ public:
   void setCursorScreenPosition(Point);
   Cursor *addCursorAtBufferPosition(Point);
   Cursor *addCursorAtScreenPosition(Point);
-  bool hasMultipleCursors() const;
+  bool hasMultipleCursors();
   void moveUp(double = 1);
   void moveDown(double = 1);
   void moveLeft(double = 1);
@@ -116,7 +116,7 @@ public:
   void moveToBeginningOfNextParagraph();
   void moveToBeginningOfPreviousParagraph();
   Cursor *getLastCursor();
-  std::vector<Cursor *> getCursors() const;
+  std::vector<Cursor *> getCursors();
   std::vector<Cursor *> getCursorsOrderedByBufferPosition();
   Cursor *addCursor(DisplayMarker *);
   std::u16string getSelectedText();

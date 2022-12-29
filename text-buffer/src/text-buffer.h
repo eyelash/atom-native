@@ -57,9 +57,9 @@ public:
   std::u16string getTextInRange(Range);
   std::vector<std::u16string> getLines();
   optional<std::u16string> getLastLine();
-  optional<std::u16string> lineForRow(uint32_t);
+  optional<std::u16string> lineForRow(double);
   const char16_t *lineEndingForRow(double);
-  optional<uint32_t> lineLengthForRow(uint32_t);
+  double lineLengthForRow(double);
   bool isRowBlank(double);
   optional<double> previousNonBlankRow(double);
   optional<double> nextNonBlankRow(double);
@@ -94,11 +94,11 @@ public:
   double getLastRow() const;
   Point getFirstPosition() const;
   Point getEndPosition() const;
-  uint32_t getLength() const;
-  uint32_t getMaxCharacterIndex();
+  double getLength() const;
+  double getMaxCharacterIndex();
   Range rangeForRow(double, bool = false);
-  uint32_t characterIndexForPosition(Point);
-  Point positionForCharacterIndex(uint32_t);
+  double characterIndexForPosition(Point);
+  Point positionForCharacterIndex(double);
   Range clipRange(Range);
   Point clipPosition(Point);
   DisplayLayer *addDisplayLayer();

@@ -504,7 +504,7 @@ double DisplayLayer::leadingWhitespaceLengthForNonEmptyLine(const std::u16string
 
 double DisplayLayer::findTrailingWhitespaceStartColumn(double bufferRow) {
   Point position;
-  for (position = Point(bufferRow, *this->buffer->lineLengthForRow(bufferRow) - 1); position.column >= 0; position.column--) {
+  for (position = Point(bufferRow, this->buffer->lineLengthForRow(bufferRow) - 1); position.column >= 0; position.column--) {
     const char16_t previousCharacter = this->buffer->getCharacterAtPosition(position);
     if (previousCharacter != u' ' && previousCharacter != u'\t') {
       break;
@@ -574,7 +574,7 @@ bool DisplayLayer::isCloseTag(int32_t tag) const {
 void DisplayLayer::bufferWillChange(Range oldRange) {
   const double lineCount = this->buffer->getLineCount();
   double endRow = oldRange.end.row;
-  while (endRow + 1 < lineCount && *this->buffer->lineLengthForRow(endRow + 1) == 0) {
+  while (endRow + 1 < lineCount && this->buffer->lineLengthForRow(endRow + 1) == 0) {
     endRow++;
   }
   this->populateSpatialIndexIfNeeded(endRow + 1, INFINITY);
@@ -589,12 +589,12 @@ void DisplayLayer::bufferDidChange(Range oldRange, Range newRange) {
   // adjacent lines.
   if (this->showIndentGuides) {
     while (startRow > 0) {
-      if (*this->buffer->lineLengthForRow(startRow - 1) > 0) break;
+      if (this->buffer->lineLengthForRow(startRow - 1) > 0) break;
       startRow--;
     }
 
     while (newEndRow < this->buffer->getLastRow()) {
-      if (*this->buffer->lineLengthForRow(newEndRow + 1) > 0) break;
+      if (this->buffer->lineLengthForRow(newEndRow + 1) > 0) break;
       oldEndRow++;
       newEndRow++;
     }
@@ -901,7 +901,7 @@ std::pair<double, double> DisplayLayer::findBoundaryFollowingScreenRow(double sc
     } else {
       const Point endOfBufferRow = Point(
         bufferPosition.row,
-        *this->buffer->lineLengthForRow(bufferPosition.row)
+        this->buffer->lineLengthForRow(bufferPosition.row)
       );
       screenRow = this->translateBufferPositionWithSpatialIndex(endOfBufferRow, ClipDirection::forward).row + 1;
     }

@@ -104,7 +104,7 @@ double TextEditor::getLastScreenRow() {
   return this->getScreenLineCount() - 1;
 }
 
-optional<std::u16string> TextEditor::lineTextForBufferRow(uint32_t bufferRow) {
+optional<std::u16string> TextEditor::lineTextForBufferRow(double bufferRow) {
   return this->buffer->lineForRow(bufferRow);
 }
 
@@ -663,7 +663,7 @@ Cursor *TextEditor::addCursorAtScreenPosition(Point screenPosition) {
   return this->getLastSelection()->cursor;
 }
 
-bool TextEditor::hasMultipleCursors() const {
+bool TextEditor::hasMultipleCursors() {
   return this->getCursors().size() > 1;
 }
 
@@ -762,7 +762,8 @@ Cursor *TextEditor::getLastCursor() {
   return this->cursors.back();
 }
 
-std::vector<Cursor *> TextEditor::getCursors() const {
+std::vector<Cursor *> TextEditor::getCursors() {
+  this->createLastSelectionIfNeeded();
   return cursors;
 }
 
@@ -952,11 +953,11 @@ void TextEditor::selectToNextSubwordBoundary() {
 }
 
 void TextEditor::selectLinesContainingCursors() {
-  //return this->expandSelectionsForward([](Selection *selection) { selection->selectLine(); });
+  return this->expandSelectionsForward([](Selection *selection) { selection->selectLine(); });
 }
 
 void TextEditor::selectWordsContainingCursors() {
-  //return this->expandSelectionsForward([](Selection *selection) { selection->selectWord(); });
+  return this->expandSelectionsForward([](Selection *selection) { selection->selectWord(); });
 }
 
 void TextEditor::selectToPreviousWordBoundary() {

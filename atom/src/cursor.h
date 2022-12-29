@@ -1,6 +1,7 @@
 #ifndef CURSOR_H_
 #define CURSOR_H_
 
+#include <display-layer.h>
 #include <range.h>
 #include <optional.h>
 #include <regex.h>
@@ -22,7 +23,8 @@ public:
   ~Cursor();
   void destroy();
 
-  void setScreenPosition(Point, optional<bool> = optional<bool>());
+  void setScreenPosition(Point, optional<bool> = optional<bool>(), DisplayLayer::ClipDirection = DisplayLayer::ClipDirection::closest);
+  void setScreenPosition(Point, DisplayLayer::ClipDirection);
   Point getScreenPosition();
   void setBufferPosition(Point, optional<bool> = optional<bool>());
   Point getBufferPosition();
@@ -34,6 +36,8 @@ public:
   bool isAtBeginningOfLine();
   bool isAtEndOfLine();
   DisplayMarker *getMarker();
+  bool isSurroundedByWhitespace();
+  bool isBetweenWordAndNonWord();
   bool isInsideWord();
   bool isLastCursor();
   void moveUp(double = 1, bool = false);
@@ -62,6 +66,7 @@ public:
   Point getBeginningOfCurrentWordBufferPosition();
   Point getEndOfCurrentWordBufferPosition();
   Point getBeginningOfNextWordBufferPosition();
+  Range getCurrentWordBufferRange(bool = true);
   Range getCurrentLineBufferRange(bool = false);
   int compare(Cursor *);
   void clearSelection(bool);

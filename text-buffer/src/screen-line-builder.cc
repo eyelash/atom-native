@@ -78,7 +78,7 @@ std::vector<DisplayLayer::ScreenLine> ScreenLineBuilder::buildScreenLines(double
     }
 
     this->currentBuiltInClassNameFlags = 0;
-    this->bufferLineLength = *this->displayLayer->buffer->lineLengthForRow(this->bufferPosition.row);
+    this->bufferLineLength = this->displayLayer->buffer->lineLengthForRow(this->bufferPosition.row);
 
     if (this->bufferPosition.row > this->displayLayer->buffer->getLastRow()) break;
     this->trailingWhitespaceStartColumn = this->displayLayer->findTrailingWhitespaceStartColumn(this->bufferPosition.row);
@@ -259,7 +259,7 @@ void ScreenLineBuilder::emitFold(const Patch::Change &nextHunk, LanguageMode::Hi
 
   this->scopeIdsToReopen = decorationIterator.seek(this->bufferPosition, endBufferRow);
 
-  this->bufferLineLength = *this->displayLayer->buffer->lineLengthForRow(this->bufferPosition.row);
+  this->bufferLineLength = this->displayLayer->buffer->lineLengthForRow(this->bufferPosition.row);
   this->trailingWhitespaceStartColumn = this->displayLayer->findTrailingWhitespaceStartColumn(this->bufferPosition.row);
 }
 

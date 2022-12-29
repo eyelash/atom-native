@@ -63,6 +63,8 @@ public:
   void selectToNextSubwordBoundary();
   void selectToBeginningOfNextParagraph();
   void selectToBeginningOfPreviousParagraph();
+  void selectWord();
+  void selectLine(optional<double> = optional<double>());
   void insertText(const std::u16string &);
   void backspace();
   void deleteToPreviousWordBoundary();

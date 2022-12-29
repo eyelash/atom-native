@@ -51,8 +51,7 @@ Range Range::traverse(const Point &delta) const {
 }
 
 int Range::compare(const Range &other) const {
-  int value;
-  if (value = this->start.compare(other.start)) {
+  if (int value = this->start.compare(other.start)) {
     return value;
   } else {
     return other.end.compare(this->end);

@@ -19,10 +19,14 @@ void Cursor::destroy() {
   this->marker->destroy();
 }
 
-void Cursor::setScreenPosition(Point screenPosition, optional<bool> options_autoscroll) {
+void Cursor::setScreenPosition(Point screenPosition, optional<bool> options_autoscroll, DisplayLayer::ClipDirection clipDirection) {
   this->changePosition(options_autoscroll, [&]() {
-    this->marker->setHeadScreenPosition(screenPosition);
+    this->marker->setHeadScreenPosition(screenPosition, clipDirection);
   });
+}
+
+void Cursor::setScreenPosition(Point screenPosition, DisplayLayer::ClipDirection clipDirection) {
+  this->setScreenPosition(screenPosition, optional<bool>(), clipDirection);
 }
 
 Point Cursor::getScreenPosition() {
@@ -77,31 +81,42 @@ DisplayMarker *Cursor::getMarker() {
   return this->marker;
 }
 
-/*isSurroundedByWhitespace() {
-  const { row, column } = this.getBufferPosition();
-  const range = [[row, column - 1], [row, column + 1]];
-  return /^\s+$/.test(this.editor.getTextInBufferRange(range));
-}*/
+bool Cursor::isSurroundedByWhitespace() {
+  const Point bufferPosition = this->getBufferPosition();
+  const double row = bufferPosition.row, column = bufferPosition.column;
+  const Range range = {{row, column - 1}, {row, column + 1}};
+  const std::u16string text = this->editor->getTextInBufferRange(range);
+  static const Regex regex(u"^\\s+$", nullptr);
+  Regex::MatchData match_data(regex);
+  //const unsigned options = Regex::MatchOptions::IsBeginningOfLine | Regex::MatchOptions::IsEndOfLine;
+  return regex.match(text.data(), text.size(), match_data).type == Regex::MatchResult::Full;
+}
 
-/*isBetweenWordAndNonWord() {
-  if (this.isAtBeginningOfLine() || this.isAtEndOfLine()) return false;
+bool Cursor::isBetweenWordAndNonWord() {
+  if (this->isAtBeginningOfLine() || this->isAtEndOfLine()) return false;
 
-  const { row, column } = this.getBufferPosition();
-  const range = [[row, column - 1], [row, column + 1]];
-  const text = this.editor.getTextInBufferRange(range);
-  if (/\s/.test(text[0]) || /\s/.test(text[1])) return false;
+  const Point bufferPosition = this->getBufferPosition();
+  const double row = bufferPosition.row, column = bufferPosition.column;
+  const Range range = {{row, column - 1}, {row, column + 1}};
+  const std::u16string text = this->editor->getTextInBufferRange(range);
+  static const Regex regex(u"\\s", nullptr);
+  Regex::MatchData match_data(regex);
+  if (
+    regex.match(text.data(), 1, match_data).type == Regex::MatchResult::Full ||
+    regex.match(text.data() + 1, 1, match_data).type == Regex::MatchResult::Full
+  ) return false;
 
-  const nonWordCharacters = this.getNonWordCharacters();
+  const std::u16string nonWordCharacters = this->getNonWordCharacters();
   return (
-    nonWordCharacters.includes(text[0]) !==
-    nonWordCharacters.includes(text[1])
+    (nonWordCharacters.find(text[0]) != std::u16string::npos) !=
+    (nonWordCharacters.find(text[1]) != std::u16string::npos)
   );
-}*/
+}
 
 bool Cursor::isInsideWord(/* options */) {
   const Point bufferPosition = this->getBufferPosition();
   const double row = bufferPosition.row, column = bufferPosition.column;
-  const Range range = Range(Point(row, column), Point(row, INFINITY));
+  const Range range = {{row, column}, {row, INFINITY}};
   const std::u16string text = this->editor->getTextInBufferRange(range);
   const Regex wordRegex = /* (options && options.wordRegex) || */ this->wordRegExp();
   Regex::MatchData match_data(wordRegex);
@@ -198,7 +213,7 @@ void Cursor::moveLeft(double columnCount, bool moveToEndOfSelection) {
     }
 
     column = column - columnCount;
-    this->setScreenPosition(Point(row, column) /* , { clipDirection: 'backward' } */ );
+    this->setScreenPosition({row, column}, DisplayLayer::ClipDirection::backward);
   }
 }
 
@@ -223,7 +238,7 @@ void Cursor::moveRight(double columnCount, bool moveToEndOfSelection) {
     }
 
     column = column + columnCount;
-    this->setScreenPosition(Point(row, column) /* , { clipDirection: 'forward' } */ );
+    this->setScreenPosition({row, column}, DisplayLayer::ClipDirection::forward);
   }
 }
 
@@ -473,19 +488,18 @@ Point Cursor::getBeginningOfNextWordBufferPosition(/* options = {} */) {
   return beginningOfNextWordPosition ? *beginningOfNextWordPosition : currentBufferPosition;
 }
 
-/*getCurrentWordBufferRange(options = {}) {
-  const position = this.getBufferPosition();
-  const ranges = this.editor.buffer.findAllInRangeSync(
-    options.wordRegex || this.wordRegExp(options),
-    new Range(new Point(position.row, 0), new Point(position.row, Infinity))
+Range Cursor::getCurrentWordBufferRange(bool includeNonWordCharacters) {
+  const Point position = this->getBufferPosition();
+  const auto ranges = this->editor->getBuffer()->findAllInRangeSync(
+    /* options.wordRegex || */ this->wordRegExp(includeNonWordCharacters),
+    Range(Point(position.row, 0), Point(position.row, INFINITY))
   );
-  const range = ranges.find(
-    range =>
-      range.end.column >= position.column &&
-      range.start.column <= position.column
-  );
-  return range ? Range.fromObject(range) : new Range(position, position);
-}*/
+  auto range = std::find_if(ranges.begin(), ranges.end(), [&](const Range &range) {
+    return range.end.column >= position.column &&
+      range.start.column <= position.column;
+  });
+  return range != ranges.end() ? Range(*range) : Range(position, position);
+}
 
 Range Cursor::getCurrentLineBufferRange(bool includeNewline) {
   return this->editor->bufferRangeForBufferRow(this->getBufferRow(), includeNewline);
@@ -543,10 +557,10 @@ void Cursor::changePosition(optional<bool> options_autoscroll, std::function<voi
   this->clearSelection(false);
   fn();
   this->goalColumn = optional<double>();
-  //const bool autoscroll =
-  //  options_autoscroll
-  //    ? *options_autoscroll
-  //    : this->isLastCursor();
+  const bool autoscroll =
+    options_autoscroll
+      ? *options_autoscroll
+      : this->isLastCursor();
   //if (autoscroll) this.autoscroll();
 }
 

@@ -11,4 +11,4 @@ jobs:
         with:
           submodules: true
       - run: cmake .
-      - run: cmake --build .
+      - run: cmake --build . --parallel 2

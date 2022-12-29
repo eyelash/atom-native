@@ -257,6 +257,43 @@ void Selection::selectToBeginningOfPreviousParagraph() {
   });
 }
 
+void Selection::selectWord(/* options = {} */) {
+  //if (this->cursor->isSurroundedByWhitespace()) options.wordRegex = /[\t ]*/;
+  bool includeNonWordCharacters = true;
+  if (this->cursor->isBetweenWordAndNonWord()) {
+    includeNonWordCharacters = false;
+  }
+
+  this->setBufferRange(
+    this->cursor->getCurrentWordBufferRange(includeNonWordCharacters) /* ,
+    options */
+  );
+  //this.wordwise = true;
+  //this.initialScreenRange = this.getScreenRange();
+}
+
+void Selection::selectLine(optional<double> row /* , options */) {
+  if (row) {
+    this->setBufferRange(
+      this->editor->bufferRangeForBufferRow(*row, true) /* ,
+      options */
+    );
+  } else {
+    const Range startRange = this->editor->bufferRangeForBufferRow(
+      this->marker->getStartBufferPosition().row
+    );
+    const Range endRange = this->editor->bufferRangeForBufferRow(
+      this->marker->getEndBufferPosition().row,
+      true
+    );
+    this->setBufferRange(startRange.union_(endRange) /* , options */ );
+  }
+
+  //this.linewise = true;
+  //this.wordwise = false;
+  //this.initialScreenRange = this.getScreenRange();
+}
+
 /*
 Section: Modifying the selected text
 */
@@ -374,10 +411,15 @@ void Selection::deleteLine(/* options = {} */) {
 }
 
 static std::u16string toString(double n) {
-  // TODO: this only works for numbers between 0 and 9
-  std::u16string result;
-  result.push_back(u'0' + n);
-  return result;
+  if (n < 10) {
+    std::u16string result;
+    result.push_back(u'0' + n);
+    return result;
+  } else {
+    std::u16string result = toString(n / 10.0);
+    result.push_back(u'0' + std::fmod(n, 10.0));
+    return result;
+  }
 }
 
 void Selection::outdentSelectedRows(/* options = {} */) {
@@ -394,7 +436,7 @@ void Selection::outdentSelectedRows(/* options = {} */) {
     const auto line = buffer->lineForRow(row);
     const auto match = leadingTabRegex.match(line->data(), line->size(), match_data, Regex::MatchOptions::IsBeginningOfLine);
     if (match.type == Regex::MatchResult::Full && match.end_offset > match.start_offset) {
-      buffer->delete_({{row, 0}, {row, static_cast<double>(match.end_offset - match.start_offset)}});
+      buffer->delete_({{row, static_cast<double>(match.start_offset)}, {row, static_cast<double>(match.end_offset)}});
     }
   }
 }

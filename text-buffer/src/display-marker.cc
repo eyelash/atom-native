@@ -69,8 +69,8 @@ Point DisplayMarker::getHeadScreenPosition() {
   return this->layer->translateBufferPosition(this->bufferMarker->getHeadPosition());
 }
 
-bool DisplayMarker::setHeadScreenPosition(const Point &screenPosition) {
-  return this->setHeadBufferPosition(this->layer->translateScreenPosition(screenPosition));
+bool DisplayMarker::setHeadScreenPosition(const Point &screenPosition, DisplayLayer::ClipDirection clipDirection) {
+  return this->setHeadBufferPosition(this->layer->translateScreenPosition(screenPosition, clipDirection));
 }
 
 Point DisplayMarker::getTailBufferPosition() const {

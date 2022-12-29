@@ -220,6 +220,184 @@ void TextEditor::mutateSelectedText(std::function<void(Selection *)> fn /* , gro
   });
 }
 
+void TextEditor::moveLineUp(/* options = {} */) {
+  //if (!this.ensureWritable('moveLineUp', options)) return;
+
+  auto selections = this->getSelectedBufferRanges();
+  std::sort(selections.begin(), selections.end(), [](Range a, Range b) {
+    return a.compare(b) < 0;
+  });
+
+  if (selections[0].start.row == 0) return;
+  if (
+    selections[selections.size() - 1].start.row == this->getLastBufferRow() &&
+    *this->buffer->getLastLine() == u""
+  )
+    return;
+
+  //this.transact(() => {
+    std::vector<Range> newSelectionRanges;
+
+    while (selections.size() > 0) {
+      // Find selections spanning a contiguous set of lines
+      Range selection = selections.front();
+      selections.erase(selections.begin());
+      std::vector<Range> selectionsToMove;
+      selectionsToMove.push_back(selection);
+
+      while (
+        selections.size() > 0 &&
+        selection.end.row == selections[0].start.row
+      ) {
+        selectionsToMove.push_back(selections[0]);
+        selection.end.row = selections[0].end.row;
+        selections.erase(selections.begin());
+      }
+
+      // Compute the buffer range spanned by all these selections, expanding it
+      // so that it includes any folded region that intersects them.
+      double startRow = selection.start.row;
+      double endRow = selection.end.row;
+      if (
+        selection.end.row > selection.start.row &&
+        selection.end.column == 0
+      ) {
+        // Don't move the last line of a multi-line selection if the selection ends at column 0
+        endRow--;
+      }
+
+      startRow = this->displayLayer->findBoundaryPrecedingBufferRow(startRow);
+      endRow = this->displayLayer->findBoundaryFollowingBufferRow(endRow + 1);
+      const Range linesRange = Range(Point(startRow, 0), Point(endRow, 0));
+
+      // If selected line range is preceded by a fold, one line above on screen
+      // could be multiple lines in the buffer.
+      const double precedingRow = this->displayLayer->findBoundaryPrecedingBufferRow(
+        startRow - 1
+      );
+      const double insertDelta = linesRange.start.row - precedingRow;
+
+      // Any folds in the text that is moved will need to be re-created.
+      // It includes the folds that were intersecting with the selection.
+      /*const rangesToRefold = this->displayLayer
+        .destroyFoldsIntersectingBufferRange(linesRange)
+        .map(range => range.translate([-insertDelta, 0]));*/
+
+      // Delete lines spanned by selection and insert them on the preceding buffer row
+      std::u16string lines = this->buffer->getTextInRange(linesRange);
+      if (lines[lines.size() - 1] != u'\n') {
+        lines += this->buffer->lineEndingForRow(linesRange.end.row - 2);
+      }
+      this->buffer->delete_(linesRange);
+      this->buffer->insert({precedingRow, 0}, std::move(lines));
+
+      // Restore folds that existed before the lines were moved
+      /*for (let rangeToRefold of rangesToRefold) {
+        this->displayLayer.foldBufferRange(rangeToRefold);
+      }*/
+
+      for (const Range selectionToMove : selectionsToMove) {
+        newSelectionRanges.push_back(selectionToMove.translate({-insertDelta, 0}));
+      }
+    }
+
+    this->setSelectedBufferRanges(newSelectionRanges /* , {
+      autoscroll: false,
+      preserveFolds: true
+    } */);
+    //if (this->shouldAutoIndent()) this->autoIndentSelectedRows();
+    //this->scrollToBufferPosition([newSelectionRanges[0].start.row, 0]);
+  //});
+}
+
+void TextEditor::moveLineDown(/* options = {} */) {
+  //if (!this.ensureWritable('moveLineDown', options)) return;
+
+  auto selections = this->getSelectedBufferRanges();
+  std::sort(selections.begin(), selections.end(), [](Range a, Range b) { return b.compare(a) < 0; });
+
+  //this.transact(() => {
+    this->consolidateSelections();
+    std::vector<Range> newSelectionRanges;
+
+    while (selections.size() > 0) {
+      // Find selections spanning a contiguous set of lines
+      Range selection = selections.front();
+      selections.erase(selections.begin());
+
+      std::vector<Range> selectionsToMove;
+      selectionsToMove.push_back(selection);
+
+      // if the current selection start row matches the next selections' end row - make them one selection
+      while (
+        selections.size() > 0 &&
+        selection.start.row == selections[0].end.row
+      ) {
+        selectionsToMove.push_back(selections[0]);
+        selection.start.row = selections[0].start.row;
+        selections.erase(selections.begin());
+      }
+
+      // Compute the buffer range spanned by all these selections, expanding it
+      // so that it includes any folded region that intersects them.
+      double startRow = selection.start.row;
+      double endRow = selection.end.row;
+      if (
+        selection.end.row > selection.start.row &&
+        selection.end.column == 0
+      ) {
+        // Don't move the last line of a multi-line selection if the selection ends at column 0
+        endRow--;
+      }
+
+      startRow = this->displayLayer->findBoundaryPrecedingBufferRow(startRow);
+      endRow = this->displayLayer->findBoundaryFollowingBufferRow(endRow + 1);
+      const Range linesRange = Range(Point(startRow, 0), Point(endRow, 0));
+
+      // If selected line range is followed by a fold, one line below on screen
+      // could be multiple lines in the buffer. But at the same time, if the
+      // next buffer row is wrapped, one line in the buffer can represent many
+      // screen rows.
+      const double followingRow = std::min(
+        this->buffer->getLineCount(),
+        this->displayLayer->findBoundaryFollowingBufferRow(endRow + 1)
+      );
+      const double insertDelta = followingRow - linesRange.end.row;
+
+      // Any folds in the text that is moved will need to be re-created.
+      // It includes the folds that were intersecting with the selection.
+      /*const rangesToRefold = this->displayLayer
+        .destroyFoldsIntersectingBufferRange(linesRange)
+        .map(range => range.translate([insertDelta, 0]));*/
+
+      // Delete lines spanned by selection and insert them on the following correct buffer row
+      std::u16string lines = this->buffer->getTextInRange(linesRange);
+      if (followingRow - 1 == this->buffer->getLastRow()) {
+        lines = u"\n" + lines;
+      }
+
+      this->buffer->insert({followingRow, 0}, std::move(lines));
+      this->buffer->delete_(linesRange);
+
+      // Restore folds that existed before the lines were moved
+      /*for (let rangeToRefold of rangesToRefold) {
+        this->displayLayer->foldBufferRange(rangeToRefold);
+      }*/
+
+      for (const Range selectionToMove : selectionsToMove) {
+        newSelectionRanges.push_back(selectionToMove.translate({insertDelta, 0}));
+      }
+    }
+
+    this->setSelectedBufferRanges(newSelectionRanges /* , {
+      autoscroll: false,
+      preserveFolds: true
+    } */);
+    //if (this.shouldAutoIndent()) this.autoIndentSelectedRows();
+    //this.scrollToBufferPosition([newSelectionRanges[0].start.row - 1, 0]);
+  //});
+}
+
 void TextEditor::duplicateLines(/* options = {} */) {
   //if (!this.ensureWritable('duplicateLines', options)) return;
   //this.transact(() => {
@@ -634,6 +812,35 @@ std::u16string TextEditor::getSelectedText() {
 
 Range TextEditor::getSelectedBufferRange() {
   return this->getLastSelection()->getBufferRange();
+}
+
+std::vector<Range> TextEditor::getSelectedBufferRanges() {
+  std::vector<Range> ranges;
+  for (Selection *selection : this->getSelections()) {
+    ranges.push_back(selection->getBufferRange());
+  }
+  return ranges;
+}
+
+void TextEditor::setSelectedBufferRanges(const std::vector<Range> &bufferRanges /* , options = {} */) {
+  //if (!bufferRanges.length)
+  //  throw new Error('Passed an empty array to setSelectedBufferRanges');
+
+  const auto selections = this->getSelections();
+  for (size_t i = bufferRanges.size(); i < selections.size(); i++) {
+    selections[i]->destroy();
+  }
+
+  this->mergeIntersectingSelections(/* options, */ [&]() {
+    for (size_t i = 0; i < bufferRanges.size(); i++) {
+      const Range bufferRange = bufferRanges[i];
+      if (i < selections.size()) {
+        selections[i]->setBufferRange(bufferRange /* , options */);
+      } else {
+        this->addSelectionForBufferRange(bufferRange /* , options */);
+      }
+    }
+  });
 }
 
 Range TextEditor::getSelectedScreenRange() {

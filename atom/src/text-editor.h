@@ -63,6 +63,8 @@ public:
   void delete_();
   void backspace();
   void mutateSelectedText(std::function<void(Selection *)>);
+  void moveLineUp();
+  void moveLineDown();
   void duplicateLines();
   void deleteToBeginningOfWord();
   void deleteToPreviousWordBoundary();
@@ -117,6 +119,8 @@ public:
   Cursor *addCursor(DisplayMarker *);
   std::u16string getSelectedText();
   Range getSelectedBufferRange();
+  std::vector<Range> getSelectedBufferRanges();
+  void setSelectedBufferRanges(const std::vector<Range> &);
   Range getSelectedScreenRange();
   Selection *addSelectionForBufferRange(Range);
   Selection *addSelectionForScreenRange(Range);

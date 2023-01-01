@@ -1,16 +1,15 @@
 #include "helpers.h"
 #include <regex.h>
 
+static const Regex LF_REGEX(u"\\n", nullptr);
+
 Point extentForText(const std::u16string &text) {
-  static const Regex LF_REGEX(u"\\n", nullptr);
   size_t lastLineStartIndex = 0;
   double row = 0;
-  Regex::MatchData match_data(LF_REGEX);
-  Regex::MatchResult result = LF_REGEX.match(text.data() + lastLineStartIndex, text.size() - lastLineStartIndex, match_data);
-  while (result.type == Regex::MatchResult::Full) {
+  size_t lastIndex = 0;
+  while (LF_REGEX.match(text, lastIndex)) {
     row++;
-    lastLineStartIndex += result.end_offset;
-    result = LF_REGEX.match(text.data() + lastLineStartIndex, text.size() - lastLineStartIndex, match_data);
+    lastLineStartIndex = lastIndex;
   }
-  return Point(row, text.size() - lastLineStartIndex);
+  return {row, static_cast<double>(text.size() - lastLineStartIndex)};
 }

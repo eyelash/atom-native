@@ -581,7 +581,7 @@ TEST_CASE("NativeTextBuffer - random edits and queries") {
 
         auto search_result = buffer.find(regex);
 
-        MatchResult match_result = regex.match(mutated_text.data(), mutated_text.size(), match_data);
+        MatchResult match_result = regex.match(mutated_text.data(), mutated_text.size(), match_data, 0);
         if (match_result.type == MatchResult::Partial || match_result.type == MatchResult::Full) {
           REQUIRE(search_result == (NativeRange{
             mutated_text.position_for_offset(match_result.start_offset),

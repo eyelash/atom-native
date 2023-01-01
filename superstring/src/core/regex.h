@@ -19,6 +19,11 @@ class Regex {
   Regex(Regex &&);
   ~Regex();
 
+  struct Range {
+    size_t start_offset;
+    size_t end_offset;
+  };
+
   class MatchData {
     pcre2_real_match_data_16 *data;
     friend class Regex;
@@ -26,6 +31,9 @@ class Regex {
    public:
     MatchData(const Regex &);
     ~MatchData();
+
+    uint32_t size();
+    Range operator [](uint32_t);
   };
 
   struct MatchResult {
@@ -38,6 +46,8 @@ class Regex {
 
     size_t start_offset;
     size_t end_offset;
+
+    operator bool() const;
   };
 
   enum MatchOptions {
@@ -48,6 +58,11 @@ class Regex {
   };
 
   MatchResult match(const char16_t *data, size_t length, MatchData &, unsigned options = 0) const;
+  MatchResult match(const char16_t *, size_t) const;
+  MatchResult match(const std::u16string &) const;
+  MatchResult match(char16_t) const;
+  bool match(const char16_t *, size_t, size_t &last_index) const;
+  bool match(const std::u16string &, size_t &last_index) const;
 };
 
 struct BuildRegexResult {

@@ -1189,10 +1189,8 @@ Range TextEditor::setIndentationForBufferRow(
   if (preserveLeadingWhitespace) {
     endColumn = 0;
   } else {
-    const auto lineText = this->lineTextForBufferRow(bufferRow);
     static const Regex regex(u"^\\s*", nullptr);
-    Regex::MatchData match_data(regex);
-    endColumn = regex.match(lineText->data(), lineText->size(), match_data, Regex::MatchOptions::IsBeginningOfLine).end_offset;
+    endColumn = regex.match(this->lineTextForBufferRow(bufferRow)).end_offset;
   }
   std::u16string newIndentString = this->buildIndentString(newLevel);
   return this->buffer->setTextInRange(

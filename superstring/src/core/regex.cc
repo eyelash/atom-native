@@ -69,7 +69,7 @@ Regex::Regex(const char16_t *pattern, uint32_t pattern_length, u16string *error_
     nullptr
   );
 
-  if (!code) {
+  if (code == nullptr && error_message != nullptr) {
     uint16_t message_buffer[256];
     size_t length = pcre2_get_error_message(error_number, message_buffer, 256);
     error_message->assign(message_buffer, message_buffer + length);
@@ -98,6 +98,22 @@ Regex::MatchData::MatchData(const Regex &regex)
 
 Regex::MatchData::~MatchData() {
   pcre2_match_data_free(data);
+}
+
+uint32_t Regex::MatchData::size() {
+  return pcre2_get_ovector_count(data);
+}
+
+Regex::Range Regex::MatchData::operator [](uint32_t index) {
+  PCRE2_SIZE *ovector_pointer = pcre2_get_ovector_pointer(data);
+  return {
+    ovector_pointer[index * 2],
+    ovector_pointer[index * 2 + 1]
+  };
+}
+
+Regex::MatchResult::operator bool() const {
+  return type == Full;
 }
 
 MatchResult Regex::match(const char16_t *string, size_t length,
@@ -140,4 +156,38 @@ MatchResult Regex::match(const char16_t *string, size_t length,
   }
 
   return result;
+}
+
+MatchResult Regex::match(const char16_t *string, size_t length) const {
+  MatchData match_data(*this);
+  const unsigned options = MatchOptions::IsBeginningOfLine | MatchOptions::IsEndOfLine | MatchOptions::IsEndSearch;
+  return match(string, length, match_data, options);
+}
+
+MatchResult Regex::match(const std::u16string &string) const {
+  return match(string.data(), string.size());
+}
+
+MatchResult Regex::match(char16_t character) const {
+  return match(&character, 1);
+}
+
+bool Regex::match(const char16_t *string, size_t length, size_t &last_index) const {
+  MatchData match_data(*this);
+  unsigned options = MatchOptions::IsEndOfLine | MatchOptions::IsEndSearch;
+  if (last_index == 0) {
+    options |= MatchOptions::IsBeginningOfLine;
+  }
+  const MatchResult match_result = match(string + last_index, length - last_index, match_data, options);
+  if (match_result.type == MatchResult::Full) {
+    last_index += match_result.end_offset;
+    return true;
+  } else {
+    last_index = 0;
+    return false;
+  }
+}
+
+bool Regex::match(const std::u16string &string, size_t &last_index) const {
+  return match(string.data(), string.size(), last_index);
 }

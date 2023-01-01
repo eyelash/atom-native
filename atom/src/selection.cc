@@ -431,11 +431,9 @@ void Selection::outdentSelectedRows(/* options = {} */) {
     u"^( {1," + toString(this->editor->getTabLength()) + u"}|\\t)",
     nullptr
   );
-  Regex::MatchData match_data(leadingTabRegex);
   for (double row = start; row <= end; row++) {
-    const auto line = buffer->lineForRow(row);
-    const auto match = leadingTabRegex.match(line->data(), line->size(), match_data, Regex::MatchOptions::IsBeginningOfLine);
-    if (match.type == Regex::MatchResult::Full && match.end_offset > match.start_offset) {
+    const auto match = leadingTabRegex.match(buffer->lineForRow(row));
+    if (match && match.end_offset > match.start_offset) {
       buffer->delete_({{row, static_cast<double>(match.start_offset)}, {row, static_cast<double>(match.end_offset)}});
     }
   }

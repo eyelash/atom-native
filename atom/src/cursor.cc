@@ -85,11 +85,8 @@ bool Cursor::isSurroundedByWhitespace() {
   const Point bufferPosition = this->getBufferPosition();
   const double row = bufferPosition.row, column = bufferPosition.column;
   const Range range = {{row, column - 1}, {row, column + 1}};
-  const std::u16string text = this->editor->getTextInBufferRange(range);
   static const Regex regex(u"^\\s+$", nullptr);
-  Regex::MatchData match_data(regex);
-  //const unsigned options = Regex::MatchOptions::IsBeginningOfLine | Regex::MatchOptions::IsEndOfLine;
-  return regex.match(text.data(), text.size(), match_data).type == Regex::MatchResult::Full;
+  return regex.match(this->editor->getTextInBufferRange(range));
 }
 
 bool Cursor::isBetweenWordAndNonWord() {
@@ -100,11 +97,7 @@ bool Cursor::isBetweenWordAndNonWord() {
   const Range range = {{row, column - 1}, {row, column + 1}};
   const std::u16string text = this->editor->getTextInBufferRange(range);
   static const Regex regex(u"\\s", nullptr);
-  Regex::MatchData match_data(regex);
-  if (
-    regex.match(text.data(), 1, match_data).type == Regex::MatchResult::Full ||
-    regex.match(text.data() + 1, 1, match_data).type == Regex::MatchResult::Full
-  ) return false;
+  if (regex.match(text[0]) || regex.match(text[1])) return false;
 
   const std::u16string nonWordCharacters = this->getNonWordCharacters();
   return (
@@ -119,9 +112,8 @@ bool Cursor::isInsideWord(/* options */) {
   const Range range = {{row, column}, {row, INFINITY}};
   const std::u16string text = this->editor->getTextInBufferRange(range);
   const Regex wordRegex = /* (options && options.wordRegex) || */ this->wordRegExp();
-  Regex::MatchData match_data(wordRegex);
-  Regex::MatchResult match_result = wordRegex.match(text.data(), text.size(), match_data);
-  return match_result.type == Regex::MatchResult::Full && match_result.start_offset == 0;
+  const auto match = wordRegex.match(text);
+  return match && match.start_offset == 0;
 }
 
 /*getIndentLevel() {

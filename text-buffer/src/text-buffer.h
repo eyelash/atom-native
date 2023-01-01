@@ -41,9 +41,10 @@ public:
     TextBuffer *buffer;
   public:
     Range range;
+    const Regex &regex;
     bool stopped;
     optional<std::u16string> replacementText;
-    SearchCallbackArgument(TextBuffer *, Range);
+    SearchCallbackArgument(TextBuffer *, Range, const Regex &);
     std::u16string getMatchText();
     Range replace(std::u16string);
     void stop();

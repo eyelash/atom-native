@@ -342,7 +342,7 @@ void TextBuffer::scanInRange(const Regex &regex, Range range, /* options = {}, *
     matchRange.start.column += replacementColumnDelta;
     matchRange.end.column += replacementColumnDelta;
 
-    SearchCallbackArgument argument = SearchCallbackArgument(this, matchRange /*, regex, options*/);
+    SearchCallbackArgument argument = SearchCallbackArgument(this, matchRange, regex /* , options*/);
     callback(argument);
     if (argument.stopped /* || !regex.global */) break;
 
@@ -498,11 +498,11 @@ void TextBuffer::markersUpdated(MarkerLayer *layer) {
 
 unsigned TextBuffer::getNextMarkerId() { return this->nextMarkerId++; }
 
-TextBuffer::SearchCallbackArgument::SearchCallbackArgument(TextBuffer *buffer, Range range) {
-  this->buffer = buffer;
-  this->range = range;
-  this->stopped = false;
-}
+TextBuffer::SearchCallbackArgument::SearchCallbackArgument(TextBuffer *buffer, Range range, const Regex &regex) :
+  buffer{buffer},
+  range{range},
+  regex{regex},
+  stopped{false} {}
 
 std::u16string TextBuffer::SearchCallbackArgument::getMatchText() {
   return this->buffer->getTextInRange(this->range);

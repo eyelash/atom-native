@@ -3,6 +3,7 @@
 #include "text-editor.h"
 #include <display-marker.h>
 #include <text-buffer.h>
+#include <helpers.h>
 #include <cmath>
 
 static const Regex EmptyLineRegExp = Regex(u"(\\r\\n[\\t ]*\\r\\n)|(\\n[\\t ]*\\n)", nullptr);
@@ -99,10 +100,10 @@ bool Cursor::isBetweenWordAndNonWord() {
   static const Regex regex(u"\\s", nullptr);
   if (regex.match(text[0]) || regex.match(text[1])) return false;
 
-  const std::u16string nonWordCharacters = this->getNonWordCharacters();
+  const char16_t *nonWordCharacters = this->getNonWordCharacters();
   return (
-    (nonWordCharacters.find(text[0]) != std::u16string::npos) !=
-    (nonWordCharacters.find(text[1]) != std::u16string::npos)
+    includes(nonWordCharacters, text[0]) !=
+    includes(nonWordCharacters, text[1])
   );
 }
 
@@ -515,17 +516,6 @@ Section: Utilities
 
 void Cursor::clearSelection(bool autoscroll) {
   if (this->selection) this->selection->clear();
-}
-
-static std::u16string escapeRegExp(const char16_t *string) {
-  std::u16string result;
-  for (; *string != u'\0'; ++string) {
-    if (std::wcschr(L"-/\\^$*+?.()|[]{}", *string)) {
-      result.push_back(u'\\');
-    }
-    result.push_back(*string);
-  }
-  return result;
 }
 
 Regex Cursor::wordRegExp(bool includeNonWordCharacters) {

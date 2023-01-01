@@ -8,6 +8,8 @@ struct Range {
   Point start;
   Point end;
 
+  static Range fromPointWithDelta(const Point &, double, double);
+  static Range fromPointWithTraversalExtent(const Point &, const Point &);
   Range(const Point &pointA = Point(0, 0), const Point &pointB = Point(0, 0));
   Range(const NativeRange &);
 

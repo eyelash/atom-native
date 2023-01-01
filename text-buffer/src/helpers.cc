@@ -13,3 +13,19 @@ Point extentForText(const std::u16string &text) {
   }
   return {row, static_cast<double>(text.size() - lastLineStartIndex)};
 }
+
+bool includes(const char16_t *string, char16_t character) {
+  const size_t length = std::char_traits<char16_t>::length(string);
+  return std::char_traits<char16_t>::find(string, length, character) != nullptr;
+}
+
+std::u16string escapeRegExp(const std::u16string &string) {
+  std::u16string result;
+  for (char16_t c : string) {
+    if (includes(u"-/\\^$*+?.()|[]{}", c)) {
+      result.push_back(u'\\');
+    }
+    result.push_back(c);
+  }
+  return result;
+}

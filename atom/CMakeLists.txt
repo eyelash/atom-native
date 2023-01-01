@@ -9,6 +9,7 @@ target_sources(atom PRIVATE
   src/decoration-manager.cc
   src/layer-decoration.cc
   src/selection.cc
+  src/select-next.cc
   src/text-editor.cc
 )
 target_include_directories(atom INTERFACE src)

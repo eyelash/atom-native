@@ -4,6 +4,7 @@
 #include "decoration-manager.h"
 #include <text-buffer.h>
 #include <display-marker-layer.h>
+#include <display-marker.h>
 #include <helpers.h>
 #include <set>
 
@@ -780,7 +781,7 @@ Cursor *TextEditor::addCursor(DisplayMarker *marker) {
     //showCursorOnSelection: this.showCursorOnSelection
   );
   this->cursors.push_back(cursor);
-  //this.cursorsByMarkerId.set(marker.id, cursor);
+  this->cursorsByMarkerId[marker->id] = cursor;
   return cursor;
 }
 
@@ -823,6 +824,10 @@ std::vector<Range> TextEditor::getSelectedBufferRanges() {
   return ranges;
 }
 
+void TextEditor::setSelectedBufferRange(Range bufferRange /* , options */) {
+  return this->setSelectedBufferRanges({bufferRange} /* , options */);
+}
+
 void TextEditor::setSelectedBufferRanges(const std::vector<Range> &bufferRanges /* , options = {} */) {
   //if (!bufferRanges.length)
   //  throw new Error('Passed an empty array to setSelectedBufferRanges');
@@ -863,9 +868,22 @@ Selection *TextEditor::addSelectionForScreenRange(Range screenRange /* , options
   );
 }
 
-Selection *TextEditor::getLastSelection() {
-  this->createLastSelectionIfNeeded();
-  return this->selections.back();
+void TextEditor::selectToBufferPosition(Point position) {
+  Selection *lastSelection = this->getLastSelection();
+  lastSelection->selectToBufferPosition(position);
+  return this->mergeIntersectingSelections(/*{
+    reversed: lastSelection.isReversed()
+  }*/);
+}
+
+void TextEditor::selectToScreenPosition(Point position, bool suppressSelectionMerge /* , options */) {
+  Selection *lastSelection = this->getLastSelection();
+  lastSelection->selectToScreenPosition(position /* , options */);
+  if (!suppressSelectionMerge) {
+    return this->mergeIntersectingSelections(/*{
+      reversed: lastSelection.isReversed()
+    }*/);
+  }
 }
 
 void TextEditor::selectUp(double rowCount) {
@@ -990,6 +1008,20 @@ void TextEditor::selectToBeginningOfPreviousParagraph() {
   });
 }
 
+Selection *TextEditor::getLastSelection() {
+  this->createLastSelectionIfNeeded();
+  return this->selections.back();
+}
+
+Selection *TextEditor::getSelectionAtScreenPosition(Point position) {
+  const auto markers = this->selectionsMarkerLayer->findMarkers({
+    containsScreenPosition(position)
+  });
+  if (markers.size() > 0)
+    return this->cursorsByMarkerId[markers[0]->id]->selection;
+  return nullptr;
+}
+
 std::vector<Selection *> TextEditor::getSelections() {
   this->createLastSelectionIfNeeded();
   return this->selections;
@@ -1027,6 +1059,12 @@ void TextEditor::expandSelectionsBackward(std::function<void(Selection *)> fn) {
       fn(selection);
     }
   });
+}
+
+void TextEditor::finalizeSelections() {
+  for (Selection *selection : this->getSelections()) {
+    selection->finalize();
+  }
 }
 
 void TextEditor::mergeIntersectingSelections( /* options, */ std::function<void()> fn) {
@@ -1110,6 +1148,7 @@ void TextEditor::addSelection(DisplayMarker *marker) {
 void TextEditor::removeSelection(Selection *selection) {
   this->cursors.erase(std::find(this->cursors.begin(), this->cursors.end(), selection->cursor));
   this->selections.erase(std::find(this->selections.begin(), this->selections.end(), selection));
+  this->cursorsByMarkerId.erase(this->cursorsByMarkerId.find(selection->cursor->getMarker()->id));
   delete selection->cursor;
   delete selection;
 }

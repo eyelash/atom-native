@@ -88,6 +88,7 @@ public:
   void setGoalScreenRange(Range);
   Range getGoalScreenRange();
   void markerDidDestroy();
+  void finalize();
   void modifySelection(std::function<void()>);
   void plantTail();
 };

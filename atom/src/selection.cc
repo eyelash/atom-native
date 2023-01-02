@@ -584,6 +584,19 @@ void Selection::markerDidDestroy() {
   this->editor->removeSelection(this);
 }
 
+void Selection::finalize() {
+  /*if (
+    !this->initialScreenRange ||
+    !this->initialScreenRange.isEqual(this->getScreenRange())
+  ) {
+    this->initialScreenRange = null;
+  }*/
+  if (this->isEmpty()) {
+    //this->wordwise = false;
+    //this->linewise = false;
+  }
+}
+
 void Selection::modifySelection(std::function<void()> fn) {
   this->retainSelection = true;
   this->plantTail();

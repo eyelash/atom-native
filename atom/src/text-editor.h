@@ -18,6 +18,7 @@ class LayerDecoration;
 class TextEditor {
   bool softTabs;
   std::vector<Cursor *> cursors;
+  std::unordered_map<unsigned, Cursor *> cursorsByMarkerId;
   std::vector<Selection *> selections;
   TextBuffer *buffer;
 public:
@@ -122,11 +123,13 @@ public:
   std::u16string getSelectedText();
   Range getSelectedBufferRange();
   std::vector<Range> getSelectedBufferRanges();
+  void setSelectedBufferRange(Range);
   void setSelectedBufferRanges(const std::vector<Range> &);
   Range getSelectedScreenRange();
   Selection *addSelectionForBufferRange(Range);
   Selection *addSelectionForScreenRange(Range);
-  Selection *getLastSelection();
+  void selectToBufferPosition(Point);
+  void selectToScreenPosition(Point, bool = false);
   void selectUp(double = 1);
   void selectDown(double = 1);
   void selectLeft(double = 1);
@@ -148,12 +151,15 @@ public:
   void selectToBeginningOfNextWord();
   void selectToBeginningOfNextParagraph();
   void selectToBeginningOfPreviousParagraph();
+  Selection *getLastSelection();
+  Selection *getSelectionAtScreenPosition(Point);
   std::vector<Selection *> getSelections();
   std::vector<Selection *> getSelectionsOrderedByBufferPosition();
   void addSelectionBelow();
   void addSelectionAbove();
   void expandSelectionsForward(std::function<void(Selection *)>);
   void expandSelectionsBackward(std::function<void(Selection *)>);
+  void finalizeSelections();
   void mergeIntersectingSelections(std::function<void()>);
   void mergeIntersectingSelections();
   void mergeSelectionsOnSameRows(std::function<void()>);

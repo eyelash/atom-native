@@ -8,6 +8,8 @@
 Selection::Selection(TextEditor *editor, DisplayMarker *marker, Cursor *cursor) {
   this->editor = editor;
   this->marker = marker;
+  this->wordwise = false;
+  this->linewise = false;
   this->retainSelection = false;
   this->cursor = cursor;
   this->cursor->selection = this;
@@ -163,11 +165,11 @@ void Selection::selectToScreenPosition(Point position) {
       this->cursor->setScreenPosition(position);
     }
 
-    /*if (this.linewise) {
-      this.expandOverLine(options);
-    } else if (this.wordwise) {
-      this.expandOverWord(options);
-    }*/
+    if (this->linewise) {
+      this->expandOverLine(/* options */);
+    } else if (this->wordwise) {
+      this->expandOverWord(/* options */);
+    }
   });
 }
 
@@ -268,8 +270,20 @@ void Selection::selectWord(/* options = {} */) {
     this->cursor->getCurrentWordBufferRange(includeNonWordCharacters) /* ,
     options */
   );
-  //this.wordwise = true;
+  this->wordwise = true;
   //this.initialScreenRange = this.getScreenRange();
+}
+
+void Selection::expandOverWord(/* options */) {
+  this->setBufferRange(
+    this->getBufferRange().union_(this->cursor->getCurrentWordBufferRange()) /* ,
+    { autoscroll: false } */
+  );
+  //const autoscroll =
+  //  options && options.autoscroll != null
+  //    ? options.autoscroll
+  //    : this->isLastSelection();
+  //if (autoscroll) this->cursor.autoscroll();
 }
 
 void Selection::selectLine(optional<double> row /* , options */) {
@@ -289,9 +303,21 @@ void Selection::selectLine(optional<double> row /* , options */) {
     this->setBufferRange(startRange.union_(endRange) /* , options */ );
   }
 
-  //this.linewise = true;
-  //this.wordwise = false;
-  //this.initialScreenRange = this.getScreenRange();
+  this->linewise = true;
+  this->wordwise = false;
+  //this->initialScreenRange = this->getScreenRange();
+}
+
+void Selection::expandOverLine(/* options */) {
+  const Range range = this->getBufferRange().union_(
+    this->cursor->getCurrentLineBufferRange(true)
+  );
+  this->setBufferRange(range /* , { autoscroll: false } */);
+  //const autoscroll =
+  //  options && options.autoscroll != null
+  //    ? options.autoscroll
+  //    : this->isLastSelection();
+  //if (autoscroll) this->cursor.autoscroll();
 }
 
 /*
@@ -592,8 +618,8 @@ void Selection::finalize() {
     this->initialScreenRange = null;
   }*/
   if (this->isEmpty()) {
-    //this->wordwise = false;
-    //this->linewise = false;
+    this->wordwise = false;
+    this->linewise = false;
   }
 }
 

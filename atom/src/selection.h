@@ -13,6 +13,8 @@ class Selection {
   TextEditor *editor;
   DisplayMarker *marker;
   optional<Range> goalScreenRange;
+  bool wordwise;
+  bool linewise;
   bool retainSelection;
 
 public:
@@ -64,7 +66,9 @@ public:
   void selectToBeginningOfNextParagraph();
   void selectToBeginningOfPreviousParagraph();
   void selectWord();
+  void expandOverWord();
   void selectLine(optional<double> = optional<double>());
+  void expandOverLine();
   void insertText(const std::u16string &);
   void backspace();
   void deleteToPreviousWordBoundary();

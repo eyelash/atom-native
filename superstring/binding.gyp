@@ -18,7 +18,7 @@
                 "src/bindings/text-writer.cc",
             ],
             "include_dirs": [
-              "src/core",
+              "src",
               "<!(node -e \"require('nan')\")"
             ],
         },
@@ -29,17 +29,17 @@
                 "./vendor/pcre/pcre.gyp:pcre",
             ],
             "sources": [
-                "src/core/encoding-conversion.cc",
-                "src/core/marker-index.cc",
-                "src/core/patch.cc",
-                "src/core/point.cc",
-                "src/core/range.cc",
-                "src/core/regex.cc",
-                "src/core/text.cc",
-                "src/core/text-buffer.cc",
-                "src/core/text-slice.cc",
-                "src/core/text-diff.cc",
-                "src/core/libmba-diff.cc",
+                "src/encoding-conversion.cc",
+                "src/marker-index.cc",
+                "src/patch.cc",
+                "src/point.cc",
+                "src/range.cc",
+                "src/regex.cc",
+                "src/text.cc",
+                "src/text-buffer.cc",
+                "src/text-slice.cc",
+                "src/text-diff.cc",
+                "src/libmba-diff.cc",
             ],
             "include_dirs": [
                 "vendor/libcxx"
@@ -92,7 +92,7 @@
                 ],
                 "include_dirs": [
                     "vendor",
-                    "src/core",
+                    "src",
                 ],
                 "dependencies": [
                     "superstring_core"

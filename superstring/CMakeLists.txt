@@ -8,17 +8,17 @@ target_link_libraries(superstring_core
   $<$<PLATFORM_ID:Darwin>:iconv>
 )
 target_sources(superstring_core PRIVATE
-  src/core/encoding-conversion.cc
-  src/core/marker-index.cc
-  src/core/native-point.cc
-  src/core/native-range.cc
-  src/core/native-text-buffer.cc
-  src/core/patch.cc
-  src/core/regex.cc
-  src/core/text.cc
-  src/core/text-slice.cc
-  src/core/text-diff.cc
-  src/core/libmba-diff.cc
+  src/encoding-conversion.cc
+  src/marker-index.cc
+  src/native-point.cc
+  src/native-range.cc
+  src/native-text-buffer.cc
+  src/patch.cc
+  src/regex.cc
+  src/text.cc
+  src/text-slice.cc
+  src/text-diff.cc
+  src/libmba-diff.cc
   $<$<PLATFORM_ID:Windows>:vendor/win-iconv/win_iconv.c>
 )
 target_include_directories(superstring_core PRIVATE
@@ -29,7 +29,7 @@ target_compile_definitions(superstring_core PRIVATE
   $<$<PLATFORM_ID:Windows>:WINICONV_CONST=>
   $<$<PLATFORM_ID:Windows>:PCRE2_STATIC>
 )
-target_include_directories(superstring_core INTERFACE src/core)
+target_include_directories(superstring_core INTERFACE src)
 
 add_executable(tests)
 target_sources(tests PRIVATE
@@ -45,7 +45,7 @@ find_package(Threads REQUIRED)
 target_link_libraries(tests superstring_core Threads::Threads)
 target_include_directories(tests PRIVATE
   vendor
-  src/core
+  src
 )
 
 add_subdirectory(vendor/pcre)

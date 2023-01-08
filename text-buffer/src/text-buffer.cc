@@ -132,18 +132,24 @@ Range TextBuffer::setText(std::u16string text) {
 }
 
 Range TextBuffer::setTextInRange(Range range, std::u16string newText) {
+  if (this->transactCallDepth == 0) {
+    //const Range newRange = this->transact([&]() { this->setTextInRange(range, newText /* , {normalizeLineEndings} */); });
+    //if (undo === 'skip') this.groupLastChanges()
+    //return newRange;
+  }
+
   const Range oldRange = this->clipRange(range);
   std::u16string oldText = this->getTextInRange(oldRange);
 
-  Change change = {
+  const Range newRange = this->applyChange(
     oldRange.start,
     oldRange.end,
     oldRange.start,
     traverse(oldRange.start, extentForText(newText)),
-    std::move(oldText),
-    std::move(newText)
-  };
-  const Range newRange = this->applyChange(std::move(change), true);
+    oldText,
+    newText,
+    true
+  );
   return newRange;
 }
 
@@ -155,13 +161,7 @@ Range TextBuffer::append(std::u16string text) {
   return this->insert(this->getEndPosition(), std::move(text));
 }
 
-Range TextBuffer::applyChange(Change change, bool pushToHistory) {
-  const Point newStart = change.newStart;
-  const Point newEnd = change.newEnd;
-  const Point oldStart = change.oldStart;
-  const Point oldEnd = change.oldEnd;
-  std::u16string oldText = std::move(change.oldText);
-  std::u16string newText = std::move(change.newText);
+Range TextBuffer::applyChange(Point oldStart, Point oldEnd, Point newStart, Point newEnd, const std::u16string &oldText, const std::u16string &newText, bool pushToHistory) {
 
   const Point oldExtent = traversal(oldEnd, oldStart);
   const Range oldRange = Range(newStart, traverse(newStart, oldExtent));
@@ -185,7 +185,7 @@ Range TextBuffer::applyChange(Change change, bool pushToHistory) {
   }
 
   //this.emitWillChangeEvent()
-  this->buffer->set_text_in_range(oldRange, std::move(newText));
+  this->buffer->set_text_in_range(oldRange, std::u16string(newText));
 
   for (auto &markerLayer : this->markerLayers) {
     markerLayer.second->splice(oldRange.start, oldExtent, newExtent);
@@ -195,13 +195,13 @@ Range TextBuffer::applyChange(Change change, bool pushToHistory) {
   //this.cachedText = null
   //this.changesSinceLastDidChangeTextEvent.push(change)
   //this.changesSinceLastStoppedChangingEvent.push(change)
-  this->emitDidChangeEvent(oldRange, newRange);
+  this->emitDidChangeEvent(oldRange, newRange, oldText, newText);
   return newRange;
 }
 
-void TextBuffer::emitDidChangeEvent(Range oldRange, Range newRange) {
+void TextBuffer::emitDidChangeEvent(Range oldRange, Range newRange, const std::u16string &oldText, const std::u16string &newText) {
   if (!oldRange.isEmpty() || !newRange.isEmpty()) {
-    this->languageMode->bufferDidChange();
+    this->languageMode->bufferDidChange(oldRange, newRange, oldText, newText);
     for (auto &displayLayer : this->displayLayers) {
       displayLayer.second->bufferDidChange(oldRange, newRange);
     }
@@ -289,6 +289,13 @@ std::size_t TextBuffer::getMarkerCount() {
 /*
 Section: History
 */
+
+void TextBuffer::transact(std::function<void()> fn) {
+  this->transactCallDepth++;
+  fn();
+  this->transactCallDepth--;
+  this->emitDidChangeTextEvent();
+}
 
 /*
 Section: Search And Replace
@@ -467,9 +474,46 @@ DisplayLayer *TextBuffer::getDisplayLayer(unsigned id) {
 Language Modes
 */
 
+LanguageMode *TextBuffer::getLanguageMode() { return this->languageMode; }
+
+void TextBuffer::setLanguageMode(LanguageMode *languageMode) {
+  if (languageMode != this->languageMode) {
+    LanguageMode *oldLanguageMode = this->languageMode;
+    /*if (typeof this.languageMode.destroy === 'function') {
+      this.languageMode.destroy()
+    }*/
+    this->languageMode = languageMode ? languageMode : new LanguageMode();
+    for (auto &displayLayer : this->displayLayers) {
+      //displayLayer.second->bufferDidChangeLanguageMode(languageMode);
+    }
+    //this.emitter.emit('did-change-language-mode', {newMode: this.languageMode, oldMode: oldLanguageMode})
+    delete oldLanguageMode;
+  }
+}
+
 /*
 Section: Private Utility Methods
 */
+
+void TextBuffer::emitDidChangeTextEvent() {
+  //this->cachedHasAstral = null
+  if (this->transactCallDepth == 0) {
+    //if (this->changesSinceLastDidChangeTextEvent.size() > 0) {
+      //const compactedChanges = patchFromChanges(this->changesSinceLastDidChangeTextEvent).getChanges()
+      //this->changesSinceLastDidChangeTextEvent.clear();
+      //if (compactedChanges.length > 0) {
+        //const changeEvent = new ChangeEvent(this, compactedChanges);
+        this->languageMode->bufferDidFinishTransaction(/* changeEvent */);
+        //this->emitter.emit('did-change-text', changeEvent);
+      //}
+      //this->debouncedEmitDidStopChangingEvent();
+      //this->_emittedWillChangeEvent = false;
+    //}
+    for (auto &displayLayer : this->displayLayers) {
+      displayLayer.second->emitDeferredChangeEvents();
+    }
+  }
+}
 
 /*
 Section: Private History Delegate Methods

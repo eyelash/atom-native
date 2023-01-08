@@ -513,7 +513,7 @@ double DisplayLayer::findTrailingWhitespaceStartColumn(double bufferRow) {
   return position.column + 1;
 }
 
-int32_t DisplayLayer::registerBuiltInScope(int32_t flags, const std::u16string &className) {
+int32_t DisplayLayer::registerBuiltInScope(int32_t flags, const std::string &className) {
   /*if (this.nextBuiltInScopeId > MAX_BUILT_IN_SCOPE_ID) {
     throw new Error('Built in scope ids exhausted')
   }*/
@@ -538,7 +538,7 @@ int32_t DisplayLayer::getBuiltInScopeId(int32_t flags) {
   }
 }
 
-std::u16string DisplayLayer::classNameForScopeId(int32_t scopeId) {
+std::string DisplayLayer::classNameForScopeId(int32_t scopeId) {
   if (scopeId <= MAX_BUILT_IN_SCOPE_ID) {
     return this->builtInClassNamesByScopeId[scopeId];
   } else {
@@ -551,7 +551,7 @@ int32_t DisplayLayer::scopeIdForTag(int32_t tag) const {
   return -tag;
 }
 
-std::u16string DisplayLayer::classNameForTag(int32_t tag) {
+std::string DisplayLayer::classNameForTag(int32_t tag) {
   return this->classNameForScopeId(this->scopeIdForTag(tag));
 }
 

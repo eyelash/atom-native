@@ -12,7 +12,6 @@ class MarkerLayer;
 class DisplayLayer;
 
 class TextBuffer {
-  NativeTextBuffer *buffer;
   unsigned nextMarkerLayerId;
   unsigned nextDisplayLayerId;
   MarkerLayer *defaultMarkerLayer;
@@ -21,21 +20,13 @@ class TextBuffer {
   unsigned nextMarkerId;
 
 public:
+  NativeTextBuffer *buffer;
   LanguageMode *languageMode;
   double transactCallDepth;
 
   TextBuffer();
   TextBuffer(const std::u16string &text);
   ~TextBuffer();
-
-  struct Change {
-    Point oldStart;
-    Point oldEnd;
-    Point newStart;
-    Point newEnd;
-    std::u16string oldText;
-    std::u16string newText;
-  };
 
   class SearchCallbackArgument {
     TextBuffer *buffer;
@@ -68,11 +59,11 @@ public:
   Range setTextInRange(Range, std::u16string);
   Range insert(Point position, std::u16string text);
   Range append(std::u16string text);
-  Range applyChange(Change, bool);
+  Range applyChange(Point, Point, Point, Point, const std::u16string &, const std::u16string &, bool = false);
   Range delete_(Range range);
   Range deleteRow(double row);
   Range deleteRows(double startRow, double endRow);
-  void emitDidChangeEvent(Range, Range);
+  void emitDidChangeEvent(Range, Range, const std::u16string &, const std::u16string &);
   MarkerLayer *addMarkerLayer();
   MarkerLayer *getMarkerLayer(unsigned);
   MarkerLayer *getDefaultMarkerLayer();
@@ -81,6 +72,7 @@ public:
   std::vector<Marker *> getMarkers();
   Marker *getMarker(unsigned);
   std::size_t getMarkerCount();
+  void transact(std::function<void()>);
   void scan(const Regex &, ScanIterator);
   void backwardsScan(const Regex &, ScanIterator);
   void scanInRange(const Regex &, Range, ScanIterator, bool = false);
@@ -104,6 +96,9 @@ public:
   Point clipPosition(Point);
   DisplayLayer *addDisplayLayer();
   DisplayLayer *getDisplayLayer(unsigned);
+  LanguageMode *getLanguageMode();
+  void setLanguageMode(LanguageMode *);
+  void emitDidChangeTextEvent();
   void markerCreated(MarkerLayer *, Marker *);
   void markersUpdated(MarkerLayer *);
   unsigned getNextMarkerId();

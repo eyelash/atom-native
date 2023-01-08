@@ -1,12 +1,26 @@
 cmake_minimum_required(VERSION 3.13)
-project(tree_sitter)
+project(tree-sitter)
 
-add_library(tree_sitter STATIC)
-target_sources(tree_sitter PRIVATE
+add_library(tree-sitter-lib STATIC)
+target_compile_features(tree-sitter-lib PRIVATE c_std_99)
+target_sources(tree-sitter-lib PRIVATE
   vendor/tree-sitter/lib/src/lib.c
 )
-target_include_directories(tree_sitter PUBLIC
+target_include_directories(tree-sitter-lib PRIVATE
   vendor/tree-sitter/lib/src
   vendor/tree-sitter/lib/include
 )
-target_compile_features(tree_sitter PUBLIC c_std_99)
+target_include_directories(tree-sitter-lib INTERFACE
+  vendor/tree-sitter/lib/include
+)
+
+add_library(tree-sitter STATIC)
+target_link_libraries(tree-sitter tree-sitter-lib text-buffer)
+target_sources(tree-sitter PRIVATE
+  src/parser.cc
+  src/tree-cursor.cc
+  src/tree.cc
+)
+target_include_directories(tree-sitter INTERFACE
+  src
+)

@@ -171,14 +171,14 @@ double ScreenLineBuilder::getBuiltInScopeId(int32_t flags) {
 
   double scopeId = this->displayLayer->getBuiltInScopeId(flags);
   if (scopeId == -1) {
-    std::u16string className = u"";
-    if (flags & INVISIBLE_CHARACTER) className += u"invisible-character ";
-    if (flags & HARD_TAB) className += u"hard-tab ";
-    if (flags & LEADING_WHITESPACE) className += u"leading-whitespace ";
-    if (flags & TRAILING_WHITESPACE) className += u"trailing-whitespace ";
-    if (flags & LINE_ENDING) className += u"eol ";
-    if (flags & INDENT_GUIDE) className += u"indent-guide ";
-    if (flags & FOLD) className += u"fold-marker ";
+    std::string className;
+    if (flags & INVISIBLE_CHARACTER) className += "invisible-character ";
+    if (flags & HARD_TAB) className += "hard-tab ";
+    if (flags & LEADING_WHITESPACE) className += "leading-whitespace ";
+    if (flags & TRAILING_WHITESPACE) className += "trailing-whitespace ";
+    if (flags & LINE_ENDING) className += "eol ";
+    if (flags & INDENT_GUIDE) className += "indent-guide ";
+    if (flags & FOLD) className += "fold-marker ";
     if (!className.empty()) className.pop_back();
     scopeId = this->displayLayer->registerBuiltInScope(flags, className);
   }

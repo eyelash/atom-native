@@ -78,6 +78,7 @@ public:
   void deleteToEndOfLine();
   void deleteToEndOfWord();
   void deleteLine();
+  void transact(std::function<void()>);
   Point screenPositionForBufferPosition(Point);
   Point bufferPositionForScreenPosition(Point);
   Range screenRangeForBufferRange(Range);

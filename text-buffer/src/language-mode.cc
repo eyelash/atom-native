@@ -32,7 +32,7 @@ std::vector<int32_t> LanguageMode::HighlightIterator::getOpenScopeIds() {
 
 LanguageMode::~LanguageMode() {}
 
-void LanguageMode::bufferDidChange() {}
+void LanguageMode::bufferDidChange(Range, Range, const std::u16string &, const std::u16string &) {}
 
 void LanguageMode::bufferDidFinishTransaction() {}
 
@@ -42,8 +42,8 @@ std::unique_ptr<LanguageMode::HighlightIterator> LanguageMode::buildHighlightIte
 
 //onDidChangeHighlighting () { return new Disposable(() => {}) }
 
-std::u16string LanguageMode::classNameForScopeId(int32_t scopeId) {
-  return std::u16string();
+std::string LanguageMode::classNameForScopeId(int32_t scopeId) {
+  return std::string();
 }
 
 std::u16string LanguageMode::getLanguageId() {

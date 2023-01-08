@@ -1,7 +1,7 @@
 #ifndef LANGUAGE_MODE_H_
 #define LANGUAGE_MODE_H_
 
-#include "point.h"
+#include "range.h"
 #include <memory>
 
 class LanguageMode {
@@ -18,10 +18,10 @@ public:
     virtual std::vector<int32_t> getOpenScopeIds();
   };
   virtual ~LanguageMode();
-  virtual void bufferDidChange();
+  virtual void bufferDidChange(Range, Range, const std::u16string &, const std::u16string &);
   virtual void bufferDidFinishTransaction();
   virtual std::unique_ptr<HighlightIterator> buildHighlightIterator();
-  virtual std::u16string classNameForScopeId(int32_t);
+  virtual std::string classNameForScopeId(int32_t);
   virtual std::u16string getLanguageId();
 };
 

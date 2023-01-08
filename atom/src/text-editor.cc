@@ -215,9 +215,9 @@ void TextEditor::backspace() {
 
 void TextEditor::mutateSelectedText(std::function<void(Selection *)> fn /* , groupingInterval = 0 */ ) {
   return this->mergeIntersectingSelections([&]() {
-    //return this.transact(groupingInterval, () => {
+    return this->transact(/* groupingInterval, */ [&]() {
       for (Selection *selection : this->getSelectionsOrderedByBufferPosition()) fn(selection);
-    //});
+    });
   });
 }
 
@@ -556,6 +556,10 @@ void TextEditor::deleteLine(/* options = {} */) {
 /*
 Section: History
 */
+
+void TextEditor::transact(std::function<void()> fn) {
+  return this->buffer->transact(fn);
+}
 
 /*
 Section: TextEditor Coordinates

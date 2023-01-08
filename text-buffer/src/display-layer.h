@@ -42,7 +42,7 @@ private:
   ScreenLineBuilder *screenLineBuilder;
   std::vector<optional<ScreenLine>> cachedScreenLines;
   std::unordered_map<int32_t, int32_t> builtInScopeIdsByFlags;
-  std::unordered_map<int32_t, std::u16string> builtInClassNamesByScopeId;
+  std::unordered_map<int32_t, std::string> builtInClassNamesByScopeId;
   int32_t nextBuiltInScopeId;
   std::unordered_map<unsigned, DisplayMarkerLayer *> displayMarkerLayersById;
   Patch changesSinceLastEvent;
@@ -93,11 +93,11 @@ public:
   double leadingWhitespaceLengthForSurroundingLines(double);
   double leadingWhitespaceLengthForNonEmptyLine(const std::u16string &);
   double findTrailingWhitespaceStartColumn(double);
-  int32_t registerBuiltInScope(int32_t, const std::u16string &);
+  int32_t registerBuiltInScope(int32_t, const std::string &);
   int32_t getBuiltInScopeId(int32_t);
-  std::u16string classNameForScopeId(int32_t);
+  std::string classNameForScopeId(int32_t);
   int32_t scopeIdForTag(int32_t) const;
-  std::u16string classNameForTag(int32_t);
+  std::string classNameForTag(int32_t);
   int32_t openTagForScopeId(int32_t);
   int32_t closeTagForScopeId(int32_t);
   bool isOpenTag(int32_t) const;

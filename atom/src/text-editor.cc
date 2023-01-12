@@ -462,6 +462,29 @@ void TextEditor::duplicateLines(/* options = {} */) {
   //});
 }
 
+void TextEditor::splitSelectionsIntoLines() {
+  this->mergeIntersectingSelections([&]() {
+    for (Selection *selection : this->getSelections()) {
+      const Range range = selection->getBufferRange();
+      if (range.isSingleLine()) continue;
+
+      const Point start = range.start;
+      const Point end = range.end;
+      this->addSelectionForBufferRange({start, {start.row, INFINITY}});
+      double row = start.row;
+      while (++row < end.row) {
+        this->addSelectionForBufferRange({{row, 0}, {row, INFINITY}});
+      }
+      if (end.column != 0)
+        this->addSelectionForBufferRange({
+          {end.row, 0},
+          {end.row, end.column}
+        });
+      selection->destroy();
+    }
+  });
+}
+
 void TextEditor::insertNewlineBelow(/* options = {} */) {
   //if (!this->ensureWritable('insertNewlineBelow', options)) return;
   //this->transact(() => {

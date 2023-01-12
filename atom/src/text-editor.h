@@ -67,6 +67,7 @@ public:
   void moveLineUp();
   void moveLineDown();
   void duplicateLines();
+  void splitSelectionsIntoLines();
   void insertNewlineBelow();
   void insertNewlineAbove();
   void deleteToBeginningOfWord();

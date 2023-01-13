@@ -30,6 +30,7 @@ public:
   TextEditor();
   ~TextEditor();
 
+  void decorateCursorLine();
   void subscribeToBuffer();
   void subscribeToDisplayLayer();
   TextBuffer *getBuffer();

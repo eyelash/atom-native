@@ -13,6 +13,10 @@ Selection::Selection(TextEditor *editor, DisplayMarker *marker, Cursor *cursor) 
   this->retainSelection = false;
   this->cursor = cursor;
   this->cursor->selection = this;
+  /* this->decoration = */ this->editor->decorateMarker(this->marker, {
+    Decoration::Type::highlight,
+    "selection"
+  });
   this->marker->onDidDestroy([this]() { this->markerDidDestroy(); });
 }
 

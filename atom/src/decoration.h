@@ -18,6 +18,13 @@ public:
   };
   struct Properties {
     Type type;
+    const char *class_;
+    bool onlyHead;
+    bool onlyEmpty;
+    bool onlyNonEmpty;
+    bool omitEmptyLastRow;
+    Properties();
+    Properties(Type, const char * = nullptr);
   };
 
 private:

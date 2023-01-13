@@ -18,6 +18,7 @@ TextEditor::TextEditor() {
   this->selectionsMarkerLayer = this->addMarkerLayer();
   this->decorationManager = new DecorationManager(this);
   this->decorateMarkerLayer(this->selectionsMarkerLayer, { Decoration::Type::cursor });
+  this->decorateCursorLine();
 
   this->subscribeToBuffer();
   this->subscribeToDisplayLayer();
@@ -34,6 +35,30 @@ TextEditor::~TextEditor() {
   }
   delete this->buffer;
   delete this->decorationManager;
+}
+
+void TextEditor::decorateCursorLine() {
+  //this.cursorLineDecorations = [
+    this->decorateMarkerLayer(this->selectionsMarkerLayer, []() {
+      Decoration::Properties properties;
+      properties.type = Decoration::Type::line;
+      properties.class_ = "cursor-line";
+      properties.onlyEmpty = true;
+      return properties;
+    }());
+    this->decorateMarkerLayer(this->selectionsMarkerLayer, {
+      Decoration::Type::line_number,
+      "cursor-line"
+    });
+    this->decorateMarkerLayer(this->selectionsMarkerLayer, []() {
+      Decoration::Properties properties;
+      properties.type = Decoration::Type::line_number;
+      properties.class_ = "cursor-line-no-selection";
+      properties.onlyHead = true;
+      properties.onlyEmpty = true;
+      return properties;
+    }());
+  //];
 }
 
 void TextEditor::subscribeToBuffer() {

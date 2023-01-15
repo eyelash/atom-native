@@ -4,6 +4,7 @@
 #include <language-mode.h>
 #include <tree.h>
 #include <tree-cursor.h>
+#include <event-kit.h>
 
 class TreeSitterGrammar;
 class TextBuffer;
@@ -81,6 +82,7 @@ public:
   TextBuffer *buffer;
   TreeSitterGrammar *grammar;
   LanguageLayer *rootLanguageLayer;
+  Emitter<Range> didChangeHighlightingEmitter;
 
   TreeSitterLanguageMode(TextBuffer *, TreeSitterGrammar *);
   ~TreeSitterLanguageMode();
@@ -89,7 +91,9 @@ public:
   void bufferDidFinishTransaction() override;
   Tree parse(const TSLanguage *, const Tree &);
   std::unique_ptr<LanguageMode::HighlightIterator> buildHighlightIterator() override;
+  void onDidChangeHighlighting(std::function<void(Range)>) override;
   std::string classNameForScopeId(int32_t) override;
+  void emitRangeUpdate(Range);
 };
 
 #endif // TREE_SITTER_LANGUAGE_MODE_H_

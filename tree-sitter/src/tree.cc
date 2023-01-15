@@ -31,10 +31,22 @@ Tree::operator bool() const {
   return this->tree != nullptr;
 }
 
-TreeCursor Tree::walk() {
-  return TreeCursor(ts_tree_root_node(tree));
-}
-
 void Tree::edit(const TSInputEdit &edit) {
   ts_tree_edit(tree, &edit);
+}
+
+TSNode Tree::rootNode() {
+  return ts_tree_root_node(tree);
+}
+
+std::vector<TSRange> Tree::getChangedRanges(const Tree &newTree) {
+  uint32_t length;
+  TSRange *ranges = ts_tree_get_changed_ranges(tree, newTree.tree, &length);
+  std::vector<TSRange> result(ranges, ranges + length);
+  free(ranges);
+  return result;
+}
+
+TreeCursor Tree::walk() {
+  return TreeCursor(this->rootNode());
 }

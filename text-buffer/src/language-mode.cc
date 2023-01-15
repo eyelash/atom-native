@@ -40,7 +40,7 @@ std::unique_ptr<LanguageMode::HighlightIterator> LanguageMode::buildHighlightIte
   return std::unique_ptr<HighlightIterator>(new HighlightIterator());
 }
 
-//onDidChangeHighlighting () { return new Disposable(() => {}) }
+void LanguageMode::onDidChangeHighlighting(std::function<void(Range)>) {}
 
 std::string LanguageMode::classNameForScopeId(int32_t scopeId) {
   return std::string();

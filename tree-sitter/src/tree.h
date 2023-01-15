@@ -14,8 +14,10 @@ public:
   Tree &operator =(const Tree &);
   operator bool() const;
 
-  TreeCursor walk();
   void edit(const TSInputEdit &);
+  TSNode rootNode();
+  std::vector<TSRange> getChangedRanges(const Tree &);
+  TreeCursor walk();
 
   friend class Parser;
 };

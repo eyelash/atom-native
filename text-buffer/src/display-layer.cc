@@ -55,6 +55,25 @@ void DisplayLayer::clearSpatialIndex() {
   this->rightmostScreenPosition = Point(0, 0);
 }
 
+void DisplayLayer::bufferDidChangeLanguageMode(LanguageMode *) {
+  this->cachedScreenLines.resize(0);
+  //if (this.languageModeDisposable) this.languageModeDisposable.dispose()
+  this->buffer->languageMode->onDidChangeHighlighting([this](Range bufferRange) {
+    this->populateSpatialIndexIfNeeded(bufferRange.end.row + 1, INFINITY);
+    const double startBufferRow = this->findBoundaryPrecedingBufferRow(bufferRange.start.row);
+    const double endBufferRow = this->findBoundaryFollowingBufferRow(bufferRange.end.row + 1);
+    const double startRow = this->translateBufferPositionWithSpatialIndex(Point(startBufferRow, 0), ClipDirection::backward).row;
+    const double endRow = this->translateBufferPositionWithSpatialIndex(Point(endBufferRow, 0), ClipDirection::backward).row;
+    const Point extent = Point(endRow - startRow, 0);
+    spliceArray(this->cachedScreenLines, startRow, extent.row, std::vector<optional<ScreenLine>>(extent.row));
+    this->didChange({
+      Point(startRow, 0),
+      extent,
+      extent
+    });
+  });
+}
+
 DisplayMarkerLayer *DisplayLayer::addMarkerLayer() {
   DisplayMarkerLayer *markerLayer = new DisplayMarkerLayer(this, this->buffer->addMarkerLayer(), true);
   this->displayMarkerLayersById[markerLayer->id] = markerLayer;

@@ -9,6 +9,7 @@ class TextBuffer;
 class ScreenLineBuilder;
 class MarkerLayer;
 class DisplayMarkerLayer;
+class LanguageMode;
 
 class DisplayLayer {
 public:
@@ -66,6 +67,7 @@ public:
   ~DisplayLayer();
 
   void clearSpatialIndex();
+  void bufferDidChangeLanguageMode(LanguageMode *);
   DisplayMarkerLayer *addMarkerLayer();
   DisplayMarkerLayer *getMarkerLayer(unsigned);
   Range bufferRangeForFold(unsigned);

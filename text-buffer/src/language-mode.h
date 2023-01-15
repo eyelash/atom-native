@@ -3,6 +3,7 @@
 
 #include "range.h"
 #include <memory>
+#include <functional>
 
 class LanguageMode {
 public:
@@ -21,6 +22,7 @@ public:
   virtual void bufferDidChange(Range, Range, const std::u16string &, const std::u16string &);
   virtual void bufferDidFinishTransaction();
   virtual std::unique_ptr<HighlightIterator> buildHighlightIterator();
+  virtual void onDidChangeHighlighting(std::function<void(Range)>);
   virtual std::string classNameForScopeId(int32_t);
   virtual std::u16string getLanguageId();
 };

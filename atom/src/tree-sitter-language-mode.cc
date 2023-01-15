@@ -5,6 +5,8 @@
 #include <text-buffer.h>
 
 static void insertContainingTag(int32_t, double, std::vector<int32_t> &, std::vector<double> &);
+static Range rangeForNode(TSNode);
+static Range rangeForNode(TSRange);
 static TreeSitterLanguageMode::NullLayerHighlightIterator *last(const std::vector<std::unique_ptr<TreeSitterLanguageMode::NullLayerHighlightIterator>> &);
 
 TreeSitterLanguageMode::TreeSitterLanguageMode(TextBuffer *buffer, TreeSitterGrammar *grammar) {
@@ -74,8 +76,25 @@ std::unique_ptr<LanguageMode::HighlightIterator> TreeSitterLanguageMode::buildHi
   return std::unique_ptr<LanguageMode::HighlightIterator>(new HighlightIterator(this));
 }
 
+void TreeSitterLanguageMode::onDidChangeHighlighting(std::function<void(Range)> callback) {
+  return this->didChangeHighlightingEmitter.on(callback);
+}
+
 std::string TreeSitterLanguageMode::classNameForScopeId(int32_t scopeId) {
   return this->grammar->classNameForScopeId(scopeId);
+}
+
+/*
+Section - Private
+*/
+
+void TreeSitterLanguageMode::emitRangeUpdate(Range range) {
+  const double startRow = range.start.row;
+  const double endRow = range.end.row;
+  for (double row = startRow; row < endRow; row++) {
+    //this.isFoldableCache[row] = undefined;
+  }
+  this->didChangeHighlightingEmitter.emit(range);
 }
 
 /*
@@ -195,15 +214,15 @@ void TreeSitterLanguageMode::LanguageLayer::performUpdate_(/* nodeRangeSet, para
   }*/
 
   if (this->tree) {
-    //const rangesWithSyntaxChanges = this.tree.getChangedRanges(tree);
+    const auto rangesWithSyntaxChanges = this->tree.getChangedRanges(tree);
     this->tree = tree;
 
-    /*if (rangesWithSyntaxChanges.length > 0) {
-      for (const range of rangesWithSyntaxChanges) {
-        this.languageMode.emitRangeUpdate(rangeForNode(range));
+    if (rangesWithSyntaxChanges.size() > 0) {
+      for (const auto range : rangesWithSyntaxChanges) {
+        this->languageMode->emitRangeUpdate(rangeForNode(range));
       }
 
-      const combinedRangeWithSyntaxChange = new Range(
+      /*const combinedRangeWithSyntaxChange = new Range(
         rangesWithSyntaxChanges[0].startPosition,
         last(rangesWithSyntaxChanges).endPosition
       );
@@ -213,12 +232,12 @@ void TreeSitterLanguageMode::LanguageLayer::performUpdate_(/* nodeRangeSet, para
         affectedRange = affectedRange.union(combinedRangeWithSyntaxChange);
       } else {
         affectedRange = combinedRangeWithSyntaxChange;
-      }
-    }*/
+      }*/
+    }
   } else {
     this->tree = tree;
-    /*this.languageMode.emitRangeUpdate(rangeForNode(tree.rootNode));
-    if (includedRanges) {
+    this->languageMode->emitRangeUpdate(rangeForNode(tree.rootNode()));
+    /*if (includedRanges) {
       affectedRange = new Range(
         includedRanges[0].startPosition,
         last(includedRanges).endPosition
@@ -637,6 +656,16 @@ static void insertContainingTag(int32_t tag, double index, std::vector<int32_t> 
     tags.insert(tags.begin() + (i - indices.begin()), tag);
     indices.insert(i, index);
   }
+}
+
+static Point pointForTSPoint(TSPoint point) {
+  return Point(point.row, point.column);
+}
+static Range rangeForNode(TSNode node) {
+  return Range(pointForTSPoint(ts_node_start_point(node)), pointForTSPoint(ts_node_end_point(node)));
+}
+static Range rangeForNode(TSRange node) {
+  return Range(pointForTSPoint(node.start_point), pointForTSPoint(node.end_point));
 }
 
 static TreeSitterLanguageMode::NullLayerHighlightIterator *last(const std::vector<std::unique_ptr<TreeSitterLanguageMode::NullLayerHighlightIterator>> &array) {

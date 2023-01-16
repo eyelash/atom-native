@@ -45,4 +45,4 @@ public:
   bool clearTail();
 };
 
-#endif  // DISPLAY_MARKER_H_
+#endif // DISPLAY_MARKER_H_

@@ -80,4 +80,4 @@ private:
   Point getBeginningOfPreviousParagraphBufferPosition();
 };
 
-#endif  // CURSOR_H_
+#endif // CURSOR_H_

@@ -52,4 +52,4 @@ public:
   double compareBufferPosition(Point);
 };
 
-#endif  // SCREEN_LINE_BUILDER_H_
+#endif // SCREEN_LINE_BUILDER_H_

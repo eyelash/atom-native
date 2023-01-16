@@ -61,4 +61,4 @@ DisplayMarkerLayer::FindParam containedInScreenRange(Range);
 DisplayMarkerLayer::FindParam intersectsBufferRange(Range);
 DisplayMarkerLayer::FindParam intersectsScreenRange(Range);
 
-#endif  // DISPLAY_MARKER_LAYER_H_
+#endif // DISPLAY_MARKER_LAYER_H_

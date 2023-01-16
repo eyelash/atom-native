@@ -761,67 +761,67 @@ void TextEditor::moveRight(double columnCount) {
 }
 
 void TextEditor::moveToBeginningOfLine() {
-  return this->moveCursors([](Cursor *cursor) { cursor->moveToBeginningOfLine(); });
+  return this->moveCursors([&](Cursor *cursor) { cursor->moveToBeginningOfLine(); });
 }
 
 void TextEditor::moveToBeginningOfScreenLine() {
-  return this->moveCursors([](Cursor *cursor) { cursor->moveToBeginningOfScreenLine(); });
+  return this->moveCursors([&](Cursor *cursor) { cursor->moveToBeginningOfScreenLine(); });
 }
 
 void TextEditor::moveToFirstCharacterOfLine() {
-  return this->moveCursors([](Cursor *cursor) { cursor->moveToFirstCharacterOfLine(); });
+  return this->moveCursors([&](Cursor *cursor) { cursor->moveToFirstCharacterOfLine(); });
 }
 
 void TextEditor::moveToEndOfLine() {
-  return this->moveCursors([](Cursor *cursor) { cursor->moveToEndOfLine(); });
+  return this->moveCursors([&](Cursor *cursor) { cursor->moveToEndOfLine(); });
 }
 
 void TextEditor::moveToEndOfScreenLine() {
-  return this->moveCursors([](Cursor *cursor) { cursor->moveToEndOfScreenLine(); });
+  return this->moveCursors([&](Cursor *cursor) { cursor->moveToEndOfScreenLine(); });
 }
 
 void TextEditor::moveToBeginningOfWord() {
-  return this->moveCursors([](Cursor *cursor) { cursor->moveToBeginningOfWord(); });
+  return this->moveCursors([&](Cursor *cursor) { cursor->moveToBeginningOfWord(); });
 }
 
 void TextEditor::moveToEndOfWord() {
-  return this->moveCursors([](Cursor *cursor) { cursor->moveToEndOfWord(); });
+  return this->moveCursors([&](Cursor *cursor) { cursor->moveToEndOfWord(); });
 }
 
 void TextEditor::moveToTop() {
-  return this->moveCursors([](Cursor *cursor) { cursor->moveToTop(); });
+  return this->moveCursors([&](Cursor *cursor) { cursor->moveToTop(); });
 }
 
 void TextEditor::moveToBottom() {
-  return this->moveCursors([](Cursor *cursor) { cursor->moveToBottom(); });
+  return this->moveCursors([&](Cursor *cursor) { cursor->moveToBottom(); });
 }
 
 void TextEditor::moveToBeginningOfNextWord() {
-  return this->moveCursors([](Cursor *cursor) { cursor->moveToBeginningOfNextWord(); });
+  return this->moveCursors([&](Cursor *cursor) { cursor->moveToBeginningOfNextWord(); });
 }
 
 void TextEditor::moveToPreviousWordBoundary() {
-  return this->moveCursors([](Cursor *cursor) { cursor->moveToPreviousWordBoundary(); });
+  return this->moveCursors([&](Cursor *cursor) { cursor->moveToPreviousWordBoundary(); });
 }
 
 void TextEditor::moveToNextWordBoundary() {
-  return this->moveCursors([](Cursor *cursor) { cursor->moveToNextWordBoundary(); });
+  return this->moveCursors([&](Cursor *cursor) { cursor->moveToNextWordBoundary(); });
 }
 
 void TextEditor::moveToPreviousSubwordBoundary() {
-  return this->moveCursors([](Cursor *cursor) { cursor->moveToPreviousSubwordBoundary(); });
+  return this->moveCursors([&](Cursor *cursor) { cursor->moveToPreviousSubwordBoundary(); });
 }
 
 void TextEditor::moveToNextSubwordBoundary() {
-  return this->moveCursors([](Cursor *cursor) { cursor->moveToNextSubwordBoundary(); });
+  return this->moveCursors([&](Cursor *cursor) { cursor->moveToNextSubwordBoundary(); });
 }
 
 void TextEditor::moveToBeginningOfNextParagraph() {
-  return this->moveCursors([](Cursor *cursor) { cursor->moveToBeginningOfNextParagraph(); });
+  return this->moveCursors([&](Cursor *cursor) { cursor->moveToBeginningOfNextParagraph(); });
 }
 
 void TextEditor::moveToBeginningOfPreviousParagraph() {
-  return this->moveCursors([](Cursor *cursor) {
+  return this->moveCursors([&](Cursor *cursor) {
     cursor->moveToBeginningOfPreviousParagraph();
   });
 }
@@ -1003,7 +1003,7 @@ void TextEditor::selectToBeginningOfLine() {
 }
 
 void TextEditor::selectToFirstCharacterOfLine() {
-  return this->expandSelectionsBackward([](Selection *selection) {
+  return this->expandSelectionsBackward([&](Selection *selection) {
     selection->selectToFirstCharacterOfLine();
   });
 }
@@ -1015,63 +1015,63 @@ void TextEditor::selectToEndOfLine() {
 }
 
 void TextEditor::selectToBeginningOfWord() {
-  return this->expandSelectionsBackward([](Selection *selection) {
+  return this->expandSelectionsBackward([&](Selection *selection) {
     selection->selectToBeginningOfWord();
   });
 }
 
 void TextEditor::selectToEndOfWord() {
-  return this->expandSelectionsForward([](Selection *selection) {
+  return this->expandSelectionsForward([&](Selection *selection) {
     selection->selectToEndOfWord();
   });
 }
 
 void TextEditor::selectToPreviousSubwordBoundary() {
-  return this->expandSelectionsBackward([](Selection *selection) {
+  return this->expandSelectionsBackward([&](Selection *selection) {
     selection->selectToPreviousSubwordBoundary();
   });
 }
 
 void TextEditor::selectToNextSubwordBoundary() {
-  return this->expandSelectionsForward([](Selection *selection) {
+  return this->expandSelectionsForward([&](Selection *selection) {
     selection->selectToNextSubwordBoundary();
   });
 }
 
 void TextEditor::selectLinesContainingCursors() {
-  return this->expandSelectionsForward([](Selection *selection) { selection->selectLine(); });
+  return this->expandSelectionsForward([&](Selection *selection) { selection->selectLine(); });
 }
 
 void TextEditor::selectWordsContainingCursors() {
-  return this->expandSelectionsForward([](Selection *selection) { selection->selectWord(); });
+  return this->expandSelectionsForward([&](Selection *selection) { selection->selectWord(); });
 }
 
 void TextEditor::selectToPreviousWordBoundary() {
-  return this->expandSelectionsBackward([](Selection *selection) {
+  return this->expandSelectionsBackward([&](Selection *selection) {
     selection->selectToPreviousWordBoundary();
   });
 }
 
 void TextEditor::selectToNextWordBoundary() {
-  return this->expandSelectionsForward([](Selection *selection) {
+  return this->expandSelectionsForward([&](Selection *selection) {
     selection->selectToNextWordBoundary();
   });
 }
 
 void TextEditor::selectToBeginningOfNextWord() {
-  return this->expandSelectionsForward([](Selection *selection) {
+  return this->expandSelectionsForward([&](Selection *selection) {
     selection->selectToBeginningOfNextWord();
   });
 }
 
 void TextEditor::selectToBeginningOfNextParagraph() {
-  return this->expandSelectionsForward([](Selection *selection) {
+  return this->expandSelectionsForward([&](Selection *selection) {
     selection->selectToBeginningOfNextParagraph();
   });
 }
 
 void TextEditor::selectToBeginningOfPreviousParagraph() {
-  return this->expandSelectionsBackward([](Selection *selection) {
+  return this->expandSelectionsBackward([&](Selection *selection) {
     selection->selectToBeginningOfPreviousParagraph();
   });
 }
@@ -1102,13 +1102,13 @@ std::vector<Selection *> TextEditor::getSelectionsOrderedByBufferPosition() {
 }
 
 void TextEditor::addSelectionBelow() {
-  return this->expandSelectionsForward([](Selection *selection) {
+  return this->expandSelectionsForward([&](Selection *selection) {
     selection->addSelectionBelow();
   });
 }
 
 void TextEditor::addSelectionAbove() {
-  return this->expandSelectionsBackward([](Selection *selection) {
+  return this->expandSelectionsBackward([&](Selection *selection) {
     selection->addSelectionAbove();
   });
 }

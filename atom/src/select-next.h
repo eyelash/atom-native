@@ -26,4 +26,4 @@ public:
   bool isWordSelected(Selection *);
 };
 
-#endif  // SELECT_NEXT_H_
+#endif // SELECT_NEXT_H_

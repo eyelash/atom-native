@@ -31,4 +31,4 @@ public:
   void observeDecoratedLayer(DisplayMarkerLayer *, bool);
 };
 
-#endif  // DECORATION_MANAGER_H_
+#endif // DECORATION_MANAGER_H_

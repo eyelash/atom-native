@@ -119,4 +119,4 @@ public:
   friend class ScreenLineBuilder;
 };
 
-#endif  // DISPLAY_LAYER_H_
+#endif // DISPLAY_LAYER_H_

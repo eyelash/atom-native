@@ -61,7 +61,7 @@ public:
     HighlightIterator(TreeSitterLanguageMode *);
     ~HighlightIterator();
     std::vector<int32_t> seek(Point, double) override;
-    bool moveToSuccessor() override;
+    void moveToSuccessor() override;
     void detectCoveredScope();
     Point getPosition() override;
     std::vector<int32_t> getCloseScopeIds() override;

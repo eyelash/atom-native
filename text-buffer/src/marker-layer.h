@@ -66,4 +66,4 @@ MarkerLayer::FindParam intersectsRowRange(std::pair<double, double>);
 MarkerLayer::FindParam intersectsRowRange(double, double);
 MarkerLayer::FindParam containedInRange(Range);
 
-#endif  // MARKER_LAYER_H_
+#endif // MARKER_LAYER_H_

@@ -97,4 +97,4 @@ public:
   void plantTail();
 };
 
-#endif  // SELECTION_H_
+#endif // SELECTION_H_

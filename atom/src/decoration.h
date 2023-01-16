@@ -42,4 +42,4 @@ public:
   void setProperties(Properties);
 };
 
-#endif  // DECORATION_H_
+#endif // DECORATION_H_

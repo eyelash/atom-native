@@ -11,4 +11,4 @@ template <class T> void intersectSet(flat_set<T> &set, const flat_set<T> &other)
   }
 }
 
-#endif  // SET_HELPERS_H_
+#endif // SET_HELPERS_H_

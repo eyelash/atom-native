@@ -13,4 +13,4 @@ public:
   const std::string &getPath() const;
 };
 
-#endif  // FILE_H_
+#endif // FILE_H_

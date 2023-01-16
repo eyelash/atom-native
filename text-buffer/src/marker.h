@@ -56,4 +56,4 @@ private:
   bool update(const Range &, const UpdateParams &);
 };
 
-#endif  // MARKER_H_
+#endif // MARKER_H_

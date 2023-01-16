@@ -16,4 +16,4 @@ public:
   Decoration::Properties getProperties();
 };
 
-#endif  // LAYER_DECORATION_H_
+#endif // LAYER_DECORATION_H_

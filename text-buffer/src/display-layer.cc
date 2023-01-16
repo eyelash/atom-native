@@ -39,11 +39,11 @@ DisplayLayer::DisplayLayer(unsigned id, TextBuffer *buffer) {
 }
 
 DisplayLayer::~DisplayLayer() {
-  delete screenLineBuilder;
-  for (auto& displayMarkerLayer : this->displayMarkerLayersById) {
+  delete this->screenLineBuilder;
+  for (auto &displayMarkerLayer : this->displayMarkerLayersById) {
     delete displayMarkerLayer.second;
   }
-  delete spatialIndex;
+  delete this->spatialIndex;
 }
 
 void DisplayLayer::clearSpatialIndex() {

@@ -197,4 +197,4 @@ private:
   void createLastSelectionIfNeeded();
 };
 
-#endif  // TEXT_EDITOR_H_
+#endif // TEXT_EDITOR_H_

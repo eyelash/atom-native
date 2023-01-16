@@ -15,10 +15,10 @@ public:
     }
   }
   void emit(A... arguments) {
-    for (const auto& handler : handlers) {
+    for (const auto &handler : handlers) {
       handler(arguments...);
     }
   }
 };
 
-#endif  // EVENT_KIT_H_
+#endif // EVENT_KIT_H_

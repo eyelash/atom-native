@@ -35,4 +35,4 @@ struct Point {
   static Point INFINITY_;
 };
 
-#endif  // POINT_H_
+#endif // POINT_H_

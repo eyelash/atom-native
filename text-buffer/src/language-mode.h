@@ -11,7 +11,7 @@ public:
   public:
     virtual ~HighlightIterator();
     virtual std::vector<int32_t> seek(Point, double);
-    virtual bool moveToSuccessor();
+    virtual void moveToSuccessor();
     virtual Point getPosition();
     virtual std::vector<int32_t> getCloseTags();
     virtual std::vector<int32_t> getOpenTags();
@@ -27,4 +27,4 @@ public:
   virtual std::u16string getLanguageId();
 };
 
-#endif  // LANGUAGE_MODE_H_
+#endif // LANGUAGE_MODE_H_

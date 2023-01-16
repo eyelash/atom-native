@@ -64,7 +64,7 @@ void SelectNext::scanForNextOccurrence(Range range, TextBuffer::ScanIterator cal
   if (this->wordSelected) {
     //nonWordCharacters = atom.config.get('editor.nonWordCharacters');
     const char16_t *nonWordCharacters = this->editor->getNonWordCharacters(Point());
-    text = u"(^|[ \\t" + escapeRegExp(nonWordCharacters) + u"]+)" + text + u"(?=$|[\\s" + escapeRegExp(nonWordCharacters) + u"]+)";
+    text = u"(^|[ \t" + escapeRegExp(nonWordCharacters) + u"]+)" + text + u"(?=$|[\\s" + escapeRegExp(nonWordCharacters) + u"]+)";
   }
   return this->editor->scanInBufferRange(Regex(text, nullptr), range, [&](TextBuffer::SearchCallbackArgument &result) {
     const std::u16string matchText = result.getMatchText();

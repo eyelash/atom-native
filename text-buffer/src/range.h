@@ -34,4 +34,4 @@ struct Range {
   Point toDelta() const;
 };
 
-#endif  // RANGE_H_
+#endif // RANGE_H_

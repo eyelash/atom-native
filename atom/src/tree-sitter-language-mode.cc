@@ -323,7 +323,7 @@ std::vector<int32_t> TreeSitterLanguageMode::HighlightIterator::seek(Point targe
   return containingTags;
 }
 
-bool TreeSitterLanguageMode::HighlightIterator::moveToSuccessor() {
+void TreeSitterLanguageMode::HighlightIterator::moveToSuccessor() {
   // Advance the earliest layer iterator to its next scope boundary.
   LayerHighlightIterator *leader = last(this->iterators);
 
@@ -345,7 +345,6 @@ bool TreeSitterLanguageMode::HighlightIterator::moveToSuccessor() {
   }
 
   this->detectCoveredScope();
-  return false;
 }
 
 void TreeSitterLanguageMode::HighlightIterator::detectCoveredScope() {

@@ -116,4 +116,4 @@ public:
   unsigned getNextMarkerId();
 };
 
-#endif  // TEXT_BUFFER_H_
+#endif // TEXT_BUFFER_H_

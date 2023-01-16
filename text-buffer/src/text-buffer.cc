@@ -41,8 +41,8 @@ TextBuffer::~TextBuffer() {
   for (auto &markerLayer : this->markerLayers) {
     delete markerLayer.second;
   }
-  delete buffer;
-  delete languageMode;
+  delete this->buffer;
+  delete this->languageMode;
 }
 
 /*
@@ -133,9 +133,7 @@ double TextBuffer::lineLengthForRow(double row) {
 
 bool TextBuffer::isRowBlank(double row) {
   static const Regex regex(u"\\S", nullptr);
-  Regex::MatchData match_data(regex);
-  optional<std::u16string> line = this->lineForRow(row);
-  return regex.match(line->data(), line->size(), match_data).type != Regex::MatchResult::Full;
+  return !regex.match(this->lineForRow(row));
 }
 
 optional<double> TextBuffer::previousNonBlankRow(double startRow) {
@@ -199,11 +197,9 @@ Range TextBuffer::applyChange(Point oldStart, Point oldEnd, Point newStart, Poin
 
   const Point oldExtent = traversal(oldEnd, oldStart);
   const Range oldRange = Range(newStart, traverse(newStart, oldExtent));
-  //oldRange.freeze()
 
   const Point newExtent = traversal(newEnd, newStart);
   const Range newRange = Range(newStart, traverse(newStart, newExtent));
-  //newRange.freeze()
 
   if (pushToHistory) {
     /*if (!change.oldExtent) change.oldExtent = oldExtent

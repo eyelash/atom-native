@@ -1,33 +1,33 @@
 #include "language-mode.h"
 
+static const std::vector<int32_t> EMPTY;
+
 LanguageMode::HighlightIterator::~HighlightIterator() {}
 
 std::vector<int32_t> LanguageMode::HighlightIterator::seek(Point position, double endRow) {
-	return std::vector<int32_t>();
+	return EMPTY;
 }
 
-bool LanguageMode::HighlightIterator::moveToSuccessor() {
-  return false;
-}
+void LanguageMode::HighlightIterator::moveToSuccessor() {}
 
 Point LanguageMode::HighlightIterator::getPosition() {
   return Point::INFINITY_;
 }
 
 std::vector<int32_t> LanguageMode::HighlightIterator::getCloseTags() {
-  return std::vector<int32_t>();
+  return EMPTY;
 }
 
 std::vector<int32_t> LanguageMode::HighlightIterator::getOpenTags() {
-  return std::vector<int32_t>();
+  return EMPTY;
 }
 
 std::vector<int32_t> LanguageMode::HighlightIterator::getCloseScopeIds() {
-  return std::vector<int32_t>();
+  return EMPTY;
 }
 
 std::vector<int32_t> LanguageMode::HighlightIterator::getOpenScopeIds() {
-  return std::vector<int32_t>();
+  return EMPTY;
 }
 
 LanguageMode::~LanguageMode() {}

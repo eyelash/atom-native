@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <iterator>
 
-template <class T> void spliceArray(std::vector<T>& array, double start, double removedCount, const std::vector<T>& insertedItems = std::vector<T>()) {
+template <class T> void spliceArray(std::vector<T> &array, double start, double removedCount, const std::vector<T> &insertedItems = std::vector<T>()) {
   const double oldLength = array.size();
   const double insertedCount = insertedItems.size();
   removedCount = std::min(removedCount, oldLength - start);
@@ -63,4 +63,4 @@ std::u16string join(const std::vector<std::u16string> &, const std::u16string &)
 
 std::u16string escapeRegExp(const std::u16string &string);
 
-#endif  // HELPERS_H_
+#endif // HELPERS_H_

@@ -13,4 +13,4 @@ Point clipNegativePoint(const Point &);
 Point max(const Point &, const Point &);
 Point min(const Point &, const Point &);
 
-#endif  // POINT_HELPERS_H_
+#endif // POINT_HELPERS_H_

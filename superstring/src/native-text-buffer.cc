@@ -1171,3 +1171,221 @@ void NativeTextBuffer::squash_layers(const vector<Layer *> &layers) {
     delete layers[layer_index];
   }
 }
+
+#include "encoding-conversion.h"
+#include "text-diff.h"
+#include <sys/stat.h>
+
+using std::wstring;
+
+#ifdef WIN32
+
+#include <windows.h>
+#include <io.h>
+
+static wstring ToUTF16(string input) {
+  wstring result;
+  int length = MultiByteToWideChar(CP_UTF8, 0, input.c_str(), input.length(), NULL, 0);
+  if (length > 0) {
+    result.resize(length);
+    MultiByteToWideChar(CP_UTF8, 0, input.c_str(), input.length(), &result[0], length);
+  }
+  return result;
+}
+
+static size_t get_file_size(FILE *file) {
+  LARGE_INTEGER result;
+  if (!GetFileSizeEx((HANDLE)_get_osfhandle(fileno(file)), &result)) {
+    errno = GetLastError();
+    return -1;
+  }
+  return static_cast<size_t>(result.QuadPart);
+}
+
+static FILE *open_file(const string &name, const char *flags) {
+  wchar_t wide_flags[6] = {0, 0, 0, 0, 0, 0};
+  size_t flag_count = strlen(flags);
+  MultiByteToWideChar(CP_UTF8, 0, flags, flag_count, wide_flags, flag_count);
+  return _wfopen(ToUTF16(name).c_str(), wide_flags);
+}
+
+#else
+
+static size_t get_file_size(FILE *file) {
+  struct stat file_stats;
+  if (fstat(fileno(file), &file_stats) != 0) return -1;
+  return file_stats.st_size;
+}
+
+static FILE *open_file(const std::string &name, const char *flags) {
+  return fopen(name.c_str(), flags);
+}
+
+#endif
+
+static size_t CHUNK_SIZE = 10 * 1024;
+
+static const int INVALID_ENCODING = -1;
+
+struct Error {
+  int number;
+  const char *syscall;
+};
+
+template <typename Callback>
+static u16string load_file(
+  const string &file_name,
+  const string &encoding_name,
+  optional<Error> *error,
+  const Callback &callback
+) {
+  auto conversion = transcoding_from(encoding_name.c_str());
+  if (!conversion) {
+    *error = Error{INVALID_ENCODING, nullptr};
+    return u"";
+  }
+
+  FILE *file = open_file(file_name, "rb");
+  if (!file) {
+    *error = Error{errno, "open"};
+    return u"";
+  }
+
+  size_t file_size = get_file_size(file);
+  if (file_size == static_cast<size_t>(-1)) {
+    *error = Error{errno, "stat"};
+    return u"";
+  }
+
+  u16string loaded_string;
+  vector<char> input_buffer(CHUNK_SIZE);
+  loaded_string.reserve(file_size);
+  if (!conversion->decode(
+    loaded_string,
+    file,
+    input_buffer,
+    [&callback, file_size](size_t bytes_read) {
+      size_t percent_done = file_size > 0 ? 100 * bytes_read / file_size : 100;
+      callback(percent_done);
+    }
+  )) {
+    *error = Error{errno, "read"};
+  }
+
+  fclose(file);
+  return loaded_string;
+}
+
+optional<Patch> NativeTextBuffer::load(
+  const std::string &file_name,
+  const std::string &encoding_name,
+  std::function<void(size_t, const optional<Patch> &)> progress_callback
+) {
+  NativeTextBuffer *buffer = this;
+  NativeTextBuffer::Snapshot *snapshot = this->create_snapshot();
+  optional<Text> loaded_text;
+  optional<Error> error;
+  Patch patch;
+  bool force = false;
+  bool compute_patch = true;
+  bool cancelled = false;
+
+  auto callback = [](size_t percent_done) {};
+
+  // Execute
+  if (!loaded_text) loaded_text = Text{load_file(file_name, encoding_name, &error, callback)};
+  if (!error && compute_patch) patch = text_diff(snapshot->base_text(), *loaded_text);
+
+  // Finish
+  if (error) {
+    delete snapshot;
+    return optional<Patch>{};
+  }
+
+  if (cancelled || (!force && buffer->is_modified())) {
+    delete snapshot;
+    return optional<Patch>{};
+  }
+
+  Patch inverted_changes = buffer->get_inverted_changes(snapshot);
+  delete snapshot;
+
+  if (compute_patch && inverted_changes.get_change_count() > 0) {
+    inverted_changes.combine(patch);
+    patch = move(inverted_changes);
+  }
+
+  bool has_changed;
+  optional<Patch> patch_wrapper;
+  if (compute_patch) {
+    has_changed = !compute_patch || patch.get_change_count() > 0;
+    patch_wrapper = move(patch);
+  } else {
+    has_changed = true;
+    patch_wrapper = optional<Patch>{};
+  }
+
+  if (progress_callback) {
+    progress_callback(100, patch_wrapper);
+  }
+
+  if (has_changed) {
+    buffer->reset(move(*loaded_text));
+  } else {
+    buffer->flush_changes();
+  }
+
+  return patch_wrapper;
+}
+
+static void save_file(
+  const string &file_name,
+  const string &encoding_name,
+  NativeTextBuffer::Snapshot *snapshot,
+  optional<Error> *error
+) {
+  auto conversion = transcoding_to(encoding_name.c_str());
+  if (!conversion) {
+    *error = Error{INVALID_ENCODING, nullptr};
+    return;
+  }
+
+  FILE *file = open_file(file_name, "wb+");
+  if (!file) {
+    *error = Error{errno, "open"};
+    return;
+  }
+
+  vector<char> output_buffer(CHUNK_SIZE);
+  for (TextSlice &chunk : snapshot->chunks()) {
+    if (!conversion->encode(
+      chunk.text->content,
+      chunk.start_offset(),
+      chunk.end_offset(),
+      file,
+      output_buffer
+    )) {
+      *error = Error{errno, "write"};
+      fclose(file);
+      return;
+    }
+  }
+
+  fclose(file);
+}
+
+void NativeTextBuffer::save(const std::string &file_name, const std::string &encoding_name) {
+  NativeTextBuffer::Snapshot *snapshot = this->create_snapshot();
+  optional<Error> error;
+
+  // Execute
+  save_file(file_name, encoding_name, snapshot, &error);
+
+  // Finish
+  if (error) {
+    delete snapshot;
+  } else {
+    snapshot->flush_preceding_changes();
+    delete snapshot;
+  }
+}

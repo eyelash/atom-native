@@ -2,6 +2,7 @@
 #define TEXT_BUFFER_H_
 
 #include "range.h"
+#include "file.h"
 #include <string>
 #include <unordered_map>
 #include <native-text-buffer.h>
@@ -12,6 +13,7 @@ class MarkerLayer;
 class DisplayLayer;
 
 class TextBuffer {
+  optional<File> file;
   unsigned nextMarkerLayerId;
   unsigned nextDisplayLayerId;
   MarkerLayer *defaultMarkerLayer;
@@ -26,6 +28,7 @@ public:
 
   TextBuffer();
   TextBuffer(const std::u16string &text);
+  static TextBuffer *loadSync(const std::string &);
   ~TextBuffer();
 
   class SearchCallbackArgument {
@@ -43,6 +46,11 @@ public:
   using ScanIterator = std::function<void(SearchCallbackArgument &)>;
 
   bool isModified();
+  optional<std::string> getPath();
+  void setPath(const std::string &filePath);
+  void setFile(const File &file);
+  optional<std::string> getEncoding();
+  optional<std::string> getUri();
   bool isEmpty() const;
   std::u16string getText();
   uint16_t getCharacterAtPosition(Point);
@@ -94,10 +102,14 @@ public:
   Point positionForCharacterIndex(double);
   Range clipRange(Range);
   Point clipPosition(Point);
+  TextBuffer *save();
+  TextBuffer *saveAs(const std::string &);
+  TextBuffer *saveTo(const File &);
   DisplayLayer *addDisplayLayer();
   DisplayLayer *getDisplayLayer(unsigned);
   LanguageMode *getLanguageMode();
   void setLanguageMode(LanguageMode *);
+  TextBuffer *loadSync();
   void emitDidChangeTextEvent();
   void markerCreated(MarkerLayer *, Marker *);
   void markersUpdated(MarkerLayer *);

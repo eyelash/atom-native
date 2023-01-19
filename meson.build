@@ -34,6 +34,7 @@ text_buffer = declare_dependency(
       'text-buffer/src/display-layer.cc',
       'text-buffer/src/display-marker-layer.cc',
       'text-buffer/src/display-marker.cc',
+      'text-buffer/src/file.cc',
       'text-buffer/src/helpers.cc',
       'text-buffer/src/is-character-pair.cc',
       'text-buffer/src/language-mode.cc',

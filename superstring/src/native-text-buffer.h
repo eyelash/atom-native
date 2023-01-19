@@ -100,6 +100,9 @@ public:
 
   size_t layer_count()  const;
   std::string get_dot_graph() const;
+
+  optional<Patch> load(const std::string &, const std::string &, std::function<void(size_t, const optional<Patch> &)>);
+  void save(const std::string &, const std::string &);
 };
 
 #endif  // SUPERSTRING_TEXT_BUFFER_H_

@@ -27,15 +27,18 @@ public:
   DecorationManager *decorationManager;
 
 public:
-  TextEditor();
+  TextEditor(TextBuffer * = nullptr);
   ~TextEditor();
 
   void decorateCursorLine();
   void subscribeToBuffer();
   void subscribeToDisplayLayer();
   TextBuffer *getBuffer();
+  optional<std::string> getPath();
   bool isModified();
   bool isEmpty();
+  TextBuffer *save();
+  TextBuffer *saveAs(const std::string &);
   std::u16string getText();
   std::u16string getTextInBufferRange(Range);
   double getLineCount();

@@ -27,6 +27,13 @@ TextBuffer::TextBuffer(const std::u16string &text) {
   this->markerLayers[this->defaultMarkerLayer->id] = this->defaultMarkerLayer;
 }
 
+TextBuffer *TextBuffer::loadSync(const std::string &filePath) {
+  TextBuffer *buffer = new TextBuffer();
+  buffer->setPath(filePath);
+  buffer->loadSync();
+  return buffer;
+}
+
 TextBuffer::~TextBuffer() {
   for (auto &displayLayer : this->displayLayers) {
     delete displayLayer.second;
@@ -43,11 +50,38 @@ Section: File Details
 */
 
 bool TextBuffer::isModified() {
-  if (/* this.file */ false) {
+  if (this->file) {
     return /* !this.file.existsSync() || */ this->buffer->is_modified();
   } else {
     return this->buffer->size() > 0;
   }
+}
+
+optional<std::string> TextBuffer::getPath() {
+  return this->file ? this->file->getPath() : optional<std::string>();
+  //return this->file->getPath();
+}
+
+void TextBuffer::setPath(const std::string &filePath) {
+  //if (filePath == this->getPath()) return;
+  return this->setFile(File(filePath));
+}
+
+void TextBuffer::setFile(const File &file) {
+  //if (file.getPath() == this->getPath()) return;
+
+  this->file = file;
+  //this->subscribeToFile();
+
+  //this.emitter.emit('did-change-path', this.getPath());
+}
+
+optional<std::string> TextBuffer::getEncoding() {
+  return std::string("UTF-8");
+}
+
+optional<std::string> TextBuffer::getUri() {
+  return this->getPath();
 }
 
 /*
@@ -455,6 +489,35 @@ Point TextBuffer::clipPosition(Point position) {
 Section: Buffer Operations
 */
 
+TextBuffer *TextBuffer::save() {
+  return this->saveTo(*this->file);
+}
+
+TextBuffer *TextBuffer::saveAs(const std::string &filePath) {
+  return this->saveTo(File(filePath));
+}
+
+TextBuffer *TextBuffer::saveTo(const File &file) {
+  //if (!file) throw new Error("Can't save a buffer with no file")
+
+  const std::string &filePath = file.getPath();
+
+  //this.outstandingSaveCount++
+
+  //mkdirp(path.dirname(filePath))
+  this->buffer->save(filePath, *this->getEncoding());
+
+  //this.outstandingSaveCount--
+
+  this->setFile(file);
+  //this.fileHasChangedSinceLastLoad = false;
+  //this.digestWhenLastPersisted = this.buffer.baseTextDigest();
+  //this.loaded = true;
+  //this.emitModifiedStatusChanged(false);
+  //this.emitter.emit('did-save', {path: filePath});
+  return this;
+}
+
 /*
 Section: Display Layers
 */
@@ -494,6 +557,26 @@ void TextBuffer::setLanguageMode(LanguageMode *languageMode) {
 /*
 Section: Private Utility Methods
 */
+
+TextBuffer *TextBuffer::loadSync() {
+  optional<Patch> patch = this->buffer->load(
+    *this->getPath(),
+    *this->getEncoding(),
+    [&](double percentDone, const optional<Patch> &patch) {
+      if (patch && patch->get_change_count() > 0) {
+        /*checkpoint = this.historyProvider.createCheckpoint({
+          markers: this.createMarkerSnapshot(),
+          isBarrier: true
+        })
+        this.emitter.emit('will-reload')
+        this.emitWillChangeEvent()*/
+      }
+    }
+  );
+  //this->finishLoading(checkpoint, patch, options);
+
+  return this;
+}
 
 void TextBuffer::emitDidChangeTextEvent() {
   //this->cachedHasAstral = null

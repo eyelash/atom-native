@@ -10,9 +10,13 @@
 
 constexpr const char16_t *DEFAULT_NON_WORD_CHARACTERS = u"/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…";
 
-TextEditor::TextEditor() {
+TextEditor::TextEditor(TextBuffer *buffer) {
   this->softTabs = true;
-  this->buffer = new TextBuffer();
+  if (buffer) {
+    this->buffer = buffer;
+  } else {
+    this->buffer = new TextBuffer();
+  }
   this->displayLayer = this->buffer->addDisplayLayer();
   //this->defaultMarkerLayer = this->displayLayer->addMarkerLayer();
   this->selectionsMarkerLayer = this->addMarkerLayer();
@@ -86,6 +90,10 @@ TextBuffer *TextEditor::getBuffer() {
 Section: File Details
 */
 
+optional<std::string> TextEditor::getPath() {
+  return this->buffer->getPath();
+}
+
 bool TextEditor::isModified() {
   return this->buffer->isModified();
 }
@@ -97,6 +105,14 @@ bool TextEditor::isEmpty() {
 /*
 Section: File Operations
 */
+
+TextBuffer *TextEditor::save() {
+  return this->buffer->save();
+}
+
+TextBuffer *TextEditor::saveAs(const std::string &filePath) {
+  return this->buffer->saveAs(filePath);
+}
 
 /*
 Section: Reading Text

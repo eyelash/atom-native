@@ -11,18 +11,7 @@ class TextBuffer;
 
 class TreeSitterLanguageMode : public LanguageMode {
 public:
-  class NullLayerHighlightIterator {
-  public:
-    NullLayerHighlightIterator();
-    virtual ~NullLayerHighlightIterator();
-    virtual bool seek(double, std::vector<int32_t> &, std::vector<double> &);
-    virtual bool moveToSuccessor();
-    virtual Point getPosition();
-    virtual double compare(const NullLayerHighlightIterator *);
-    virtual std::vector<int32_t> getCloseScopeIds();
-    virtual std::vector<int32_t> getOpenScopeIds();
-  };
-
+  class LayerHighlightIterator;
   class LanguageLayer {
   public:
     TreeSitterLanguageMode *languageMode;
@@ -31,14 +20,14 @@ public:
     double depth;
     LanguageLayer(TreeSitterLanguageMode *, TreeSitterGrammar *, double);
     ~LanguageLayer();
-    std::unique_ptr<NullLayerHighlightIterator> buildHighlightIterator();
+    std::unique_ptr<LayerHighlightIterator> buildHighlightIterator();
     void handleTextChange(const TSInputEdit &, const std::u16string &, const std::u16string &);
     void update();
     void performUpdate_();
     TSInputEdit treeEditForBufferChange_(NativePoint, NativePoint, NativePoint, const std::u16string &, const std::u16string &);
   };
 
-  class LayerHighlightIterator : public NullLayerHighlightIterator {
+  class LayerHighlightIterator {
     LanguageLayer *languageLayer;
     double depth;
     bool atEnd;
@@ -52,12 +41,12 @@ public:
   public:
     LayerHighlightIterator(LanguageLayer *, TreeCursor);
     ~LayerHighlightIterator();
-    bool seek(double, std::vector<int32_t> &, std::vector<double> &) override;
-    bool moveToSuccessor() override;
-    Point getPosition() override;
-    double compare(const NullLayerHighlightIterator *) override;
-    std::vector<int32_t> getCloseScopeIds() override;
-    std::vector<int32_t> getOpenScopeIds() override;
+    bool seek(double, std::vector<int32_t> &, std::vector<double> &);
+    bool moveToSuccessor();
+    Point getPosition();
+    double compare(const LayerHighlightIterator *);
+    std::vector<int32_t> getCloseScopeIds();
+    std::vector<int32_t> getOpenScopeIds();
     bool moveUp_(bool);
     bool moveDown_();
     bool moveRight_();
@@ -66,7 +55,7 @@ public:
 
   class HighlightIterator : public LanguageMode::HighlightIterator {
     TreeSitterLanguageMode *languageMode;
-    std::vector<std::unique_ptr<NullLayerHighlightIterator>> iterators;
+    std::vector<std::unique_ptr<LayerHighlightIterator>> iterators;
     bool currentScopeIsCovered;
   public:
     HighlightIterator(TreeSitterLanguageMode *);

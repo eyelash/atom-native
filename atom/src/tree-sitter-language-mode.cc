@@ -7,12 +7,13 @@
 static void insertContainingTag(int32_t, double, std::vector<int32_t> &, std::vector<double> &);
 static Range rangeForNode(TSNode);
 static Range rangeForNode(TSRange);
-static TreeSitterLanguageMode::NullLayerHighlightIterator *last(const std::vector<std::unique_ptr<TreeSitterLanguageMode::NullLayerHighlightIterator>> &);
+static TreeSitterLanguageMode::LayerHighlightIterator *last(const std::vector<std::unique_ptr<TreeSitterLanguageMode::LayerHighlightIterator>> &);
 
 TreeSitterLanguageMode::TreeSitterLanguageMode(TextBuffer *buffer, TreeSitterGrammar *grammar) {
   this->buffer = buffer;
   this->grammar = grammar;
   this->rootLanguageLayer = new LanguageLayer(this, grammar, 0);
+  this->rootLanguageLayer->update();
 }
 
 TreeSitterLanguageMode::~TreeSitterLanguageMode() {
@@ -109,11 +110,11 @@ TreeSitterLanguageMode::LanguageLayer::LanguageLayer(TreeSitterLanguageMode *lan
 
 TreeSitterLanguageMode::LanguageLayer::~LanguageLayer() {}
 
-std::unique_ptr<TreeSitterLanguageMode::NullLayerHighlightIterator> TreeSitterLanguageMode::LanguageLayer::buildHighlightIterator() {
+std::unique_ptr<TreeSitterLanguageMode::LayerHighlightIterator> TreeSitterLanguageMode::LanguageLayer::buildHighlightIterator() {
   if (this->tree) {
-    return std::unique_ptr<TreeSitterLanguageMode::NullLayerHighlightIterator>(new LayerHighlightIterator(this, this->tree.walk()));
+    return std::unique_ptr<TreeSitterLanguageMode::LayerHighlightIterator>(new LayerHighlightIterator(this, this->tree.walk()));
   } else {
-    return std::unique_ptr<TreeSitterLanguageMode::NullLayerHighlightIterator>(new NullLayerHighlightIterator());
+    return nullptr;
   }
 }
 
@@ -298,7 +299,7 @@ std::vector<int32_t> TreeSitterLanguageMode::HighlightIterator::seek(Point targe
   );
 
   this->iterators.clear();
-  std::unique_ptr<NullLayerHighlightIterator> iterator = this->languageMode->rootLanguageLayer->buildHighlightIterator();
+  std::unique_ptr<LayerHighlightIterator> iterator = this->languageMode->rootLanguageLayer->buildHighlightIterator();
   if (iterator->seek(targetIndex, containingTags, containingTagStartIndices)) {
     this->iterators.push_back(std::move(iterator));
   }
@@ -324,7 +325,7 @@ std::vector<int32_t> TreeSitterLanguageMode::HighlightIterator::seek(Point targe
 
 bool TreeSitterLanguageMode::HighlightIterator::moveToSuccessor() {
   // Advance the earliest layer iterator to its next scope boundary.
-  NullLayerHighlightIterator *leader = last(this->iterators);
+  LayerHighlightIterator *leader = last(this->iterators);
 
   // Maintain the sorting of the iterators by their position in the document.
   if (leader->moveToSuccessor()) {
@@ -333,7 +334,7 @@ bool TreeSitterLanguageMode::HighlightIterator::moveToSuccessor() {
     while (i > 0 && this->iterators[i - 1]->compare(leader) < 0) i--;
     if (i < leaderIndex) {
       //this->iterators.splice(i, 0, this->iterators.pop());
-      std::unique_ptr<NullLayerHighlightIterator> iterator = std::move(this->iterators.back());
+      std::unique_ptr<LayerHighlightIterator> iterator = std::move(this->iterators.back());
       this->iterators.pop_back();
       this->iterators.insert(this->iterators.begin() + i, std::move(iterator));
     }
@@ -366,7 +367,7 @@ void TreeSitterLanguageMode::HighlightIterator::detectCoveredScope() {
 }
 
 Point TreeSitterLanguageMode::HighlightIterator::getPosition() {
-  NullLayerHighlightIterator *iterator = last(this->iterators);
+  LayerHighlightIterator *iterator = last(this->iterators);
   if (iterator) {
     return iterator->getPosition();
   } else {
@@ -375,7 +376,7 @@ Point TreeSitterLanguageMode::HighlightIterator::getPosition() {
 }
 
 std::vector<int32_t> TreeSitterLanguageMode::HighlightIterator::getCloseScopeIds() {
-  NullLayerHighlightIterator *iterator = last(this->iterators);
+  LayerHighlightIterator *iterator = last(this->iterators);
   if (iterator && !this->currentScopeIsCovered) {
     return iterator->getCloseScopeIds();
   }
@@ -383,7 +384,7 @@ std::vector<int32_t> TreeSitterLanguageMode::HighlightIterator::getCloseScopeIds
 }
 
 std::vector<int32_t> TreeSitterLanguageMode::HighlightIterator::getOpenScopeIds() {
-  NullLayerHighlightIterator *iterator = last(this->iterators);
+  LayerHighlightIterator *iterator = last(this->iterators);
   if (iterator && !this->currentScopeIsCovered) {
     return iterator->getOpenScopeIds();
   }
@@ -520,8 +521,7 @@ Point TreeSitterLanguageMode::LayerHighlightIterator::getPosition() {
   }
 }
 
-double TreeSitterLanguageMode::LayerHighlightIterator::compare(const NullLayerHighlightIterator *other_) {
-  const LayerHighlightIterator *other = static_cast<const LayerHighlightIterator *>(other_);
+double TreeSitterLanguageMode::LayerHighlightIterator::compare(const LayerHighlightIterator *other) {
   const double result = this->offset - other->offset;
   if (result != 0) return result;
   if (this->atEnd && !other->atEnd) return -1;
@@ -615,38 +615,6 @@ optional<int32_t> TreeSitterLanguageMode::LayerHighlightIterator::currentScopeId
   return optional<int32_t>();
 }
 
-/*
-NullLayerHighlightIterator
-*/
-
-TreeSitterLanguageMode::NullLayerHighlightIterator::NullLayerHighlightIterator() {}
-
-TreeSitterLanguageMode::NullLayerHighlightIterator::~NullLayerHighlightIterator() {}
-
-bool TreeSitterLanguageMode::NullLayerHighlightIterator::seek(double, std::vector<int32_t> &, std::vector<double> &) {
-  return false;
-}
-
-double TreeSitterLanguageMode::NullLayerHighlightIterator::compare(const NullLayerHighlightIterator *) {
-  return 1;
-}
-
-bool TreeSitterLanguageMode::NullLayerHighlightIterator::moveToSuccessor() {
-  return false;
-}
-
-Point TreeSitterLanguageMode::NullLayerHighlightIterator::getPosition() {
-  return Point::INFINITY_;
-}
-
-std::vector<int32_t> TreeSitterLanguageMode::NullLayerHighlightIterator::getOpenScopeIds() {
-  return {};
-}
-
-std::vector<int32_t> TreeSitterLanguageMode::NullLayerHighlightIterator::getCloseScopeIds() {
-  return {};
-}
-
 static void insertContainingTag(int32_t tag, double index, std::vector<int32_t> &tags, std::vector<double> &indices) {
   const auto i = std::find_if(indices.begin(), indices.end(), [&](double existingIndex) { return existingIndex > index; });
   if (i == indices.end()) {
@@ -668,7 +636,7 @@ static Range rangeForNode(TSRange node) {
   return Range(pointForTSPoint(node.start_point), pointForTSPoint(node.end_point));
 }
 
-static TreeSitterLanguageMode::NullLayerHighlightIterator *last(const std::vector<std::unique_ptr<TreeSitterLanguageMode::NullLayerHighlightIterator>> &array) {
+static TreeSitterLanguageMode::LayerHighlightIterator *last(const std::vector<std::unique_ptr<TreeSitterLanguageMode::LayerHighlightIterator>> &array) {
   if (array.size() > 0) {
     return array[array.size() - 1].get();
   } else {

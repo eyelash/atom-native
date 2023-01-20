@@ -323,14 +323,14 @@ void Cursor::moveToNextWordBoundary() {
 }
 
 void Cursor::moveToPreviousSubwordBoundary() {
-  //const options = { wordRegex: this.subwordRegExp({ backwards: true }) };
-  const Point position = this->getPreviousWordBoundaryBufferPosition(/* options */);
+  const Regex wordRegex = this->subwordRegExp(true);
+  const Point position = this->getPreviousWordBoundaryBufferPosition(&wordRegex);
   /* if (position) */ this->setBufferPosition(position);
 }
 
 void Cursor::moveToNextSubwordBoundary() {
-  //const options = { wordRegex: this.subwordRegExp() };
-  const Point position = this->getNextWordBoundaryBufferPosition(/* options */);
+  const Regex wordRegex = this->subwordRegExp();
+  const Point position = this->getNextWordBoundaryBufferPosition(&wordRegex);
   /* if (position) */ this->setBufferPosition(position);
 }
 
@@ -360,7 +360,7 @@ void Cursor::moveToBeginningOfPreviousParagraph() {
 Section: Local Positions and Ranges
 */
 
-Point Cursor::getPreviousWordBoundaryBufferPosition(/* options = {} */) {
+Point Cursor::getPreviousWordBoundaryBufferPosition(const Regex *wordRegex) {
   const Point currentBufferPosition = this->getBufferPosition();
   const optional<double> previousNonBlankRow = this->editor->getBuffer()->previousNonBlankRow(
     currentBufferPosition.row
@@ -371,7 +371,7 @@ Point Cursor::getPreviousWordBoundaryBufferPosition(/* options = {} */) {
   );
 
   const auto ranges = this->editor->getBuffer()->findAllInRangeSync(
-    /* options.wordRegex || */ this->wordRegExp(),
+    wordRegex ? *wordRegex : static_cast<const Regex &>(this->wordRegExp()),
     scanRange
   );
 
@@ -392,7 +392,7 @@ Point Cursor::getPreviousWordBoundaryBufferPosition(/* options = {} */) {
   }
 }
 
-Point Cursor::getNextWordBoundaryBufferPosition(/* options = {} */) {
+Point Cursor::getNextWordBoundaryBufferPosition(const Regex *wordRegex) {
   const Point currentBufferPosition = this->getBufferPosition();
   const Range scanRange = Range(
     currentBufferPosition,
@@ -400,7 +400,7 @@ Point Cursor::getNextWordBoundaryBufferPosition(/* options = {} */) {
   );
 
   const auto range = this->editor->getBuffer()->findInRangeSync(
-    /*options.wordRegex || */ this->wordRegExp(),
+    wordRegex ? *wordRegex : static_cast<const Regex &>(this->wordRegExp()),
     scanRange
   );
 
@@ -525,6 +525,28 @@ Regex Cursor::wordRegExp(bool includeNonWordCharacters) {
     source += u"|[" + nonWordCharacters + u"]+";
   }
   return Regex(source, nullptr);
+}
+
+Regex Cursor::subwordRegExp(bool backwards) {
+  const char16_t *nonWordCharacters = this->getNonWordCharacters();
+  const std::u16string lowercaseLetters = u"a-z\\u00DF-\\u00F6\\u00F8-\\u00FF";
+  const std::u16string uppercaseLetters = u"A-Z\\u00C0-\\u00D6\\u00D8-\\u00DE";
+  const std::u16string snakeCamelSegment = u"[" + uppercaseLetters + u"]?[" + lowercaseLetters + u"]+";
+  std::vector<std::u16string> segments = {
+    u"^[\t ]+",
+    u"[\t ]+$",
+    u"[" + uppercaseLetters + u"]+(?![" + lowercaseLetters + u"])",
+    u"\\d+"
+  };
+  if (backwards) {
+    segments.push_back(snakeCamelSegment + u"_*");
+    segments.push_back(u"[" + escapeRegExp(nonWordCharacters) + u"]+\\s*");
+  } else {
+    segments.push_back(u"_*" + snakeCamelSegment);
+    segments.push_back(u"\\s*[" + escapeRegExp(nonWordCharacters) + u"]+");
+  }
+  segments.push_back(u"_+");
+  return Regex(join(segments, u"|"), nullptr);
 }
 
 /*

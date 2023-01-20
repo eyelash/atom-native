@@ -59,6 +59,8 @@ public:
 
 bool includes(const char16_t *string, char16_t character);
 
+std::u16string join(const std::vector<std::u16string> &, const std::u16string &);
+
 std::u16string escapeRegExp(const std::u16string &string);
 
 #endif  // HELPERS_H_

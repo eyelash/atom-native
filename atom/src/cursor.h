@@ -61,8 +61,8 @@ public:
   void skipLeadingWhitespace();
   void moveToBeginningOfNextParagraph();
   void moveToBeginningOfPreviousParagraph();
-  Point getPreviousWordBoundaryBufferPosition();
-  Point getNextWordBoundaryBufferPosition();
+  Point getPreviousWordBoundaryBufferPosition(const Regex * = nullptr);
+  Point getNextWordBoundaryBufferPosition(const Regex * = nullptr);
   Point getBeginningOfCurrentWordBufferPosition();
   Point getEndOfCurrentWordBufferPosition();
   Point getBeginningOfNextWordBufferPosition();
@@ -71,6 +71,7 @@ public:
   int compare(Cursor *);
   void clearSelection(bool);
   Regex wordRegExp(bool = true);
+  Regex subwordRegExp(bool = false);
 
 private:
   const char16_t *getNonWordCharacters();

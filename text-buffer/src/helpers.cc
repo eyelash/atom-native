@@ -19,6 +19,21 @@ bool includes(const char16_t *string, char16_t character) {
   return std::char_traits<char16_t>::find(string, length, character) != nullptr;
 }
 
+std::u16string join(const std::vector<std::u16string> &vector, const std::u16string &separator) {
+  std::u16string result;
+  auto iterator = vector.begin();
+  if (iterator != vector.end()) {
+    result.append(*iterator);
+    ++iterator;
+    while (iterator != vector.end()) {
+      result.append(separator);
+      result.append(*iterator);
+      ++iterator;
+    }
+  }
+  return result;
+}
+
 std::u16string escapeRegExp(const std::u16string &string) {
   std::u16string result;
   for (char16_t c : string) {

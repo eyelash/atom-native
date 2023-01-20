@@ -66,7 +66,7 @@ public:
   Point getBeginningOfCurrentWordBufferPosition();
   Point getEndOfCurrentWordBufferPosition();
   Point getBeginningOfNextWordBufferPosition();
-  Range getCurrentWordBufferRange(bool = true);
+  Range getCurrentWordBufferRange(const Regex * = nullptr, bool = true);
   Range getCurrentLineBufferRange(bool = false);
   int compare(Cursor *);
   void clearSelection(bool);

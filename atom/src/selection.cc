@@ -264,14 +264,18 @@ void Selection::selectToBeginningOfPreviousParagraph() {
 }
 
 void Selection::selectWord(/* options = {} */) {
-  //if (this->cursor->isSurroundedByWhitespace()) options.wordRegex = /[\t ]*/;
+  const Regex *wordRegex = nullptr;
+  if (this->cursor->isSurroundedByWhitespace()) {
+    static const Regex whitespaceWordRegex(u"[\t ]*", nullptr);
+    wordRegex = &whitespaceWordRegex;
+  }
   bool includeNonWordCharacters = true;
   if (this->cursor->isBetweenWordAndNonWord()) {
     includeNonWordCharacters = false;
   }
 
   this->setBufferRange(
-    this->cursor->getCurrentWordBufferRange(includeNonWordCharacters) /* ,
+    this->cursor->getCurrentWordBufferRange(wordRegex, includeNonWordCharacters) /* ,
     options */
   );
   this->wordwise = true;

@@ -481,10 +481,10 @@ Point Cursor::getBeginningOfNextWordBufferPosition(/* options = {} */) {
   return beginningOfNextWordPosition ? *beginningOfNextWordPosition : currentBufferPosition;
 }
 
-Range Cursor::getCurrentWordBufferRange(bool includeNonWordCharacters) {
+Range Cursor::getCurrentWordBufferRange(const Regex *wordRegex, bool includeNonWordCharacters) {
   const Point position = this->getBufferPosition();
   const auto ranges = this->editor->getBuffer()->findAllInRangeSync(
-    /* options.wordRegex || */ this->wordRegExp(includeNonWordCharacters),
+    wordRegex ? *wordRegex : static_cast<const Regex &>(this->wordRegExp(includeNonWordCharacters)),
     Range(Point(position.row, 0), Point(position.row, INFINITY))
   );
   auto range = std::find_if(ranges.begin(), ranges.end(), [&](const Range &range) {

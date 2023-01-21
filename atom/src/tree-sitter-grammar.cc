@@ -11,6 +11,17 @@ TreeSitterGrammar::~TreeSitterGrammar() {
   delete this->scopeMap;
 }
 
+void TreeSitterGrammar::addScope(const std::string &selector, const std::string &result) {
+  size_t start = 0;
+  for (size_t i = 0; i < selector.size(); i++) {
+    if (selector[i] == ',') {
+      this->scopeMap->addSelector(selector.substr(start, i - start), result);
+      start = i + 1;
+    }
+  }
+  this->scopeMap->addSelector(selector.substr(start), result);
+}
+
 optional<int32_t> TreeSitterGrammar::idForScope(const optional<std::string> &scopeName) {
   if (!scopeName) {
     return optional<int32_t>();

@@ -9,3 +9,9 @@ target_sources(tree-sitter-c PRIVATE
 target_include_directories(tree-sitter-c PRIVATE
   tree-sitter-c/src
 )
+
+add_library(language-c STATIC)
+target_link_libraries(language-c atom tree-sitter-c)
+target_sources(language-c PRIVATE
+  main.cc
+)

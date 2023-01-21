@@ -20,6 +20,7 @@ public:
   TreeSitterGrammar(const TSLanguage *);
   ~TreeSitterGrammar();
 
+  void addScope(const std::string &, const std::string &);
   optional<int32_t> idForScope(const optional<std::string> &);
   std::string classNameForScopeId(int32_t);
 };

@@ -82,16 +82,6 @@ tree_sitter = declare_dependency(
   dependencies: [text_buffer],
 )
 
-language_c = declare_dependency(
-  link_with: static_library(
-    'tree-sitter-c',
-    'language-c/tree-sitter-c/src/parser.c',
-    include_directories: include_directories(
-      'language-c/tree-sitter-c/src',
-    ),
-  ),
-)
-
 atom_dependency = declare_dependency(
   link_with: static_library(
     'atom',
@@ -113,4 +103,19 @@ atom_dependency = declare_dependency(
     'atom/src',
   ),
   dependencies: [text_buffer, tree_sitter],
+)
+
+language_c = declare_dependency(
+  link_with: static_library(
+    'language-c',
+    'language-c/main.cc',
+    link_with: static_library(
+      'tree-sitter-c',
+      'language-c/tree-sitter-c/src/parser.c',
+      include_directories: include_directories(
+        'language-c/tree-sitter-c/src',
+      ),
+    ),
+    dependencies: [atom_dependency],
+  )
 )

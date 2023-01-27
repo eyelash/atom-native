@@ -3,6 +3,7 @@
 
 #include <optional.h>
 #include <unordered_map>
+#include <vector>
 #include <string>
 
 class SyntaxScopeMap;
@@ -10,16 +11,20 @@ struct TSLanguage;
 
 class TreeSitterGrammar {
 public:
+  const char *name;
+  const char *scopeName;
   SyntaxScopeMap *scopeMap;
+  std::vector<std::string> fileTypes;
   const TSLanguage *languageModule;
   std::unordered_map<int32_t, std::string> classNamesById;
   std::unordered_map<int32_t, std::string> scopeNamesById;
   std::unordered_map<std::string, int32_t> idsByScope;
   int32_t nextScopeId;
 
-  TreeSitterGrammar(const TSLanguage *);
+  TreeSitterGrammar(const char *, const char *, const TSLanguage *);
   ~TreeSitterGrammar();
 
+  void addFileType(const std::string &);
   void addScope(const std::string &, const std::string &);
   optional<int32_t> idForScope(const optional<std::string> &);
   std::string classNameForScopeId(int32_t);

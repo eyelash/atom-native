@@ -82,13 +82,14 @@ tree_sitter = declare_dependency(
   dependencies: [text_buffer],
 )
 
-atom_dependency = declare_dependency(
+atom = declare_dependency(
   link_with: static_library(
     'atom',
     files(
       'atom/src/cursor.cc',
       'atom/src/decoration-manager.cc',
       'atom/src/decoration.cc',
+      'atom/src/grammar-registry.cc',
       'atom/src/layer-decoration.cc',
       'atom/src/select-next.cc',
       'atom/src/selection.cc',
@@ -108,14 +109,61 @@ atom_dependency = declare_dependency(
 language_c = declare_dependency(
   link_with: static_library(
     'language-c',
-    'language-c/main.cc',
+    'language-c/grammars/tree-sitter-c.cc',
+    'language-c/grammars/tree-sitter-cpp.cc',
+    link_with: [
+      static_library(
+        'tree-sitter-c',
+        'language-c/tree-sitter-c/src/parser.c',
+        include_directories: include_directories(
+          'language-c/tree-sitter-c/src',
+        ),
+      ),
+      static_library(
+        'tree-sitter-cpp',
+        'language-c/tree-sitter-cpp/src/parser.c',
+        'language-c/tree-sitter-cpp/src/scanner.cc',
+        include_directories: include_directories(
+          'language-c/tree-sitter-cpp/src',
+        ),
+      ),
+    ],
+    dependencies: [atom],
+  )
+)
+
+language_javascript = declare_dependency(
+  link_with: static_library(
+    'language-javascript',
+    'language-javascript/grammars/tree-sitter-javascript.cc',
     link_with: static_library(
-      'tree-sitter-c',
-      'language-c/tree-sitter-c/src/parser.c',
+      'tree-sitter-javascript',
+      'language-javascript/tree-sitter-javascript/src/parser.c',
+      'language-javascript/tree-sitter-javascript/src/scanner.c',
       include_directories: include_directories(
-        'language-c/tree-sitter-c/src',
+        'language-javascript/tree-sitter-javascript/src',
       ),
     ),
-    dependencies: [atom_dependency],
+    dependencies: [atom],
   )
+)
+
+language_python = declare_dependency(
+  link_with: static_library(
+    'language-python',
+    'language-python/grammars/tree-sitter-python.cc',
+    link_with: static_library(
+      'tree-sitter-python',
+      'language-python/tree-sitter-python/src/parser.c',
+      'language-python/tree-sitter-python/src/scanner.cc',
+      include_directories: include_directories(
+        'language-python/tree-sitter-python/src',
+      ),
+    ),
+    dependencies: [atom],
+  )
+)
+
+atom_dep = declare_dependency(
+  dependencies: [atom, language_c, language_javascript, language_python]
 )

@@ -1,7 +1,9 @@
 #include "tree-sitter-grammar.h"
 #include "syntax-scope-map.h"
 
-TreeSitterGrammar::TreeSitterGrammar(const TSLanguage *languageModule) {
+TreeSitterGrammar::TreeSitterGrammar(const char *name, const char *scopeName, const TSLanguage *languageModule) {
+  this->name = name;
+  this->scopeName = scopeName;
   this->scopeMap = new SyntaxScopeMap();
   this->languageModule = languageModule;
   this->nextScopeId = 256 + 1;
@@ -9,6 +11,10 @@ TreeSitterGrammar::TreeSitterGrammar(const TSLanguage *languageModule) {
 
 TreeSitterGrammar::~TreeSitterGrammar() {
   delete this->scopeMap;
+}
+
+void TreeSitterGrammar::addFileType(const std::string &fileType) {
+  this->fileTypes.push_back(fileType);
 }
 
 void TreeSitterGrammar::addScope(const std::string &selector, const std::string &result) {

@@ -7,6 +7,7 @@ target_sources(atom PRIVATE
   src/cursor.cc
   src/decoration-manager.cc
   src/decoration.cc
+  src/grammar-registry.cc
   src/layer-decoration.cc
   src/select-next.cc
   src/selection.cc

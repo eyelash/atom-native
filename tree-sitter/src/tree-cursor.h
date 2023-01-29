@@ -3,12 +3,15 @@
 
 #include <tree_sitter/api.h>
 #include <optional.h>
-#include <point.h>
+#include <native-point.h>
+
+class Tree;
 
 class TreeCursor {
   TSTreeCursor tree_cursor;
+  Tree *tree;
 public:
-  TreeCursor(TSNode);
+  TreeCursor(TSNode, Tree *);
   TreeCursor(const TreeCursor &);
   ~TreeCursor();
   TreeCursor &operator =(const TreeCursor &);
@@ -19,10 +22,11 @@ public:
   optional<double> gotoFirstChildForIndex(double);
   double startIndex() const;
   double endIndex() const;
-  Point startPosition() const;
-  Point endPosition() const;
+  NativePoint startPosition() const;
+  NativePoint endPosition() const;
   const char *nodeType() const;
   bool nodeIsNamed() const;
+  std::u16string nodeText() const;
 };
 
 #endif // TREE_CURSOR_H_

@@ -599,12 +599,12 @@ bool TreeSitterLanguageMode::LayerHighlightIterator::moveRight_() {
 }
 
 optional<int32_t> TreeSitterLanguageMode::LayerHighlightIterator::currentScopeId_() {
-  const auto value = this->languageLayer->grammar->scopeMap->get(
+  SyntaxScopeMap::Result *value = this->languageLayer->grammar->scopeMap->get(
     this->containingNodeTypes,
     this->containingNodeChildIndices,
     this->treeCursor.nodeIsNamed()
   );
-  const auto scopeName = /* applyLeafRules(std::move(value), this->treeCursor) */ std::move(value);
+  const auto scopeName = value ? value->applyLeafRules(this->treeCursor) : optional<std::string>();
   const TSNode node = this->treeCursor.currentNode();
   if (!ts_node_child_count(node)) {
     return this->languageLayer->languageMode->grammar->idForScope(scopeName);

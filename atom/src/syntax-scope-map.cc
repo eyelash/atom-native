@@ -74,7 +74,11 @@ template <class F> static void process(F f, const std::string &selector) {
 
 static void rejectSelector(const std::string &);
 
-SyntaxScopeMap::Table::Table() {}
+SyntaxScopeMap::Result::~Result() {}
+
+SyntaxScopeMap::Table::Table() {
+  this->result = nullptr;
+}
 
 SyntaxScopeMap::Table::~Table() {
   for (auto &table : this->indices) {
@@ -82,6 +86,9 @@ SyntaxScopeMap::Table::~Table() {
   }
   for (auto &table : this->parents) {
     delete table.second;
+  }
+  if (this->result) {
+    delete this->result;
   }
 }
 
@@ -96,7 +103,7 @@ SyntaxScopeMap::~SyntaxScopeMap() {
   }
 }
 
-void SyntaxScopeMap::addSelector(const std::string &selector, const std::string &result) {
+void SyntaxScopeMap::addSelector(const std::string &selector, Result *result) {
   process([&](const std::vector<Node> &nodes) {
     std::unordered_map<std::string, Table *> *currentMap = nullptr;
     Table *currentTable = nullptr;
@@ -178,12 +185,13 @@ void SyntaxScopeMap::addSelector(const std::string &selector, const std::string 
       }
     }
 
+    if (currentTable->result) delete currentTable->result;
     currentTable->result = result;
   }, selector);
 }
 
-optional<std::string> SyntaxScopeMap::get(const std::vector<std::string> &nodeTypes, const std::vector<double> &childIndices, bool leafIsNamed) {
-  optional<std::string> result;
+SyntaxScopeMap::Result *SyntaxScopeMap::get(const std::vector<std::string> &nodeTypes, const std::vector<double> &childIndices, bool leafIsNamed) {
+  Result *result = nullptr;
   size_t i = nodeTypes.size() - 1;
   Table *currentTable = leafIsNamed
     ? this->namedScopeTable[nodeTypes[i]]

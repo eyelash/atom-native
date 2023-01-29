@@ -1,8 +1,9 @@
 #include "tree-cursor.h"
+#include "tree.h"
 
-TreeCursor::TreeCursor(TSNode node) : tree_cursor{ts_tree_cursor_new(node)} {}
+TreeCursor::TreeCursor(TSNode node, Tree *tree) : tree_cursor{ts_tree_cursor_new(node)}, tree{tree} {}
 
-TreeCursor::TreeCursor(const TreeCursor &tree_cursor) : tree_cursor{ts_tree_cursor_copy(&tree_cursor.tree_cursor)} {}
+TreeCursor::TreeCursor(const TreeCursor &tree_cursor) : tree_cursor{ts_tree_cursor_copy(&tree_cursor.tree_cursor)}, tree{tree_cursor.tree} {}
 
 TreeCursor::~TreeCursor() {
   ts_tree_cursor_delete(&this->tree_cursor);
@@ -11,6 +12,7 @@ TreeCursor::~TreeCursor() {
 TreeCursor &TreeCursor::operator =(const TreeCursor &tree_cursor) {
   ts_tree_cursor_delete(&this->tree_cursor);
   this->tree_cursor = ts_tree_cursor_copy(&tree_cursor.tree_cursor);
+  this->tree = tree_cursor.tree;
   return *this;
 }
 
@@ -47,14 +49,14 @@ double TreeCursor::endIndex() const {
   return ts_node_end_byte(this->currentNode()) / 2;
 }
 
-Point TreeCursor::startPosition() const {
+NativePoint TreeCursor::startPosition() const {
   const TSPoint point = ts_node_start_point(this->currentNode());
-  return Point(point.row, point.column / 2);
+  return NativePoint(point.row, point.column / 2);
 }
 
-Point TreeCursor::endPosition() const {
+NativePoint TreeCursor::endPosition() const {
   const TSPoint point = ts_node_end_point(this->currentNode());
-  return Point(point.row, point.column / 2);
+  return NativePoint(point.row, point.column / 2);
 }
 
 const char *TreeCursor::nodeType() const {
@@ -63,4 +65,8 @@ const char *TreeCursor::nodeType() const {
 
 bool TreeCursor::nodeIsNamed() const {
   return ts_node_is_named(this->currentNode());
+}
+
+std::u16string TreeCursor::nodeText() const {
+  return this->tree->getText(*this);
 }

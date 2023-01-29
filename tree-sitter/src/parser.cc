@@ -85,5 +85,5 @@ Tree Parser::parseTextBufferSync(NativeTextBuffer *text_buffer, const Tree &old_
   TextBufferInput input(&slices);
   TSTree *result = ts_parser_parse(parser, old_tree.tree, input.input());
   delete snapshot;
-  return Tree(result);
+  return Tree(result, text_buffer);
 }

@@ -1,5 +1,6 @@
 #include "tree.h"
 #include <tree_sitter/api.h>
+#include <native-text-buffer.h>
 
 static TSTree *copy(const TSTree *tree) {
   if (tree) {
@@ -9,11 +10,11 @@ static TSTree *copy(const TSTree *tree) {
   }
 }
 
-Tree::Tree(TSTree *tree) : tree{tree} {}
+Tree::Tree(TSTree *tree, NativeTextBuffer *input) : tree{tree}, input{input} {}
 
-Tree::Tree() : tree{nullptr} {}
+Tree::Tree() : tree{nullptr}, input{nullptr} {}
 
-Tree::Tree(const Tree &tree) : tree{copy(tree.tree)} {}
+Tree::Tree(const Tree &tree) : tree{copy(tree.tree)}, input{tree.input} {}
 
 Tree::~Tree() {
   if (tree) {
@@ -24,6 +25,7 @@ Tree::~Tree() {
 Tree &Tree::operator =(const Tree &tree) {
   ts_tree_delete(this->tree);
   this->tree = tree.tree ? ts_tree_copy(tree.tree) : nullptr;
+  this->input = tree.input;
   return *this;
 }
 
@@ -48,5 +50,9 @@ std::vector<TSRange> Tree::getChangedRanges(const Tree &newTree) {
 }
 
 TreeCursor Tree::walk() {
-  return TreeCursor(this->rootNode());
+  return TreeCursor(this->rootNode(), this);
+}
+
+std::u16string Tree::getText(const TreeCursor &cursor) {
+  return this->input->text_in_range({cursor.startPosition(), cursor.endPosition()});
 }

@@ -49,8 +49,8 @@ Range DisplayMarker::getScreenRange() {
   return this->layer->translateBufferRange(this->getBufferRange());
 }
 
-bool DisplayMarker::setBufferRange(const Range &bufferRange) {
-  return this->bufferMarker->setRange(bufferRange);
+bool DisplayMarker::setBufferRange(const Range &bufferRange, optional<bool> reversed) {
+  return this->bufferMarker->setRange(bufferRange, reversed);
 }
 
 bool DisplayMarker::setScreenRange(const Range &screenRange) {

@@ -42,10 +42,10 @@ Range Selection::getScreenRange() {
   return this->marker->getScreenRange();
 }
 
-void Selection::setScreenRange(Range screenRange /* , options */) {
+void Selection::setScreenRange(Range screenRange, optional<bool> reversed) {
   return this->setBufferRange(
-    this->editor->bufferRangeForScreenRange(screenRange) /* ,
-    options */
+    this->editor->bufferRangeForScreenRange(screenRange),
+    reversed
   );
 }
 
@@ -53,7 +53,7 @@ Range Selection::getBufferRange() {
   return this->marker->getBufferRange();
 }
 
-void Selection::setBufferRange(Range bufferRange) {
+void Selection::setBufferRange(Range bufferRange, optional<bool> reversed) {
   //if (options.reversed == null) options.reversed = this.isReversed();
   /*if (!options.preserveFolds)
     this.editor.destroyFoldsContainingBufferPositions(
@@ -63,7 +63,7 @@ void Selection::setBufferRange(Range bufferRange) {
   this->modifySelection([&]() {
     //const needsFlash = options.flash;
     //options.flash = null;
-    this->marker->setBufferRange(bufferRange);
+    this->marker->setBufferRange(bufferRange, reversed);
     /*const autoscroll =
       options.autoscroll != null
         ? options.autoscroll

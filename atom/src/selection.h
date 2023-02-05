@@ -26,9 +26,9 @@ public:
 
   bool isLastSelection();
   Range getScreenRange();
-  void setScreenRange(Range);
+  void setScreenRange(Range, optional<bool> = optional<bool>());
   Range getBufferRange();
-  void setBufferRange(Range);
+  void setBufferRange(Range, optional<bool> = optional<bool>());
   std::pair<double, double> getBufferRowRange();
   Point getTailScreenPosition();
   Point getTailBufferPosition();

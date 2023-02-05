@@ -26,7 +26,7 @@ public:
   bool isEqual(const DisplayMarker *) const;
   Range getBufferRange() const;
   Range getScreenRange();
-  bool setBufferRange(const Range &);
+  bool setBufferRange(const Range &, optional<bool> = optional<bool>());
   bool setScreenRange(const Range &);
   Point getHeadBufferPosition() const;
   bool setHeadBufferPosition(const Point &);

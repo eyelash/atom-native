@@ -5,6 +5,7 @@
 #include <text-buffer.h>
 #include <display-marker-layer.h>
 #include <display-marker.h>
+#include <language-mode.h>
 #include <helpers.h>
 #include <set>
 
@@ -1297,7 +1298,7 @@ Range TextEditor::setIndentationForBufferRow(
     endColumn = 0;
   } else {
     static const Regex regex(u"^\\s*", nullptr);
-    endColumn = regex.match(this->lineTextForBufferRow(bufferRow)).end_offset;
+    endColumn = regex.match(*this->lineTextForBufferRow(bufferRow)).end_offset;
   }
   std::u16string newIndentString = this->buildIndentString(newLevel);
   return this->buffer->setTextInRange(
@@ -1426,3 +1427,38 @@ Section: Utility
 /*
 Section: Language Mode Delegated Methods
 */
+
+double TextEditor::suggestedIndentForBufferRow(double bufferRow, bool skipBlankLines) {
+  LanguageMode *languageMode = this->buffer->getLanguageMode();
+  return (
+    languageMode->suggestedIndentForBufferRow(
+      bufferRow,
+      this->getTabLength(),
+      skipBlankLines
+    )
+  );
+}
+
+Range TextEditor::autoIndentBufferRow(double bufferRow, bool preserveLeadingWhitespace, bool skipBlankLines) {
+  const double indentLevel = this->suggestedIndentForBufferRow(bufferRow, skipBlankLines);
+  return this->setIndentationForBufferRow(bufferRow, indentLevel, preserveLeadingWhitespace);
+}
+
+void TextEditor::autoIndentBufferRows(double startRow, double endRow) {
+  double row = startRow;
+  while (row <= endRow) {
+    this->autoIndentBufferRow(row);
+    row++;
+  }
+}
+
+void TextEditor::autoDecreaseIndentForBufferRow(double bufferRow) {
+  LanguageMode *languageMode = this->buffer->getLanguageMode();
+  const optional<double> indentLevel =
+    languageMode->suggestedIndentForEditedBufferRow(
+      bufferRow,
+      this->getTabLength()
+    );
+  if (indentLevel)
+    this->setIndentationForBufferRow(bufferRow, *indentLevel);
+}

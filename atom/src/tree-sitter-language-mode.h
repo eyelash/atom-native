@@ -82,6 +82,11 @@ public:
   std::unique_ptr<LanguageMode::HighlightIterator> buildHighlightIterator() override;
   void onDidChangeHighlighting(std::function<void(Range)>) override;
   std::string classNameForScopeId(int32_t) override;
+  double suggestedIndentForLineAtBufferRow(double, const std::u16string &, double) override;
+  double suggestedIndentForBufferRow(double, double, bool) override;
+  optional<double> suggestedIndentForEditedBufferRow(double, double) override;
+  double suggestedIndentForLineWithScopeAtBufferRow_(double, const std::u16string &, double, bool = true);
+  double indentLevelForLine(const std::u16string &, double);
   void emitRangeUpdate(Range);
 };
 

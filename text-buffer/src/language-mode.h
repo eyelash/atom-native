@@ -2,6 +2,7 @@
 #define LANGUAGE_MODE_H_
 
 #include "range.h"
+#include <optional.h>
 #include <memory>
 #include <functional>
 
@@ -25,6 +26,9 @@ public:
   virtual void onDidChangeHighlighting(std::function<void(Range)>);
   virtual std::string classNameForScopeId(int32_t);
   virtual std::u16string getLanguageId();
+  virtual double suggestedIndentForLineAtBufferRow(double, const std::u16string &, double);
+  virtual double suggestedIndentForBufferRow(double, double, bool);
+  virtual optional<double> suggestedIndentForEditedBufferRow(double, double);
 };
 
 #endif // LANGUAGE_MODE_H_

@@ -86,6 +86,134 @@ std::string TreeSitterLanguageMode::classNameForScopeId(int32_t scopeId) {
 }
 
 /*
+Section - Commenting
+*/
+
+/*
+Section - Indentation
+*/
+
+double TreeSitterLanguageMode::suggestedIndentForLineAtBufferRow(double row, const std::u16string &line, double tabLength) {
+  return this->suggestedIndentForLineWithScopeAtBufferRow_(
+    row,
+    line,
+    tabLength
+  );
+}
+
+double TreeSitterLanguageMode::suggestedIndentForBufferRow(double row, double tabLength, bool skipBlankLines) {
+  return this->suggestedIndentForLineWithScopeAtBufferRow_(
+    row,
+    *this->buffer->lineForRow(row),
+    tabLength,
+    skipBlankLines
+  );
+}
+
+optional<double> TreeSitterLanguageMode::suggestedIndentForEditedBufferRow(double bufferRow, double tabLength) {
+  const std::u16string line = *this->buffer->lineForRow(bufferRow);
+  const double currentIndentLevel = this->indentLevelForLine(line, tabLength);
+  if (currentIndentLevel == 0) return optional<double>();
+
+  /*const scopeDescriptor = this.scopeDescriptorForPosition(
+    new Point(bufferRow, 0)
+  );
+  const decreaseIndentRegex = this.decreaseIndentRegexForScopeDescriptor(
+    scopeDescriptor
+  );
+  if (!decreaseIndentRegex) return;*/
+
+  /* if (!decreaseIndentRegex.testSync(line)) */ return optional<double>();
+
+  const optional<double> precedingRow = this->buffer->previousNonBlankRow(bufferRow);
+  if (!precedingRow) return optional<double>();
+
+  const std::u16string precedingLine = *this->buffer->lineForRow(*precedingRow);
+  double desiredIndentLevel = this->indentLevelForLine(precedingLine, tabLength);
+
+  /*const increaseIndentRegex = this.increaseIndentRegexForScopeDescriptor(
+    scopeDescriptor
+  );
+  if (increaseIndentRegex) {
+    if (!increaseIndentRegex.testSync(precedingLine)) desiredIndentLevel -= 1;
+  }*/
+
+  /*const decreaseNextIndentRegex = this.decreaseNextIndentRegexForScopeDescriptor(
+    scopeDescriptor
+  );
+  if (decreaseNextIndentRegex) {
+    if (decreaseNextIndentRegex.testSync(precedingLine))
+      desiredIndentLevel -= 1;
+  }*/
+
+  if (desiredIndentLevel < 0) return 0;
+  if (desiredIndentLevel >= currentIndentLevel) return optional<double>();
+  return desiredIndentLevel;
+}
+
+double TreeSitterLanguageMode::suggestedIndentForLineWithScopeAtBufferRow_(
+  double bufferRow,
+  const std::u16string &line,
+  double tabLength,
+  bool skipBlankLines
+) {
+  /*const increaseIndentRegex = this.increaseIndentRegexForScopeDescriptor(
+    scopeDescriptor
+  );
+  const decreaseIndentRegex = this.decreaseIndentRegexForScopeDescriptor(
+    scopeDescriptor
+  );
+  const decreaseNextIndentRegex = this.decreaseNextIndentRegexForScopeDescriptor(
+    scopeDescriptor
+  );*/
+
+  optional<double> precedingRow;
+  if (skipBlankLines) {
+    precedingRow = this->buffer->previousNonBlankRow(bufferRow);
+    if (!precedingRow) return 0;
+  } else {
+    precedingRow = bufferRow - 1;
+    if (*precedingRow < 0) return 0;
+  }
+
+  const std::u16string precedingLine = *this->buffer->lineForRow(*precedingRow);
+  double desiredIndentLevel = this->indentLevelForLine(precedingLine, tabLength);
+  //if (!increaseIndentRegex) return desiredIndentLevel;
+
+  /*if (!this.isRowCommented(precedingRow)) {
+    if (increaseIndentRegex && increaseIndentRegex.testSync(precedingLine))
+      desiredIndentLevel += 1;
+    if (
+      decreaseNextIndentRegex &&
+      decreaseNextIndentRegex.testSync(precedingLine)
+    )
+      desiredIndentLevel -= 1;
+  }*/
+
+  /*if (!this.buffer.isRowBlank(precedingRow)) {
+    if (decreaseIndentRegex && decreaseIndentRegex.testSync(line))
+      desiredIndentLevel -= 1;
+  }*/
+
+  return std::max(desiredIndentLevel, 0.0);
+}
+
+double TreeSitterLanguageMode::indentLevelForLine(const std::u16string &line, double tabLength) {
+  double indentLength = 0;
+  for (size_t i = 0, length = line.size(); i < length; i++) {
+    const char16_t char_ = line[i];
+    if (char_ == u'\t') {
+      indentLength += tabLength - std::fmod(indentLength, tabLength);
+    } else if (char_ == u' ') {
+      indentLength++;
+    } else {
+      break;
+    }
+  }
+  return indentLength / tabLength;
+}
+
+/*
 Section - Private
 */
 

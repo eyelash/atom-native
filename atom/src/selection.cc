@@ -5,6 +5,8 @@
 #include <display-marker-layer.h>
 #include <text-buffer.h>
 
+static const Regex NonWhitespaceRegExp = Regex(u"\\S", nullptr);
+
 Selection::Selection(TextEditor *editor, DisplayMarker *marker, Cursor *cursor) {
   this->editor = editor;
   this->marker = marker;
@@ -341,6 +343,15 @@ void Selection::insertText(const std::u16string &text) {
     oldBufferRange,
     text
   );
+
+  if (/* options.autoIndentNewline && */ text == u"\n") {
+    this->editor->autoIndentBufferRow(newBufferRange.end.row,
+      true,
+      false
+    );
+  } else if (/* options.autoDecreaseIndent && */ NonWhitespaceRegExp.match(text)) {
+    this->editor->autoDecreaseIndentForBufferRow(newBufferRange.start.row);
+  }
 }
 
 void Selection::backspace() {

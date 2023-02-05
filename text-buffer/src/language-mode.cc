@@ -49,3 +49,15 @@ std::string LanguageMode::classNameForScopeId(int32_t scopeId) {
 std::u16string LanguageMode::getLanguageId() {
   return std::u16string();
 }
+
+double LanguageMode::suggestedIndentForLineAtBufferRow(double, const std::u16string &, double) {
+  return 0;
+}
+
+double LanguageMode::suggestedIndentForBufferRow(double, double, bool) {
+  return 0;
+}
+
+optional<double> LanguageMode::suggestedIndentForEditedBufferRow(double, double) {
+  return optional<double>();
+}

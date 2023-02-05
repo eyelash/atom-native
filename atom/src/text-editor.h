@@ -190,6 +190,10 @@ public:
   std::u16string buildIndentString(double, double = 0);
   bool shouldAutoIndent();
   const char16_t *getNonWordCharacters(Point);
+  double suggestedIndentForBufferRow(double bufferRow, bool);
+  Range autoIndentBufferRow(double bufferRow, bool = false, bool = true);
+  void autoIndentBufferRows(double startRow, double endRow);
+  void autoDecreaseIndentForBufferRow(double bufferRow);
 
 private:
   void moveCursors(std::function<void(Cursor *)>);

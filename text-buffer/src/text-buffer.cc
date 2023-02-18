@@ -543,7 +543,7 @@ void TextBuffer::setLanguageMode(LanguageMode *languageMode) {
     }*/
     this->languageMode = languageMode ? languageMode : new LanguageMode();
     for (auto &displayLayer : this->displayLayers) {
-      displayLayer.second->bufferDidChangeLanguageMode(languageMode);
+      displayLayer.second->bufferDidChangeLanguageMode();
     }
     //this.emitter.emit('did-change-language-mode', {newMode: this.languageMode, oldMode: oldLanguageMode})
     delete oldLanguageMode;

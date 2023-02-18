@@ -443,7 +443,7 @@ void TextEditor::moveLineDown(/* options = {} */) {
 
 void TextEditor::duplicateLines(/* options = {} */) {
   //if (!this.ensureWritable('duplicateLines', options)) return;
-  //this.transact(() => {
+  this->transact([&]() {
     const auto selections = this->getSelectionsOrderedByBufferPosition();
     std::vector<Range> previousSelectionRanges(selections.size());
 
@@ -501,7 +501,7 @@ void TextEditor::duplicateLines(/* options = {} */) {
 
       i--;
     }
-  //});
+  });
 }
 
 void TextEditor::splitSelectionsIntoLines() {

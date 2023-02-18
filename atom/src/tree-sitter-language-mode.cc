@@ -388,18 +388,41 @@ void TreeSitterLanguageMode::LanguageLayer::performUpdate_(/* nodeRangeSet, para
   }*/
 }
 
-TSInputEdit TreeSitterLanguageMode::LanguageLayer::treeEditForBufferChange_(NativePoint start, NativePoint oldEnd, NativePoint newEnd, const std::u16string &oldText, const std::u16string &newText) {
-  const uint32_t startIndex = this->languageMode->buffer->characterIndexForPosition(
+#define read_number_from_js(out, value, name) \
+  *(out) = value;
+
+#define read_byte_count_from_js(out, value, name) \
+  read_number_from_js(out, value, name);          \
+  (*out) *= 2;
+
+TSInputEdit TreeSitterLanguageMode::LanguageLayer::treeEditForBufferChange_(Point start, Point oldEnd, Point newEnd, const std::u16string &oldText, const std::u16string &newText) {
+  const double startIndex = this->languageMode->buffer->characterIndexForPosition(
     start
   );
-  return {
+  const double oldEndIndex = startIndex + oldText.size();
+  const double newEndIndex = startIndex + newText.size();
+  const Point startPosition = start;
+  const Point oldEndPosition = oldEnd;
+  const Point newEndPosition = newEnd;
+  double info[] = {
+    startPosition.row, startPosition.column,
+    oldEndPosition.row, oldEndPosition.column,
+    newEndPosition.row, newEndPosition.column,
     startIndex,
-    startIndex + static_cast<uint32_t>(oldText.size()),
-    startIndex + static_cast<uint32_t>(newText.size()),
-    {start.row, start.column},
-    {oldEnd.row, oldEnd.column},
-    {newEnd.row, newEnd.column}
+    oldEndIndex,
+    newEndIndex
   };
+  TSInputEdit edit;
+  read_number_from_js(&edit.start_point.row, info[0], "startPosition.row");
+  read_byte_count_from_js(&edit.start_point.column, info[1], "startPosition.column");
+  read_number_from_js(&edit.old_end_point.row, info[2], "oldEndPosition.row");
+  read_byte_count_from_js(&edit.old_end_point.column, info[3], "oldEndPosition.column");
+  read_number_from_js(&edit.new_end_point.row, info[4], "newEndPosition.row");
+  read_byte_count_from_js(&edit.new_end_point.column, info[5], "newEndPosition.column");
+  read_byte_count_from_js(&edit.start_byte, info[6], "startIndex");
+  read_byte_count_from_js(&edit.old_end_byte, info[7], "oldEndIndex");
+  read_byte_count_from_js(&edit.new_end_byte, info[8], "newEndIndex");
+  return edit;
 }
 
 /*
@@ -754,7 +777,7 @@ static void insertContainingTag(int32_t tag, double index, std::vector<int32_t> 
 }
 
 static Point pointForTSPoint(TSPoint point) {
-  return Point(point.row, point.column);
+  return Point(point.row, point.column / 2);
 }
 static Range rangeForNode(TSNode node) {
   return Range(pointForTSPoint(ts_node_start_point(node)), pointForTSPoint(ts_node_end_point(node)));

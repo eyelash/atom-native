@@ -67,7 +67,7 @@ public:
   ~DisplayLayer();
 
   void clearSpatialIndex();
-  void bufferDidChangeLanguageMode(LanguageMode *);
+  void bufferDidChangeLanguageMode();
   DisplayMarkerLayer *addMarkerLayer();
   DisplayMarkerLayer *getMarkerLayer(unsigned);
   Range bufferRangeForFold(unsigned);

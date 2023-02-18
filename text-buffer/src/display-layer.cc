@@ -36,6 +36,7 @@ DisplayLayer::DisplayLayer(unsigned id, TextBuffer *buffer) {
   this->spatialIndex = new Patch(/*{mergeAdjacentHunks: false}*/);
   this->rightmostScreenPosition = Point(0, 0);
   this->indexedBufferRowCount = 0;
+  this->bufferDidChangeLanguageMode();
 }
 
 DisplayLayer::~DisplayLayer() {
@@ -55,7 +56,7 @@ void DisplayLayer::clearSpatialIndex() {
   this->rightmostScreenPosition = Point(0, 0);
 }
 
-void DisplayLayer::bufferDidChangeLanguageMode(LanguageMode *) {
+void DisplayLayer::bufferDidChangeLanguageMode() {
   this->cachedScreenLines.resize(0);
   //if (this.languageModeDisposable) this.languageModeDisposable.dispose()
   this->buffer->languageMode->onDidChangeHighlighting([this](Range bufferRange) {

@@ -24,7 +24,7 @@ public:
     void handleTextChange(const TSInputEdit &, const std::u16string &, const std::u16string &);
     void update();
     void performUpdate_();
-    TSInputEdit treeEditForBufferChange_(NativePoint, NativePoint, NativePoint, const std::u16string &, const std::u16string &);
+    TSInputEdit treeEditForBufferChange_(Point, Point, Point, const std::u16string &, const std::u16string &);
   };
 
   class LayerHighlightIterator {

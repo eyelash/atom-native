@@ -390,6 +390,17 @@ Patch::~Patch() {
   if (root) delete_node(&root);
 }
 
+Patch Patch::compose(const std::vector<Patch *> &patches) {
+  Patch combination;
+  bool left_to_right = true;
+  for (size_t i = 0, n = patches.size(); i < n; i++) {
+    const Patch *patch = patches[i];
+    combination.combine(*patch, left_to_right);
+    left_to_right = !left_to_right;
+  }
+  return combination;
+}
+
 void Patch::serialize(Serializer &output) {
   output.append(SERIALIZATION_VERSION);
   output.append(change_count);

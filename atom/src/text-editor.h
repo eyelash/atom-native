@@ -83,6 +83,8 @@ public:
   void deleteToEndOfLine();
   void deleteToEndOfWord();
   void deleteLine();
+  void undo();
+  void redo();
   void transact(std::function<void()>);
   Point screenPositionForBufferPosition(Point);
   Point bufferPositionForScreenPosition(Point);

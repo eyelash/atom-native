@@ -7,12 +7,15 @@
 #include <unordered_map>
 #include <native-text-buffer.h>
 
+class DefaultHistoryProvider;
 class LanguageMode;
 class Marker;
 class MarkerLayer;
 class DisplayLayer;
+class DisplayMarkerLayer;
 
 class TextBuffer {
+  DefaultHistoryProvider *historyProvider;
   optional<File> file;
   unsigned nextMarkerLayerId;
   unsigned nextDisplayLayerId;
@@ -80,6 +83,8 @@ public:
   std::vector<Marker *> getMarkers();
   Marker *getMarker(unsigned);
   std::size_t getMarkerCount();
+  void undo(DisplayMarkerLayer * = nullptr);
+  void redo(DisplayMarkerLayer * = nullptr);
   void transact(std::function<void()>);
   void scan(const Regex &, ScanIterator);
   void backwardsScan(const Regex &, ScanIterator);

@@ -278,7 +278,7 @@ void TextEditor::moveLineUp(/* options = {} */) {
   )
     return;
 
-  //this.transact(() => {
+  this->transact([&]() {
     std::vector<Range> newSelectionRanges;
 
     while (selections.size() > 0) {
@@ -350,7 +350,7 @@ void TextEditor::moveLineUp(/* options = {} */) {
     } */);
     //if (this->shouldAutoIndent()) this->autoIndentSelectedRows();
     //this->scrollToBufferPosition([newSelectionRanges[0].start.row, 0]);
-  //});
+  });
 }
 
 void TextEditor::moveLineDown(/* options = {} */) {
@@ -359,7 +359,7 @@ void TextEditor::moveLineDown(/* options = {} */) {
   auto selections = this->getSelectedBufferRanges();
   std::sort(selections.begin(), selections.end(), [](Range a, Range b) { return b.compare(a) < 0; });
 
-  //this.transact(() => {
+  this->transact([&]() {
     this->consolidateSelections();
     std::vector<Range> newSelectionRanges;
 
@@ -438,7 +438,7 @@ void TextEditor::moveLineDown(/* options = {} */) {
     } */);
     //if (this.shouldAutoIndent()) this.autoIndentSelectedRows();
     //this.scrollToBufferPosition([newSelectionRanges[0].start.row - 1, 0]);
-  //});
+  });
 }
 
 void TextEditor::duplicateLines(/* options = {} */) {
@@ -529,15 +529,15 @@ void TextEditor::splitSelectionsIntoLines() {
 
 void TextEditor::insertNewlineBelow(/* options = {} */) {
   //if (!this->ensureWritable('insertNewlineBelow', options)) return;
-  //this->transact(() => {
+  this->transact([&]() {
     this->moveToEndOfLine();
     this->insertNewline(/* options */);
-  //});
+  });
 }
 
 void TextEditor::insertNewlineAbove(/* options = {} */) {
   //if (!this->ensureWritable('insertNewlineAbove', options)) return;
-  //this->transact(() => {
+  this->transact([&]() {
     const double bufferRow = this->getCursorBufferPosition().row;
     const double indentLevel = this->indentationForBufferRow(bufferRow);
     const bool onFirstLine = bufferRow == 0;
@@ -557,7 +557,7 @@ void TextEditor::insertNewlineAbove(/* options = {} */) {
       this->moveUp();
       this->moveToEndOfLine();
     }
-  //});
+  });
 }
 
 void TextEditor::deleteToBeginningOfWord(/* options = {} */) {
@@ -621,6 +621,22 @@ void TextEditor::deleteLine(/* options = {} */) {
 /*
 Section: History
 */
+
+void TextEditor::undo() {
+  //if (!this.ensureWritable('undo', options)) return;
+  this->avoidMergingSelections([&]() {
+    this->buffer->undo(this->selectionsMarkerLayer);
+  });
+  //this.getLastSelection().autoscroll();
+}
+
+void TextEditor::redo() {
+  //if (!this.ensureWritable('redo', options)) return;
+  this->avoidMergingSelections([&]() {
+    this->buffer->redo(this->selectionsMarkerLayer);
+  });
+  //this.getLastSelection().autoscroll();
+}
 
 void TextEditor::transact(std::function<void()> fn) {
   return this->buffer->transact(fn);
@@ -855,10 +871,10 @@ Cursor *TextEditor::addCursor(DisplayMarker *marker) {
 }
 
 void TextEditor::moveCursors(std::function<void(Cursor *)> fn) {
-  //return this->transact([&]() {
+  return this->transact([&]() {
     for (Cursor *cursor: getCursors()) fn(cursor);
     this->mergeCursors();
-  //});
+  });
 }
 
 void TextEditor::mergeCursors() {

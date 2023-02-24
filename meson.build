@@ -31,6 +31,7 @@ text_buffer = declare_dependency(
   link_with: static_library(
     'text-buffer',
     files(
+      'text-buffer/src/default-history-provider.cc',
       'text-buffer/src/display-layer.cc',
       'text-buffer/src/display-marker-layer.cc',
       'text-buffer/src/display-marker.cc',

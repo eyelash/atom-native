@@ -40,6 +40,7 @@ public:
   Patch(Deserializer &input);
   Patch &operator=(Patch &&);
   ~Patch();
+  static Patch compose(const std::vector<Patch *> &);
   void serialize(Serializer &serializer);
 
   Patch copy();

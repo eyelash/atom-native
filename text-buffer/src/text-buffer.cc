@@ -1,4 +1,5 @@
 #include "text-buffer.h"
+#include "default-history-provider.h"
 #include "marker-layer.h"
 #include "display-layer.h"
 #include "helpers.h"
@@ -7,6 +8,7 @@
 
 TextBuffer::TextBuffer() {
   this->buffer = new NativeTextBuffer();
+  this->historyProvider = new DefaultHistoryProvider();
   this->languageMode = new LanguageMode();
   this->nextMarkerLayerId = 0;
   this->nextDisplayLayerId = 0;
@@ -18,6 +20,7 @@ TextBuffer::TextBuffer() {
 
 TextBuffer::TextBuffer(const std::u16string &text) {
   this->buffer = new NativeTextBuffer(text);
+  this->historyProvider = new DefaultHistoryProvider();
   this->languageMode = new LanguageMode();
   this->nextMarkerLayerId = 0;
   this->nextDisplayLayerId = 0;
@@ -42,6 +45,7 @@ TextBuffer::~TextBuffer() {
     delete markerLayer.second;
   }
   delete this->buffer;
+  delete this->historyProvider;
   delete this->languageMode;
 }
 
@@ -202,11 +206,11 @@ Range TextBuffer::applyChange(Point oldStart, Point oldEnd, Point newStart, Poin
   const Range newRange = Range(newStart, traverse(newStart, newExtent));
 
   if (pushToHistory) {
-    /*if (!change.oldExtent) change.oldExtent = oldExtent
-    if (!change.newExtent) change.newExtent = newExtent
-    if (this.historyProvider) {
-      this.historyProvider.pushChange(change)
-    }*/
+    //if (!change.oldExtent) change.oldExtent = oldExtent
+    //if (!change.newExtent) change.newExtent = newExtent
+    if (this->historyProvider) {
+      this->historyProvider->pushChange(newStart, oldExtent, newExtent, oldText, newText);
+    }
   }
 
   //const changeEvent = {oldRange, newRange, oldText, newText}
@@ -320,10 +324,40 @@ std::size_t TextBuffer::getMarkerCount() {
 Section: History
 */
 
+void TextBuffer::undo(DisplayMarkerLayer *selectionsMarkerLayer) {
+  const auto pop = this->historyProvider->undo();
+  this->transactCallDepth++;
+  for (Patch::Change &change : pop.get_changes()) {
+    this->applyChange(change.old_start, change.old_end, change.new_start, change.new_end, change.old_text->content, change.new_text->content);
+  }
+  this->transactCallDepth--;
+  this->emitDidChangeTextEvent();
+}
+
+void TextBuffer::redo(DisplayMarkerLayer *selectionsMarkerLayer) {
+  const auto pop = this->historyProvider->redo();
+  this->transactCallDepth++;
+  for (Patch::Change &change : pop.get_changes()) {
+    this->applyChange(change.old_start, change.old_end, change.new_start, change.new_end, change.old_text->content, change.new_text->content);
+  }
+  this->transactCallDepth--;
+  this->emitDidChangeTextEvent();
+}
+
 void TextBuffer::transact(std::function<void()> fn) {
+  const auto checkpointBefore = this->historyProvider->createCheckpoint(
+    //markers: this.createMarkerSnapshot(selectionsMarkerLayer),
+    true
+  );
+
   this->transactCallDepth++;
   fn();
   this->transactCallDepth--;
+
+  this->historyProvider->groupChangesSinceCheckpoint(checkpointBefore,
+    //markers: endMarkerSnapshot,
+    true
+  );
   this->emitDidChangeTextEvent();
 }
 

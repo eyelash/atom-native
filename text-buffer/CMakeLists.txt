@@ -4,6 +4,7 @@ project(text-buffer)
 add_library(text-buffer STATIC)
 target_link_libraries(text-buffer superstring)
 target_sources(text-buffer PRIVATE
+  src/default-history-provider.cc
   src/display-layer.cc
   src/display-marker-layer.cc
   src/display-marker.cc

@@ -1,11 +1,11 @@
 #include "marker.h"
 #include "marker-layer.h"
 
-Marker::Marker(unsigned id, MarkerLayer *layer, Range range, bool exclusivitySet) {
+Marker::Marker(unsigned id, MarkerLayer *layer, Range range, const Params &params, bool exclusivitySet) {
   this->id = id;
   this->layer = layer;
-  this->tailed = true;
-  this->reversed = false;
+  this->tailed = params.tailed ? *params.tailed : true;
+  this->reversed = params.reversed ? *params.reversed : false;
   this->invalidate = InvalidationStrategy::overlap;
   if (!exclusivitySet) {
     this->layer->setMarkerIsExclusive(this->id, this->isExclusive());
@@ -36,7 +36,7 @@ Point Marker::getHeadPosition() const {
 
 bool Marker::setHeadPosition(const Point &position) {
   Range oldRange = this->getRange();
-  UpdateParams params;
+  Params params;
   if (this->hasTail()) {
     if (this->isReversed()) {
       if (position.isLessThan(oldRange.end)) {
@@ -69,7 +69,7 @@ Point Marker::getTailPosition() const {
 
 bool Marker::setTailPosition(const Point &position) {
   Range oldRange = this->getRange();
-  UpdateParams params;
+  Params params;
   params.tailed = true;
   if (this->reversed) {
     if (position.isLessThan(oldRange.start)) {
@@ -109,7 +109,7 @@ bool Marker::clearTail() {
 bool Marker::plantTail() {
   if (!this->hasTail()) {
     Point headPosition = this->getHeadPosition();
-    UpdateParams params;
+    Params params;
     params.range = Range(headPosition, headPosition);
     params.tailed = true;
     return this->update(this->getRange(), params);
@@ -159,7 +159,7 @@ int Marker::compare(const Marker *other) const {
   return this->layer->compareMarkers(this->id, other->id);
 }
 
-bool Marker::update(const Range &oldRange, const UpdateParams &params) {
+bool Marker::update(const Range &oldRange, const Params &params, bool textChanged, bool suppressMarkerLayerUpdateEvents) {
   bool wasExclusive = this->isExclusive();
   bool updated = false;
   if (params.range && !params.range->isEqual(oldRange)) {
@@ -179,4 +179,12 @@ bool Marker::update(const Range &oldRange, const UpdateParams &params) {
     updated = true;
   }
   return updated;
+}
+
+Marker::Snapshot Marker::getSnapshot(Range range, bool includeMarker) {
+  Snapshot snapshot {range, this->reversed, this->tailed, this->invalidate, this->exclusive};
+  if (includeMarker) {
+    //snapshot.marker = this;
+  }
+  return snapshot;
 }

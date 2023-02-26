@@ -1,6 +1,5 @@
 #include "text-buffer.h"
 #include "default-history-provider.h"
-#include "marker-layer.h"
 #include "display-layer.h"
 #include "helpers.h"
 #include "point-helpers.h"
@@ -324,29 +323,37 @@ std::size_t TextBuffer::getMarkerCount() {
 Section: History
 */
 
-void TextBuffer::undo(DisplayMarkerLayer *selectionsMarkerLayer) {
+bool TextBuffer::undo(DisplayMarkerLayer *selectionsMarkerLayer) {
   const auto pop = this->historyProvider->undo();
+  if (!pop) return false;
+
   this->transactCallDepth++;
-  for (Patch::Change &change : pop.get_changes()) {
+  for (Patch::Change &change : pop.textUpdates()) {
     this->applyChange(change.old_start, change.old_end, change.new_start, change.new_end, change.old_text->content, change.new_text->content);
   }
   this->transactCallDepth--;
+  this->restoreFromMarkerSnapshot(pop.markers, selectionsMarkerLayer);
   this->emitDidChangeTextEvent();
+  return true;
 }
 
-void TextBuffer::redo(DisplayMarkerLayer *selectionsMarkerLayer) {
+bool TextBuffer::redo(DisplayMarkerLayer *selectionsMarkerLayer) {
   const auto pop = this->historyProvider->redo();
+  if (!pop) return false;
+
   this->transactCallDepth++;
-  for (Patch::Change &change : pop.get_changes()) {
+  for (Patch::Change &change : pop.textUpdates()) {
     this->applyChange(change.old_start, change.old_end, change.new_start, change.new_end, change.old_text->content, change.new_text->content);
   }
   this->transactCallDepth--;
+  this->restoreFromMarkerSnapshot(pop.markers, selectionsMarkerLayer);
   this->emitDidChangeTextEvent();
+  return true;
 }
 
-void TextBuffer::transact(std::function<void()> fn) {
+void TextBuffer::transact(double groupingInterval, DisplayMarkerLayer *selectionsMarkerLayer, std::function<void()> fn) {
   const auto checkpointBefore = this->historyProvider->createCheckpoint(
-    //markers: this.createMarkerSnapshot(selectionsMarkerLayer),
+    this->createMarkerSnapshot(selectionsMarkerLayer),
     true
   );
 
@@ -354,11 +361,18 @@ void TextBuffer::transact(std::function<void()> fn) {
   fn();
   this->transactCallDepth--;
 
+  const auto endMarkerSnapshot = this->createMarkerSnapshot(selectionsMarkerLayer);
   this->historyProvider->groupChangesSinceCheckpoint(checkpointBefore,
-    //markers: endMarkerSnapshot,
+    endMarkerSnapshot,
     true
   );
+  this->historyProvider->applyGroupingInterval(groupingInterval);
+  this->historyProvider->enforceUndoStackSizeLimit();
   this->emitDidChangeTextEvent();
+}
+
+void TextBuffer::transact(std::function<void()> fn) {
+  this->transact(0, nullptr, fn);
 }
 
 /*
@@ -603,9 +617,47 @@ TextBuffer *TextBuffer::loadSync() {
       }
     }
   );
-  //this->finishLoading(checkpoint, patch, options);
+  //this->finishLoading(std::move(patch));
 
   return this;
+}
+
+TextBuffer::MarkerSnapshot TextBuffer::createMarkerSnapshot(DisplayMarkerLayer *selectionsMarkerLayer) {
+  MarkerSnapshot snapshot;
+  for (auto &markerLayer : this->markerLayers) {
+    const unsigned markerLayerId = markerLayer.first;
+    /*if (!markerLayer.maintainHistory) continue;
+    if (
+      selectionsMarkerLayer &&
+      markerLayer.getRole() === 'selections' &&
+      markerLayerId !== selectionsMarkerLayer->id
+    ) continue;*/
+    snapshot[markerLayerId] = markerLayer.second->createSnapshot();
+  }
+  return snapshot;
+}
+
+void TextBuffer::restoreFromMarkerSnapshot(const MarkerSnapshot &snapshot, DisplayMarkerLayer *selectionsMarkerLayer) {
+  //optional<unsigned> selectionsSnapshotId;
+  if (selectionsMarkerLayer != nullptr) {
+    // Do selective selections marker restoration only when snapshot includes single selections snapshot.
+    /*const selectionsSnapshotIds = Object.keys(snapshot).filter(id => this.selectionsMarkerLayerIds.has(id))
+    if (selectionsSnapshotIds.length === 1) {
+      selectionsSnapshotId = selectionsSnapshotIds[0]
+    }*/
+  }
+
+  for (const auto &layerSnapshot : snapshot) {
+    const unsigned markerLayerId = layerSnapshot.first;
+    /* if (markerLayerId == selectionsSnapshotId) {
+      this.markerLayers[selectionsMarkerLayer.id].restoreFromSnapshot(
+        layerSnapshot,
+        markerLayerId !== selectionsMarkerLayer.id
+      )
+    } else */ if (this->markerLayers.count(markerLayerId)) {
+      this->markerLayers[markerLayerId]->restoreFromSnapshot(layerSnapshot.second);
+    }
+  }
 }
 
 void TextBuffer::emitDidChangeTextEvent() {

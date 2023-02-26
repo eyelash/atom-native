@@ -1,6 +1,5 @@
 #include "marker-layer.h"
 #include "text-buffer.h"
-#include "marker.h"
 #include "display-marker-layer.h"
 #include "set-helpers.h"
 
@@ -189,6 +188,59 @@ void MarkerLayer::splice(Point start, Point oldExtent, Point newExtent) {
   // TODO: destroy invalidated markers
 }
 
+template <class K, class V> static std::vector<K> keys(const std::unordered_map<K, V> &map) {
+  std::vector<K> result;
+  for (const auto &entry : map) {
+    result.push_back(entry.first);
+  }
+  return result;
+}
+
+void MarkerLayer::restoreFromSnapshot(const Snapshot &snapshots, bool alwaysCreate) {
+  auto existingMarkerIds = keys(this->markersById);
+  for (const auto &snapshot : snapshots) {
+    const unsigned id = snapshot.first;
+    /*if (alwaysCreate) {
+      this.createMarker(snapshot.range, snapshot, true);
+      continue;
+    }*/
+    auto iter = this->markersById.find(id);
+    if (iter != this->markersById.end()) {
+      Marker *marker = iter != this->markersById.end() ? iter->second : nullptr;
+      marker->update(marker->getRange(), {snapshot.second.range, snapshot.second.reversed, snapshot.second.tailed}, true, true);
+    } else {
+      //Marker *marker = snapshot.marker;
+      /* if (marker) {
+        this.markersById[marker.id] = marker;
+        ({range} = snapshot);
+        this.index.insert(marker.id, range.start, range.end);
+        marker.update(marker.getRange(), snapshot, true, true);
+        if (this.emitCreateMarkerEvents) {
+          this.emitter.emit('did-create-marker', marker);
+        }
+      } else */ {
+        Marker *newMarker = this->createMarker(snapshot.second.range, {snapshot.second.range, snapshot.second.reversed, snapshot.second.tailed}, true);
+      }
+    }
+  }
+  for (unsigned id : existingMarkerIds) {
+    if (this->markersById.count(id) && snapshots.count(id) == 0) {
+      Marker *marker = this->markersById[id];
+      marker->destroy(true);
+    }
+  }
+}
+
+MarkerLayer::Snapshot MarkerLayer::createSnapshot() {
+  Snapshot result;
+  auto ranges = this->index->dump();
+  for (auto &marker : this->markersById) {
+    const unsigned id = marker.first;
+    result[id] = marker.second->getSnapshot(ranges[id]);
+  }
+  return result;
+}
+
 /*
 Section: Private - Marker interface
 */
@@ -241,9 +293,9 @@ void MarkerLayer::setMarkerIsExclusive(unsigned id, bool exclusive) {
   this->index->set_exclusive(id, exclusive);
 }
 
-Marker *MarkerLayer::createMarker(const Range &range, bool suppressMarkerLayerUpdateEvents) {
+Marker *MarkerLayer::createMarker(const Range &range, const Marker::Params &params, bool suppressMarkerLayerUpdateEvents) {
   unsigned id = this->delegate->getNextMarkerId();
-  Marker *marker = this->addMarker(id, range);
+  Marker *marker = this->addMarker(id, range, params);
   this->delegate->markerCreated(this, marker);
   if (!suppressMarkerLayerUpdateEvents) {
     this->delegate->markersUpdated(this);
@@ -257,7 +309,7 @@ Marker *MarkerLayer::createMarker(const Range &range, bool suppressMarkerLayerUp
   return marker;
 }
 
-Marker *MarkerLayer::addMarker(unsigned id, const Range &range) {
+Marker *MarkerLayer::addMarker(unsigned id, const Range &range, const Marker::Params &params) {
   this->index->insert(id, range.start, range.end);
-  return this->markersById[id] = new Marker(id, this, range);
+  return this->markersById[id] = new Marker(id, this, range, params);
 }

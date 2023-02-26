@@ -1,6 +1,7 @@
 #ifndef TEXT_BUFFER_H_
 #define TEXT_BUFFER_H_
 
+#include "marker-layer.h"
 #include "range.h"
 #include "file.h"
 #include <string>
@@ -9,8 +10,6 @@
 
 class DefaultHistoryProvider;
 class LanguageMode;
-class Marker;
-class MarkerLayer;
 class DisplayLayer;
 class DisplayMarkerLayer;
 
@@ -47,6 +46,7 @@ public:
     void stop();
   };
   using ScanIterator = std::function<void(SearchCallbackArgument &)>;
+  using MarkerSnapshot = std::unordered_map<unsigned, MarkerLayer::Snapshot>;
 
   bool isModified();
   optional<std::string> getPath();
@@ -83,8 +83,9 @@ public:
   std::vector<Marker *> getMarkers();
   Marker *getMarker(unsigned);
   std::size_t getMarkerCount();
-  void undo(DisplayMarkerLayer * = nullptr);
-  void redo(DisplayMarkerLayer * = nullptr);
+  bool undo(DisplayMarkerLayer * = nullptr);
+  bool redo(DisplayMarkerLayer * = nullptr);
+  void transact(double, DisplayMarkerLayer *, std::function<void()>);
   void transact(std::function<void()>);
   void scan(const Regex &, ScanIterator);
   void backwardsScan(const Regex &, ScanIterator);
@@ -115,6 +116,8 @@ public:
   LanguageMode *getLanguageMode();
   void setLanguageMode(LanguageMode *);
   TextBuffer *loadSync();
+  MarkerSnapshot createMarkerSnapshot(DisplayMarkerLayer *);
+  void restoreFromMarkerSnapshot(const MarkerSnapshot &, DisplayMarkerLayer *);
   void emitDidChangeTextEvent();
   void markerCreated(MarkerLayer *, Marker *);
   void markersUpdated(MarkerLayer *);

@@ -15,6 +15,18 @@ public:
     inside,
     touch
   };
+  struct Snapshot {
+    Range range;
+    bool reversed;
+    bool tailed;
+    InvalidationStrategy invalidate;
+    optional<bool> exclusive;
+  };
+  struct Params {
+    optional<Range> range;
+    optional<bool> reversed;
+    optional<bool> tailed;
+  };
 
 private:
   MarkerLayer *layer;
@@ -26,7 +38,7 @@ private:
 public:
   unsigned id;
 
-  Marker(unsigned, MarkerLayer *, Range, bool = false);
+  Marker(unsigned, MarkerLayer *, Range, const Params & = Params{}, bool = false);
   ~Marker();
 
   Range getRange() const;
@@ -46,14 +58,8 @@ public:
   InvalidationStrategy getInvalidationStrategy() const;
   void destroy(bool = false);
   int compare(const Marker *) const;
-
-private:
-  struct UpdateParams {
-    optional<Range> range;
-    optional<bool> reversed;
-    optional<bool> tailed;
-  };
-  bool update(const Range &, const UpdateParams &);
+  bool update(const Range &, const Params &, bool = false, bool = false);
+  Snapshot getSnapshot(Range, bool = true);
 };
 
 #endif // MARKER_H_

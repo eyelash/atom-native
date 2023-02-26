@@ -1,6 +1,7 @@
 #ifndef MARKER_LAYER_H_
 #define MARKER_LAYER_H_
 
+#include "marker.h"
 #include "range.h"
 #include "event-kit.h"
 #include "helpers.h"
@@ -11,7 +12,6 @@
 #include <functional>
 
 class TextBuffer;
-class Marker;
 class DisplayMarkerLayer;
 
 class MarkerLayer {
@@ -21,6 +21,8 @@ class MarkerLayer {
   std::unordered_map<unsigned, Marker *> markersById;
 
 public:
+  using Snapshot = std::unordered_map<unsigned, Marker::Snapshot>;
+
   unsigned id;
   std::unordered_set<DisplayMarkerLayer *> displayMarkerLayers;
 
@@ -37,6 +39,8 @@ public:
   Marker *markPosition(Point);
   void onDidCreateMarker(std::function<void(Marker *)>);
   void splice(Point, Point, Point);
+  void restoreFromSnapshot(const Snapshot &, bool = false);
+  Snapshot createSnapshot();
   void destroyMarker(Marker *, bool = false);
   bool hasMarker(unsigned);
   Range getMarkerRange(unsigned) const;
@@ -47,8 +51,8 @@ public:
   void setMarkerIsExclusive(unsigned, bool);
 
 private:
-  Marker *createMarker(const Range &, bool = false);
-  Marker *addMarker(unsigned, const Range &);
+  Marker *createMarker(const Range &, const Marker::Params & = Marker::Params{}, bool = false);
+  Marker *addMarker(unsigned, const Range &, const Marker::Params &);
 };
 
 MarkerLayer::FindParam startPosition(Point);

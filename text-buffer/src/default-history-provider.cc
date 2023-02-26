@@ -1,11 +1,25 @@
 #include "default-history-provider.h"
+#include <chrono>
 
 DefaultHistoryProvider::Checkpoint::Checkpoint(unsigned id, bool isBarrier) {
   this->id = id;
   this->isBarrier = isBarrier;
 }
 
-DefaultHistoryProvider::Transaction::Transaction(Patch &&patch): patch{std::move(patch)} {}
+static double now() {
+  return std::chrono::duration_cast<std::chrono::duration<double, std::milli>>(std::chrono::system_clock::now().time_since_epoch()).count();
+}
+
+DefaultHistoryProvider::Transaction::Transaction(Patch &&patch, double groupingInterval) : patch{std::move(patch)}, groupingInterval{groupingInterval}, timestamp{now()} {}
+
+bool DefaultHistoryProvider::Transaction::shouldGroupWith(Transaction *previousTransaction) {
+  const double timeBetweenTransactions = this->timestamp - previousTransaction->timestamp;
+  return timeBetweenTransactions < std::min(this->groupingInterval, previousTransaction->groupingInterval);
+}
+
+DefaultHistoryProvider::Transaction *DefaultHistoryProvider::Transaction::groupWith(Transaction *previousTransaction) {
+  return new Transaction(/* previousTransaction.markerSnapshotBefore, */ Patch::compose({&previousTransaction->patch, &this->patch}), /* this.markerSnapshotAfter, */ this->groupingInterval);
+}
 
 DefaultHistoryProvider::StackEntry::StackEntry(Checkpoint *value) {
   this->value = value;
@@ -22,7 +36,7 @@ DefaultHistoryProvider::StackEntry::StackEntry(Patch *value) {
   this->type = Type::Patch;
 }
 
-DefaultHistoryProvider::StackEntry::StackEntry(DefaultHistoryProvider::StackEntry &&entry) {
+DefaultHistoryProvider::StackEntry::StackEntry(StackEntry &&entry) {
   this->value = entry.value;
   this->type = entry.type;
   entry.value = nullptr;
@@ -44,13 +58,14 @@ DefaultHistoryProvider::StackEntry::~StackEntry() {
   }
 }
 
-DefaultHistoryProvider::StackEntry &DefaultHistoryProvider::StackEntry::operator =(DefaultHistoryProvider::StackEntry &&entry) {
+DefaultHistoryProvider::StackEntry &DefaultHistoryProvider::StackEntry::operator =(StackEntry &&entry) {
   std::swap(this->value, entry.value);
   std::swap(this->type, entry.type);
   return *this;
 }
 
 DefaultHistoryProvider::DefaultHistoryProvider() {
+  this->maxUndoEntries = 10000;
   this->nextCheckpointId = 1;
 }
 
@@ -97,8 +112,31 @@ void DefaultHistoryProvider::groupChangesSinceCheckpoint(unsigned checkpointId, 
       this->undoStack.push_back(new Transaction(/* markerSnapshotBefore, */ std::move(composedPatches) /* , markerSnapshotAfter */));
     }
     if (deleteCheckpoint) {
-      this->undoStack.erase(this->undoStack.begin() + checkpointIndex);
+      this->undoStack.erase(this->undoStack.begin() + *checkpointIndex);
     }
+  }
+}
+
+void DefaultHistoryProvider::enforceUndoStackSizeLimit() {
+  if (this->undoStack.size() > this->maxUndoEntries) {
+    this->undoStack.erase(this->undoStack.begin(), this->undoStack.end() - this->maxUndoEntries);
+  }
+}
+
+void DefaultHistoryProvider::applyGroupingInterval(double groupingInterval) {
+  StackEntry *topEntry = this->undoStack.size() >= 1 ? &this->undoStack[this->undoStack.size() - 1] : nullptr;
+  StackEntry *previousEntry = this->undoStack.size() >= 2 ? &this->undoStack[this->undoStack.size() - 2] : nullptr;
+  if (topEntry && topEntry->type == StackEntry::Type::Transaction) {
+    static_cast<Transaction *>(topEntry->value)->groupingInterval = groupingInterval;
+  } else {
+    return;
+  }
+  if (groupingInterval == 0) {
+    return;
+  }
+  if (previousEntry && previousEntry->type == StackEntry::Type::Transaction && static_cast<Transaction *>(topEntry->value)->shouldGroupWith(static_cast<Transaction *>(previousEntry->value))) {
+    this->undoStack[this->undoStack.size() - 2] = static_cast<Transaction *>(topEntry->value)->groupWith(static_cast<Transaction *>(previousEntry->value));
+    this->undoStack.pop_back();
   }
 }
 

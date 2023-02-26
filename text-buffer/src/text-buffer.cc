@@ -344,7 +344,7 @@ void TextBuffer::redo(DisplayMarkerLayer *selectionsMarkerLayer) {
   this->emitDidChangeTextEvent();
 }
 
-void TextBuffer::transact(std::function<void()> fn) {
+void TextBuffer::transact(double groupingInterval, DisplayMarkerLayer *selectionsMarkerLayer, std::function<void()> fn) {
   const auto checkpointBefore = this->historyProvider->createCheckpoint(
     //markers: this.createMarkerSnapshot(selectionsMarkerLayer),
     true
@@ -358,7 +358,13 @@ void TextBuffer::transact(std::function<void()> fn) {
     //markers: endMarkerSnapshot,
     true
   );
+  this->historyProvider->applyGroupingInterval(groupingInterval);
+  this->historyProvider->enforceUndoStackSizeLimit();
   this->emitDidChangeTextEvent();
+}
+
+void TextBuffer::transact(std::function<void()> fn) {
+  this->transact(0, nullptr, fn);
 }
 
 /*

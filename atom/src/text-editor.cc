@@ -13,6 +13,7 @@ constexpr const char16_t *DEFAULT_NON_WORD_CHARACTERS = u"/\\()\"':,.;<>~!@#$%^&
 
 TextEditor::TextEditor(TextBuffer *buffer) {
   this->softTabs = true;
+  this->undoGroupingInterval = 300;
   if (buffer) {
     this->buffer = buffer;
   } else {
@@ -236,9 +237,10 @@ Range TextEditor::setTextInBufferRange(Range range, std::u16string &&text) {
 }
 
 void TextEditor::insertText(const std::u16string &text) {
+  const double groupingInterval = this->undoGroupingInterval;
   this->mutateSelectedText([&](Selection *selection) {
     selection->insertText(text);
-  });
+  }, groupingInterval);
 }
 
 void TextEditor::insertNewline() {
@@ -255,9 +257,9 @@ void TextEditor::backspace() {
   return this->mutateSelectedText([&](Selection *selection) { selection->backspace(); });
 }
 
-void TextEditor::mutateSelectedText(std::function<void(Selection *)> fn /* , groupingInterval = 0 */ ) {
+void TextEditor::mutateSelectedText(std::function<void(Selection *)> fn, double groupingInterval) {
   return this->mergeIntersectingSelections([&]() {
-    return this->transact(/* groupingInterval, */ [&]() {
+    return this->transact(groupingInterval, [&]() {
       for (Selection *selection : this->getSelectionsOrderedByBufferPosition()) fn(selection);
     });
   });
@@ -638,8 +640,12 @@ void TextEditor::redo() {
   //this.getLastSelection().autoscroll();
 }
 
+void TextEditor::transact(double groupingInterval, std::function<void()> fn) {
+  return this->buffer->transact(groupingInterval, this->selectionsMarkerLayer, fn);
+}
+
 void TextEditor::transact(std::function<void()> fn) {
-  return this->buffer->transact(fn);
+  return this->transact(0, fn);
 }
 
 /*

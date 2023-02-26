@@ -14,7 +14,11 @@ class DefaultHistoryProvider {
   };
   struct Transaction {
     Patch patch;
-    Transaction(Patch &&);
+    double groupingInterval;
+    double timestamp;
+    Transaction(Patch &&, double = 0);
+    bool shouldGroupWith(Transaction *);
+    Transaction *groupWith(Transaction *);
   };
   struct StackEntry {
     enum class Type {
@@ -31,6 +35,7 @@ class DefaultHistoryProvider {
     ~StackEntry();
     StackEntry &operator =(StackEntry &&);
   };
+  size_t maxUndoEntries;
   unsigned nextCheckpointId;
   std::vector<StackEntry> undoStack;
   std::vector<StackEntry> redoStack;
@@ -41,6 +46,8 @@ public:
 
   unsigned createCheckpoint(bool);
   void groupChangesSinceCheckpoint(unsigned, bool);
+  void enforceUndoStackSizeLimit();
+  void applyGroupingInterval(double);
   void pushChange(Point, Point, Point, const std::u16string &, const std::u16string &);
   void pushPatch(Patch *patch);
   Patch undo();

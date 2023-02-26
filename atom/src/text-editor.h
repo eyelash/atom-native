@@ -17,6 +17,7 @@ class LayerDecoration;
 
 class TextEditor {
   bool softTabs;
+  double undoGroupingInterval;
   std::vector<Cursor *> cursors;
   std::unordered_map<unsigned, Cursor *> cursorsByMarkerId;
   std::vector<Selection *> selections;
@@ -67,7 +68,7 @@ public:
   void insertNewline();
   void delete_();
   void backspace();
-  void mutateSelectedText(std::function<void(Selection *)>);
+  void mutateSelectedText(std::function<void(Selection *)>, double = 0);
   void moveLineUp();
   void moveLineDown();
   void duplicateLines();
@@ -85,6 +86,7 @@ public:
   void deleteLine();
   void undo();
   void redo();
+  void transact(double, std::function<void()>);
   void transact(std::function<void()>);
   Point screenPositionForBufferPosition(Point);
   Point bufferPositionForScreenPosition(Point);

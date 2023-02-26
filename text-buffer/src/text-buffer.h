@@ -85,6 +85,7 @@ public:
   std::size_t getMarkerCount();
   void undo(DisplayMarkerLayer * = nullptr);
   void redo(DisplayMarkerLayer * = nullptr);
+  void transact(double, DisplayMarkerLayer *, std::function<void()>);
   void transact(std::function<void()>);
   void scan(const Regex &, ScanIterator);
   void backwardsScan(const Regex &, ScanIterator);

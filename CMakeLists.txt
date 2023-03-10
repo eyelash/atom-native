@@ -3,7 +3,6 @@ project(atom-native)
 
 add_subdirectory(superstring)
 add_subdirectory(text-buffer)
-add_subdirectory(oniguruma)
 add_subdirectory(tree-sitter)
 add_subdirectory(git-utils)
 add_subdirectory(atom)

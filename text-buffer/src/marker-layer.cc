@@ -174,6 +174,10 @@ Marker *MarkerLayer::markPosition(Point position) {
 Section: Event subscription
 */
 
+void MarkerLayer::onDidUpdate(std::function<void()> callback) {
+  return this->didUpdateEmitter.on(callback);
+}
+
 void MarkerLayer::onDidCreateMarker(std::function<void(Marker *)> callback) {
   //this->emitCreateMarkerEvents = true;
   return this->didCreateMarkerEmitter.on(callback);
@@ -245,6 +249,10 @@ MarkerLayer::Snapshot MarkerLayer::createSnapshot() {
 Section: Private - Marker interface
 */
 
+void MarkerLayer::markerUpdated() {
+  return this->delegate->markersUpdated(this);
+}
+
 void MarkerLayer::destroyMarker(Marker *marker, bool suppressMarkerLayerUpdateEvents) {
   if (this->markersById.count(marker->id)) {
     this->markersById.erase(marker->id);
@@ -309,7 +317,15 @@ Marker *MarkerLayer::createMarker(const Range &range, const Marker::Params &para
   return marker;
 }
 
+/*
+Section: Internal
+*/
+
 Marker *MarkerLayer::addMarker(unsigned id, const Range &range, const Marker::Params &params) {
   this->index->insert(id, range.start, range.end);
   return this->markersById[id] = new Marker(id, this, range, params);
+}
+
+void MarkerLayer::emitUpdateEvent() {
+  return this->didUpdateEmitter.emit();
 }

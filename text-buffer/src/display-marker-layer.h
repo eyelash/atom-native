@@ -4,6 +4,7 @@
 #include "range.h"
 #include "display-layer.h"
 #include "marker-layer.h"
+#include "event-kit.h"
 #include <unordered_map>
 #include <functional>
 
@@ -13,6 +14,7 @@ class DisplayMarkerLayer {
   DisplayLayer *displayLayer;
   MarkerLayer *bufferMarkerLayer;
   std::unordered_map<unsigned, DisplayMarker *> markersById;
+  Emitter<> didUpdateEmitter;
 
 public:
   unsigned id;
@@ -21,6 +23,7 @@ public:
   ~DisplayMarkerLayer();
 
   void clear();
+  void onDidUpdate(std::function<void()>);
   void onDidCreateMarker(std::function<void(DisplayMarker *)>);
   DisplayMarker *markScreenRange(Range);
   DisplayMarker *markScreenPosition(Point);
@@ -34,6 +37,7 @@ public:
   Range translateBufferRange(Range, DisplayLayer::ClipDirection = DisplayLayer::ClipDirection::closest);
   Point translateScreenPosition(Point, DisplayLayer::ClipDirection = DisplayLayer::ClipDirection::closest, bool = false);
   Range translateScreenRange(Range, DisplayLayer::ClipDirection = DisplayLayer::ClipDirection::closest, bool = false);
+  void emitDidUpdate();
   void destroyMarker(unsigned);
   void didDestroyMarker(DisplayMarker *);
 };

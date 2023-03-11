@@ -72,10 +72,10 @@ public:
   void clearSelection(bool);
   Regex wordRegExp(bool = true);
   Regex subwordRegExp(bool = false);
-
-private:
   const char16_t *getNonWordCharacters();
   void changePosition(optional<bool>, std::function<void()>);
+  Range getScreenRange();
+  void autoscroll();
   Point getBeginningOfNextParagraphBufferPosition();
   Point getBeginningOfPreviousParagraphBufferPosition();
 };

@@ -8,6 +8,7 @@ DisplayMarkerLayer::DisplayMarkerLayer(DisplayLayer *displayLayer, MarkerLayer *
   this->bufferMarkerLayer = bufferMarkerLayer;
   this->id = this->bufferMarkerLayer->id;
   this->bufferMarkerLayer->displayMarkerLayers.insert(this);
+  this->bufferMarkerLayer->onDidUpdate(std::bind(&DisplayMarkerLayer::emitDidUpdate, this));
 }
 
 DisplayMarkerLayer::~DisplayMarkerLayer() {
@@ -27,6 +28,10 @@ void DisplayMarkerLayer::clear() {
 /*
 Section: Event Subscription
 */
+
+void DisplayMarkerLayer::onDidUpdate(std::function<void()> callback) {
+  return this->didUpdateEmitter.on(callback);
+}
 
 void DisplayMarkerLayer::onDidCreateMarker(std::function<void(DisplayMarker *)> callback) {
   return this->bufferMarkerLayer->onDidCreateMarker([this, callback](Marker *bufferMarker) {
@@ -248,6 +253,10 @@ Point DisplayMarkerLayer::translateScreenPosition(Point screenPosition, DisplayL
 
 Range DisplayMarkerLayer::translateScreenRange(Range screenRange, DisplayLayer::ClipDirection clipDirection, bool skipSoftWrapIndentation) {
   return this->displayLayer->translateScreenRange(screenRange, clipDirection, skipSoftWrapIndentation);
+}
+
+void DisplayMarkerLayer::emitDidUpdate() {
+  return this->didUpdateEmitter.emit();
 }
 
 void DisplayMarkerLayer::destroyMarker(unsigned id) {

@@ -515,7 +515,7 @@ Section: Utilities
 */
 
 void Cursor::clearSelection(bool autoscroll) {
-  if (this->selection) this->selection->clear();
+  if (this->selection) this->selection->clear(autoscroll);
 }
 
 Regex Cursor::wordRegExp(bool includeNonWordCharacters) {
@@ -565,7 +565,18 @@ void Cursor::changePosition(optional<bool> options_autoscroll, std::function<voi
     options_autoscroll
       ? *options_autoscroll
       : this->isLastCursor();
-  //if (autoscroll) this.autoscroll();
+  if (autoscroll) this->autoscroll();
+}
+
+Range Cursor::getScreenRange() {
+  //const auto [row, column] = this->getScreenPosition();
+  const Point screenPosition = this->getScreenPosition();
+  const double row = screenPosition.row, column = screenPosition.column;
+  return Range(Point(row, column), Point(row, column + 1));
+}
+
+void Cursor::autoscroll() {
+  this->editor->scrollToScreenRange(this->getScreenRange(), false);
 }
 
 Point Cursor::getBeginningOfNextParagraphBufferPosition() {

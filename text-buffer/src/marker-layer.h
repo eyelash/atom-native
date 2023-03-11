@@ -16,6 +16,7 @@ class DisplayMarkerLayer;
 
 class MarkerLayer {
   TextBuffer *delegate;
+  Emitter<> didUpdateEmitter;
   Emitter<Marker *> didCreateMarkerEmitter;
   MarkerIndex *index;
   std::unordered_map<unsigned, Marker *> markersById;
@@ -37,10 +38,12 @@ public:
   std::vector<Marker *> findMarkers(Slice<FindParam>);
   Marker *markRange(Range);
   Marker *markPosition(Point);
+  void onDidUpdate(std::function<void()>);
   void onDidCreateMarker(std::function<void(Marker *)>);
   void splice(Point, Point, Point);
   void restoreFromSnapshot(const Snapshot &, bool = false);
   Snapshot createSnapshot();
+  void markerUpdated();
   void destroyMarker(Marker *, bool = false);
   bool hasMarker(unsigned);
   Range getMarkerRange(unsigned) const;
@@ -49,10 +52,9 @@ public:
   int compareMarkers(unsigned, unsigned);
   void setMarkerRange(unsigned, const Range &);
   void setMarkerIsExclusive(unsigned, bool);
-
-private:
   Marker *createMarker(const Range &, const Marker::Params & = Marker::Params{}, bool = false);
   Marker *addMarker(unsigned, const Range &, const Marker::Params &);
+  void emitUpdateEvent();
 };
 
 MarkerLayer::FindParam startPosition(Point);

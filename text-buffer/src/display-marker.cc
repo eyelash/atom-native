@@ -6,6 +6,7 @@ DisplayMarker::DisplayMarker(DisplayMarkerLayer *layer, Marker *bufferMarker) {
   this->layer = layer;
   this->bufferMarker = bufferMarker;
   this->id = this->bufferMarker->id;
+  this->hasChangeObservers = false;
 }
 
 DisplayMarker::~DisplayMarker() {}
@@ -22,6 +23,20 @@ void DisplayMarker::didDestroyBufferMarker() {
   //this.emitter.dispose();
   //this.emitter.clear();
   //return (ref = this.bufferMarkerSubscription) != null ? ref.dispose() : void 0;
+}
+
+/*
+Section: Event Subscription
+*/
+
+void DisplayMarker::onDidChange(std::function<void()> callback) {
+  if (!this->hasChangeObservers) {
+    this->bufferMarker->onDidChange([this]() {
+      return this->notifyObservers();
+    });
+    this->hasChangeObservers = true;
+  }
+  return this->didChangeEmitter.on(callback);
 }
 
 void DisplayMarker::onDidDestroy(std::function<void()> callback) {
@@ -115,4 +130,12 @@ bool DisplayMarker::plantTail() {
 
 bool DisplayMarker::clearTail() {
   return this->bufferMarker->clearTail();
+}
+
+/*
+Section: Private
+*/
+
+void DisplayMarker::notifyObservers() {
+  return this->didChangeEmitter.emit();
 }

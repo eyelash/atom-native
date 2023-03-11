@@ -2,6 +2,7 @@
 #define MARKER_H_
 
 #include "range.h"
+#include "event-kit.h"
 #include <optional.h>
 
 class MarkerLayer;
@@ -30,6 +31,8 @@ public:
 
 private:
   MarkerLayer *layer;
+  Emitter<> didDestroyEmitter;
+  Emitter<> didChangeEmitter;
   bool tailed;
   bool reversed;
   InvalidationStrategy invalidate;
@@ -41,6 +44,8 @@ public:
   Marker(unsigned, MarkerLayer *, Range, const Params & = Params{}, bool = false);
   ~Marker();
 
+  void onDidDestroy(std::function<void()>);
+  void onDidChange(std::function<void()>);
   Range getRange() const;
   bool setRange(const Range &, optional<bool> = optional<bool>());
   Point getHeadPosition() const;
@@ -60,6 +65,7 @@ public:
   int compare(const Marker *) const;
   bool update(const Range &, const Params &, bool = false, bool = false);
   Snapshot getSnapshot(Range, bool = true);
+  void emitChangeEvent(Range, bool, bool);
 };
 
 #endif // MARKER_H_

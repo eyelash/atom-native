@@ -96,6 +96,10 @@ DisplayMarkerLayer *DisplayLayer::getMarkerLayer(unsigned id) {
   return nullptr;
 }
 
+void DisplayLayer::onDidChange(std::function<void()> callback) {
+  return this->didChangeEmitter.on(callback);
+}
+
 Range DisplayLayer::bufferRangeForFold(unsigned foldId) {
   return this->foldsMarkerLayer->getMarkerRange(foldId);
 }
@@ -631,12 +635,12 @@ void DisplayLayer::didChange(UpdateResult updateResult) {
 
 void DisplayLayer::emitDeferredChangeEvents() {
   if (this->changesSinceLastEvent.get_change_count() > 0) {
-    /*this.emitter.emit('did-change', this.changesSinceLastEvent.getChanges().map((change) => {
+    this->didChangeEmitter.emit(/*this.changesSinceLastEvent.getChanges().map((change) => {
       return {
         oldRange: new Range(change.oldStart, change.oldEnd),
         newRange: new Range(change.newStart, change.newEnd)
       }
-    }));*/
+    })*/);
     this->changesSinceLastEvent = Patch();
   }
 }

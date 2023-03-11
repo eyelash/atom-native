@@ -19,6 +19,7 @@ Selection::Selection(TextEditor *editor, DisplayMarker *marker, Cursor *cursor) 
     Decoration::Type::highlight,
     "selection"
   });
+  this->marker->onDidChange([this]() { this->markerDidChange(); });
   this->marker->onDidDestroy([this]() { this->markerDidDestroy(); });
 }
 
@@ -36,6 +37,14 @@ bool Selection::isLastSelection() {
 Section: Event Subscription
 */
 
+void Selection::onDidChangeRange(std::function<void()> callback) {
+  return this->didChangeRangeEmitter.on(callback);
+}
+
+void Selection::onDidDestroy(std::function<void()> callback) {
+  //return this->didDestroyEmitter.once(callback);
+}
+
 /*
 Section: Managing the selection range
 */
@@ -47,6 +56,7 @@ Range Selection::getScreenRange() {
 void Selection::setScreenRange(Range screenRange, optional<bool> reversed) {
   return this->setBufferRange(
     this->editor->bufferRangeForScreenRange(screenRange),
+    optional<bool>(),
     reversed
   );
 }
@@ -55,7 +65,7 @@ Range Selection::getBufferRange() {
   return this->marker->getBufferRange();
 }
 
-void Selection::setBufferRange(Range bufferRange, optional<bool> reversed) {
+void Selection::setBufferRange(Range bufferRange, optional<bool> options_autoscroll, optional<bool> reversed) {
   //if (options.reversed == null) options.reversed = this.isReversed();
   /*if (!options.preserveFolds)
     this.editor.destroyFoldsContainingBufferPositions(
@@ -66,11 +76,11 @@ void Selection::setBufferRange(Range bufferRange, optional<bool> reversed) {
     //const needsFlash = options.flash;
     //options.flash = null;
     this->marker->setBufferRange(bufferRange, reversed);
-    /*const autoscroll =
-      options.autoscroll != null
-        ? options.autoscroll
-        : this.isLastSelection();
-    if (autoscroll) this.autoscroll();*/
+    const bool autoscroll =
+      options_autoscroll
+        ? *options_autoscroll
+        : this->isLastSelection();
+    if (autoscroll) this->autoscroll();
     /*if (needsFlash)
       this.decoration.flash('flash', this.editor.selectionFlashDuration);*/
   });
@@ -143,14 +153,14 @@ bool Selection::intersectsWith(Selection *otherSelection, bool exclusive) {
 Section: Modifying the selected range
 */
 
-void Selection::clear() {
+void Selection::clear(optional<bool> options_autoscroll) {
   this->goalScreenRange = optional<Range>();
   if (!this->retainSelection) this->marker->clearTail();
-  /*const autoscroll =
-    options && options.autoscroll != null
-      ? options.autoscroll
-      : this.isLastSelection();
-  if (autoscroll) this.autoscroll();*/
+  const bool autoscroll =
+    options_autoscroll
+      ? *options_autoscroll
+      : this->isLastSelection();
+  if (autoscroll) this->autoscroll();
   //this.finalize();
 }
 
@@ -208,7 +218,7 @@ void Selection::selectToBottom() {
 }
 
 void Selection::selectAll() {
-  this->setBufferRange(this->editor->getBuffer()->getRange() /* , { autoscroll: false } */);
+  this->setBufferRange(this->editor->getBuffer()->getRange(), false);
 }
 
 void Selection::selectToBeginningOfLine() {
@@ -284,16 +294,16 @@ void Selection::selectWord(/* options = {} */) {
   //this.initialScreenRange = this.getScreenRange();
 }
 
-void Selection::expandOverWord(/* options */) {
+void Selection::expandOverWord(optional<bool> options_autoscroll) {
   this->setBufferRange(
-    this->getBufferRange().union_(this->cursor->getCurrentWordBufferRange()) /* ,
-    { autoscroll: false } */
+    this->getBufferRange().union_(this->cursor->getCurrentWordBufferRange()),
+    false
   );
-  //const autoscroll =
-  //  options && options.autoscroll != null
-  //    ? options.autoscroll
-  //    : this->isLastSelection();
-  //if (autoscroll) this->cursor.autoscroll();
+  const bool autoscroll =
+    options_autoscroll
+      ? *options_autoscroll
+      : this->isLastSelection();
+  if (autoscroll) this->cursor->autoscroll();
 }
 
 void Selection::selectLine(optional<double> row /* , options */) {
@@ -318,16 +328,16 @@ void Selection::selectLine(optional<double> row /* , options */) {
   //this->initialScreenRange = this->getScreenRange();
 }
 
-void Selection::expandOverLine(/* options */) {
+void Selection::expandOverLine(optional<bool> options_autoscroll) {
   const Range range = this->getBufferRange().union_(
     this->cursor->getCurrentLineBufferRange(true)
   );
-  this->setBufferRange(range /* , { autoscroll: false } */);
-  //const autoscroll =
-  //  options && options.autoscroll != null
-  //    ? options.autoscroll
-  //    : this->isLastSelection();
-  //if (autoscroll) this->cursor.autoscroll();
+  this->setBufferRange(range, false);
+  const bool autoscroll =
+    options_autoscroll
+      ? *options_autoscroll
+      : this->isLastSelection();
+  if (autoscroll) this->cursor->autoscroll();
 }
 
 /*
@@ -352,6 +362,10 @@ void Selection::insertText(const std::u16string &text) {
   } else if (/* options.autoDecreaseIndent && */ NonWhitespaceRegExp.match(text)) {
     this->editor->autoDecreaseIndentForBufferRow(newBufferRange.start.row);
   }
+
+  const bool autoscroll =
+    /* options.autoscroll != null ? options.autoscroll : */ this->isLastSelection();
+  if (autoscroll) this->autoscroll();
 }
 
 void Selection::backspace() {
@@ -599,8 +613,8 @@ void Selection::merge(Selection *otherSelection /*, options = {} */) {
     otherSelection->getBufferRange()
   );
   this->setBufferRange(
-    bufferRange /* ,
-    Object.assign({ autoscroll: false }, options) */
+    bufferRange,
+    false
   );
   otherSelection->destroy();
 }
@@ -625,6 +639,11 @@ Range Selection::getGoalScreenRange() {
   return this->goalScreenRange ? *this->goalScreenRange : this->getScreenRange();
 }
 
+void Selection::markerDidChange() {
+  this->didChangeRangeEmitter.emit();
+  //this->editor->selectionRangeChanged();
+}
+
 void Selection::markerDidDestroy() {
   this->editor->removeSelection(this);
 }
@@ -639,6 +658,17 @@ void Selection::finalize() {
   if (this->isEmpty()) {
     this->wordwise = false;
     this->linewise = false;
+  }
+}
+
+void Selection::autoscroll() {
+  if (this->marker->hasTail()) {
+    this->editor->scrollToScreenRange(
+      this->getScreenRange()
+      //Object.assign({ reversed: this.isReversed() }, options)
+    );
+  } else {
+    this->cursor->autoscroll();
   }
 }
 

@@ -3,6 +3,7 @@
 
 #include <range.h>
 #include <optional.h>
+#include <event-kit.h>
 #include <functional>
 
 class Cursor;
@@ -11,6 +12,8 @@ class TextEditor;
 
 class Selection {
   TextEditor *editor;
+  Emitter<> didChangeRangeEmitter;
+  //Emitter<> didDestroyEmitter;
   DisplayMarker *marker;
   optional<Range> goalScreenRange;
   bool wordwise;
@@ -25,10 +28,12 @@ public:
   void destroy();
 
   bool isLastSelection();
+  void onDidChangeRange(std::function<void()>);
+  void onDidDestroy(std::function<void()>);
   Range getScreenRange();
   void setScreenRange(Range, optional<bool> = optional<bool>());
   Range getBufferRange();
-  void setBufferRange(Range, optional<bool> = optional<bool>());
+  void setBufferRange(Range, optional<bool> = optional<bool>(), optional<bool> = optional<bool>());
   std::pair<double, double> getBufferRowRange();
   Point getTailScreenPosition();
   Point getTailBufferPosition();
@@ -42,7 +47,7 @@ public:
   bool intersectsScreenRowRange(double, double);
   bool intersectsScreenRow(double);
   bool intersectsWith(Selection *, bool);
-  void clear();
+  void clear(optional<bool> = optional<bool>());
   void selectToScreenPosition(Point position);
   void selectToBufferPosition(Point);
   void selectRight(double = 1);
@@ -66,9 +71,9 @@ public:
   void selectToBeginningOfNextParagraph();
   void selectToBeginningOfPreviousParagraph();
   void selectWord();
-  void expandOverWord();
+  void expandOverWord(optional<bool> = optional<bool>());
   void selectLine(optional<double> = optional<double>());
-  void expandOverLine();
+  void expandOverLine(optional<bool> = optional<bool>());
   void insertText(const std::u16string &);
   void backspace();
   void deleteToPreviousWordBoundary();
@@ -91,8 +96,10 @@ public:
   int compare(Selection *);
   void setGoalScreenRange(Range);
   Range getGoalScreenRange();
+  void markerDidChange();
   void markerDidDestroy();
   void finalize();
+  void autoscroll();
   void modifySelection(std::function<void()>);
   void plantTail();
 };

@@ -12,6 +12,8 @@ class DisplayMarker {
 public:
   DisplayMarkerLayer *layer;
   Marker *bufferMarker;
+  bool hasChangeObservers;
+  Emitter<> didChangeEmitter;
   Emitter<> didDestroyEmitter;
   unsigned id;
 
@@ -19,6 +21,7 @@ public:
   ~DisplayMarker();
   void destroy();
   void didDestroyBufferMarker();
+  void onDidChange(std::function<void()>);
   void onDidDestroy(std::function<void()>);
 
   bool isReversed() const;
@@ -43,6 +46,7 @@ public:
   bool hasTail() const;
   bool plantTail();
   bool clearTail();
+  void notifyObservers();
 };
 
 #endif // DISPLAY_MARKER_H_

@@ -14,6 +14,19 @@ Marker::Marker(unsigned id, MarkerLayer *layer, Range range, const Params &param
 
 Marker::~Marker() {}
 
+/*
+Section: Event Subscription
+*/
+
+void Marker::onDidDestroy(std::function<void()> callback) {
+  //this.layer.markersWithDestroyListeners.add(this);
+  this->didDestroyEmitter.on(callback);
+}
+
+void Marker::onDidChange(std::function<void()> callback) {
+  return this->didChangeEmitter.on(callback);
+}
+
 Range Marker::getRange() const {
   return this->layer->getMarkerRange(this->id);
 }
@@ -161,7 +174,7 @@ int Marker::compare(const Marker *other) const {
 
 bool Marker::update(const Range &oldRange, const Params &params, bool textChanged, bool suppressMarkerLayerUpdateEvents) {
   bool wasExclusive = this->isExclusive();
-  bool updated = false;
+  bool updated = false, propertiesChanged = false;
   if (params.range && !params.range->isEqual(oldRange)) {
     this->layer->setMarkerRange(this->id, *params.range);
     updated = true;
@@ -178,6 +191,10 @@ bool Marker::update(const Range &oldRange, const Params &params, bool textChange
     this->layer->setMarkerIsExclusive(this->id, this->isExclusive());
     updated = true;
   }
+  this->emitChangeEvent(params.range ? *params.range : oldRange, textChanged, propertiesChanged);
+  if (updated && !suppressMarkerLayerUpdateEvents) {
+    this->layer->markerUpdated();
+  }
   return updated;
 }
 
@@ -187,4 +204,12 @@ Marker::Snapshot Marker::getSnapshot(Range range, bool includeMarker) {
     //snapshot.marker = this;
   }
   return snapshot;
+}
+
+/*
+Section: Private
+*/
+
+void Marker::emitChangeEvent(Range currentRange, bool textChanged, bool propertiesChanged) {
+  this->didChangeEmitter.emit();
 }

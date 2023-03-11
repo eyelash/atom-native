@@ -60,6 +60,10 @@ public:
   size_t size() const {
     return contents.size();
   }
+
+  void clear() {
+    contents.clear();
+  }
 };
 
 #endif // SUPERSTRING_FLAT_SET_H

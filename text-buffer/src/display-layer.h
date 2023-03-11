@@ -2,6 +2,7 @@
 #define DISPLAY_LAYER_H_
 
 #include "range.h"
+#include "event-kit.h"
 #include <unordered_map>
 #include <patch.h>
 
@@ -40,6 +41,7 @@ public:
   double tabLength;
 private:
   TextBuffer *buffer;
+  Emitter<> didChangeEmitter;
   ScreenLineBuilder *screenLineBuilder;
   std::vector<optional<ScreenLine>> cachedScreenLines;
   std::unordered_map<int32_t, int32_t> builtInScopeIdsByFlags;
@@ -70,6 +72,7 @@ public:
   void bufferDidChangeLanguageMode();
   DisplayMarkerLayer *addMarkerLayer();
   DisplayMarkerLayer *getMarkerLayer(unsigned);
+  void onDidChange(std::function<void()>);
   Range bufferRangeForFold(unsigned);
   Point translateBufferPosition(Point, ClipDirection = ClipDirection::closest);
   Point translateBufferPositionWithSpatialIndex(Point, ClipDirection = ClipDirection::closest);

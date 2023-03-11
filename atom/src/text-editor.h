@@ -8,6 +8,7 @@
 #include <optional.h>
 #include <display-layer.h>
 #include <text-buffer.h>
+#include <event-kit.h>
 
 class Cursor;
 class Selection;
@@ -18,6 +19,9 @@ class LayerDecoration;
 class TextEditor {
   bool softTabs;
   double undoGroupingInterval;
+  bool suppressSelectionMerging;
+  Emitter<> didChangeEmitter;
+  Emitter<Range> didRequestAutoscrollEmitter;
   std::vector<Cursor *> cursors;
   std::unordered_map<unsigned, Cursor *> cursorsByMarkerId;
   std::vector<Selection *> selections;
@@ -34,6 +38,8 @@ public:
   void decorateCursorLine();
   void subscribeToBuffer();
   void subscribeToDisplayLayer();
+  void onDidChange(std::function<void()>);
+  void onDidRequestAutoscroll(std::function<void(Range)>);
   TextBuffer *getBuffer();
   optional<std::string> getPath();
   bool isModified();
@@ -103,8 +109,8 @@ public:
   void setCursorBufferPosition(Point);
   Point getCursorScreenPosition();
   void setCursorScreenPosition(Point);
-  Cursor *addCursorAtBufferPosition(Point);
-  Cursor *addCursorAtScreenPosition(Point);
+  Cursor *addCursorAtBufferPosition(Point, bool = true);
+  Cursor *addCursorAtScreenPosition(Point, bool = true);
   bool hasMultipleCursors();
   void moveUp(double = 1);
   void moveDown(double = 1);
@@ -133,11 +139,11 @@ public:
   std::u16string getSelectedText();
   Range getSelectedBufferRange();
   std::vector<Range> getSelectedBufferRanges();
-  void setSelectedBufferRange(Range);
-  void setSelectedBufferRanges(const std::vector<Range> &);
+  void setSelectedBufferRange(Range, bool = true);
+  void setSelectedBufferRanges(const std::vector<Range> &, bool = true);
   Range getSelectedScreenRange();
-  Selection *addSelectionForBufferRange(Range);
-  Selection *addSelectionForScreenRange(Range);
+  Selection *addSelectionForBufferRange(Range, bool = true);
+  Selection *addSelectionForScreenRange(Range, bool = true);
   void selectToBufferPosition(Point);
   void selectToScreenPosition(Point, bool = false);
   void selectUp(double = 1);
@@ -192,6 +198,10 @@ public:
   double indentLevelForLine(const std::u16string &);
   void indent();
   std::u16string buildIndentString(double, double = 0);
+  void scrollToCursorPosition();
+  void scrollToBufferPosition(Point);
+  void scrollToScreenPosition(Point);
+  void scrollToScreenRange(Range, bool = true);
   bool shouldAutoIndent();
   double getUndoGroupingInterval();
   const char16_t *getNonWordCharacters(Point);

@@ -222,7 +222,7 @@ Range TextBuffer::applyChange(Point oldStart, Point oldEnd, Point newStart, Poin
 
   for (auto &markerLayer : this->markerLayers) {
     markerLayer.second->splice(oldRange.start, oldExtent, newExtent);
-    //this.markerLayersWithPendingUpdateEvents.add(markerLayer)
+    this->markerLayersWithPendingUpdateEvents.insert(markerLayer.second);
   }
 
   //this.cachedText = null
@@ -334,6 +334,7 @@ bool TextBuffer::undo(DisplayMarkerLayer *selectionsMarkerLayer) {
   this->transactCallDepth--;
   this->restoreFromMarkerSnapshot(pop.markers, selectionsMarkerLayer);
   this->emitDidChangeTextEvent();
+  this->emitMarkerChangeEvents(pop.markers);
   return true;
 }
 
@@ -348,6 +349,7 @@ bool TextBuffer::redo(DisplayMarkerLayer *selectionsMarkerLayer) {
   this->transactCallDepth--;
   this->restoreFromMarkerSnapshot(pop.markers, selectionsMarkerLayer);
   this->emitDidChangeTextEvent();
+  this->emitMarkerChangeEvents(pop.markers);
   return true;
 }
 
@@ -369,6 +371,7 @@ void TextBuffer::transact(double groupingInterval, DisplayMarkerLayer *selection
   this->historyProvider->applyGroupingInterval(groupingInterval);
   this->historyProvider->enforceUndoStackSizeLimit();
   this->emitDidChangeTextEvent();
+  this->emitMarkerChangeEvents(endMarkerSnapshot);
 }
 
 void TextBuffer::transact(std::function<void()> fn) {
@@ -660,6 +663,25 @@ void TextBuffer::restoreFromMarkerSnapshot(const MarkerSnapshot &snapshot, Displ
   }
 }
 
+void TextBuffer::emitMarkerChangeEvents(const MarkerSnapshot &snapshot) {
+  if (this->transactCallDepth == 0) {
+    while (this->markerLayersWithPendingUpdateEvents.size() > 0) {
+      std::vector<MarkerLayer *> updatedMarkerLayers(this->markerLayersWithPendingUpdateEvents.begin(), this->markerLayersWithPendingUpdateEvents.end());
+      this->markerLayersWithPendingUpdateEvents.clear();
+      for (MarkerLayer *markerLayer : updatedMarkerLayers) {
+        markerLayer->emitUpdateEvent();
+        if (markerLayer == this->defaultMarkerLayer) {
+          //this.emitter.emit('did-update-markers')
+        }
+      }
+    }
+  }
+
+  for (auto &markerLayer : this->markerLayers) {
+    //markerLayer.second->emitChangeEvents(snapshot && snapshot[markerLayerId]);
+  }
+}
+
 void TextBuffer::emitDidChangeTextEvent() {
   //this->cachedHasAstral = null
   if (this->transactCallDepth == 0) {
@@ -696,12 +718,12 @@ void TextBuffer::markerCreated(MarkerLayer *layer, Marker *marker) {
 
 void TextBuffer::markersUpdated(MarkerLayer *layer) {
   if (this->transactCallDepth == 0) {
-    //layer.emitUpdateEvent();
+    layer->emitUpdateEvent();
     if (layer == this->defaultMarkerLayer) {
       //return this.emitter.emit('did-update-markers')
     }
   } else {
-    //return this.markerLayersWithPendingUpdateEvents.add(layer)
+    return this->markerLayersWithPendingUpdateEvents.insert(layer);
   }
 }
 

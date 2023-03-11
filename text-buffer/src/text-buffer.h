@@ -7,6 +7,7 @@
 #include <string>
 #include <unordered_map>
 #include <native-text-buffer.h>
+#include <flat_set.h>
 
 class DefaultHistoryProvider;
 class LanguageMode;
@@ -21,6 +22,7 @@ class TextBuffer {
   MarkerLayer *defaultMarkerLayer;
   std::unordered_map<unsigned, DisplayLayer *> displayLayers;
   std::unordered_map<unsigned, MarkerLayer *> markerLayers;
+  flat_set<MarkerLayer *> markerLayersWithPendingUpdateEvents;
   unsigned nextMarkerId;
 
 public:
@@ -118,6 +120,7 @@ public:
   TextBuffer *loadSync();
   MarkerSnapshot createMarkerSnapshot(DisplayMarkerLayer *);
   void restoreFromMarkerSnapshot(const MarkerSnapshot &, DisplayMarkerLayer *);
+  void emitMarkerChangeEvents(const MarkerSnapshot &);
   void emitDidChangeTextEvent();
   void markerCreated(MarkerLayer *, Marker *);
   void markersUpdated(MarkerLayer *);

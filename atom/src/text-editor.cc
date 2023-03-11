@@ -14,6 +14,7 @@ constexpr const char16_t *DEFAULT_NON_WORD_CHARACTERS = u"/\\()\"':,.;<>~!@#$%^&
 TextEditor::TextEditor(TextBuffer *buffer) {
   this->softTabs = true;
   this->undoGroupingInterval = 300;
+  this->suppressSelectionMerging = false;
   if (buffer) {
     this->buffer = buffer;
   } else {
@@ -73,12 +74,25 @@ void TextEditor::subscribeToBuffer() {
 
 void TextEditor::subscribeToDisplayLayer() {
   using namespace std::placeholders;
+  this->displayLayer->onDidChange([this]() {
+    this->mergeIntersectingSelections();
+    //if (this.component) this.component.didChangeDisplayLayer(changes);
+    this->didChangeEmitter.emit();
+  });
   this->selectionsMarkerLayer->onDidCreateMarker(std::bind(&TextEditor::addSelection, this, _1));
 }
 
 /*
 Section: Event Subscription
 */
+
+void TextEditor::onDidChange(std::function<void()> callback) {
+  return this->didChangeEmitter.on(callback);
+}
+
+void TextEditor::onDidRequestAutoscroll(std::function<void(Range)> callback) {
+  return this->didRequestAutoscrollEmitter.on(callback);
+}
 
 /*
 Section: Buffer
@@ -346,12 +360,12 @@ void TextEditor::moveLineUp(/* options = {} */) {
       }
     }
 
-    this->setSelectedBufferRanges(newSelectionRanges /* , {
-      autoscroll: false,
-      preserveFolds: true
-    } */);
+    this->setSelectedBufferRanges(newSelectionRanges,
+      false
+      //preserveFolds: true
+    );
     //if (this->shouldAutoIndent()) this->autoIndentSelectedRows();
-    //this->scrollToBufferPosition([newSelectionRanges[0].start.row, 0]);
+    this->scrollToBufferPosition({newSelectionRanges[0].start.row, 0});
   });
 }
 
@@ -434,12 +448,12 @@ void TextEditor::moveLineDown(/* options = {} */) {
       }
     }
 
-    this->setSelectedBufferRanges(newSelectionRanges /* , {
-      autoscroll: false,
-      preserveFolds: true
-    } */);
+    this->setSelectedBufferRanges(newSelectionRanges,
+      false
+      //preserveFolds: true
+    );
     //if (this.shouldAutoIndent()) this.autoIndentSelectedRows();
-    //this.scrollToBufferPosition([newSelectionRanges[0].start.row - 1, 0]);
+    this->scrollToBufferPosition({newSelectionRanges[0].start.row - 1, 0});
   });
 }
 
@@ -629,7 +643,7 @@ void TextEditor::undo() {
   this->avoidMergingSelections([&]() {
     this->buffer->undo(this->selectionsMarkerLayer);
   });
-  //this.getLastSelection().autoscroll();
+  this->getLastSelection()->autoscroll();
 }
 
 void TextEditor::redo() {
@@ -637,7 +651,7 @@ void TextEditor::redo() {
   this->avoidMergingSelections([&]() {
     this->buffer->redo(this->selectionsMarkerLayer);
   });
-  //this.getLastSelection().autoscroll();
+  this->getLastSelection()->autoscroll();
 }
 
 void TextEditor::transact(double groupingInterval, std::function<void()> fn) {
@@ -741,17 +755,21 @@ void TextEditor::setCursorScreenPosition(Point position) {
   });
 }
 
-Cursor *TextEditor::addCursorAtBufferPosition(Point bufferPosition) {
+Cursor *TextEditor::addCursorAtBufferPosition(Point bufferPosition, bool autoscroll) {
   this->selectionsMarkerLayer->markBufferPosition(bufferPosition /* , {
     invalidate: 'never'
   } */ );
+  if (autoscroll)
+    this->getLastSelection()->cursor->autoscroll();
   return this->getLastSelection()->cursor;
 }
 
-Cursor *TextEditor::addCursorAtScreenPosition(Point screenPosition) {
+Cursor *TextEditor::addCursorAtScreenPosition(Point screenPosition, bool autoscroll) {
   this->selectionsMarkerLayer->markScreenPosition(screenPosition /* , {
     invalidate: 'never'
   } */ );
+  if (autoscroll)
+    this->getLastSelection()->cursor->autoscroll();
   return this->getLastSelection()->cursor;
 }
 
@@ -915,11 +933,11 @@ std::vector<Range> TextEditor::getSelectedBufferRanges() {
   return ranges;
 }
 
-void TextEditor::setSelectedBufferRange(Range bufferRange /* , options */) {
-  return this->setSelectedBufferRanges({bufferRange} /* , options */);
+void TextEditor::setSelectedBufferRange(Range bufferRange, bool autoscroll) {
+  return this->setSelectedBufferRanges({bufferRange}, autoscroll);
 }
 
-void TextEditor::setSelectedBufferRanges(const std::vector<Range> &bufferRanges /* , options = {} */) {
+void TextEditor::setSelectedBufferRanges(const std::vector<Range> &bufferRanges, bool autoscroll) {
   //if (!bufferRanges.length)
   //  throw new Error('Passed an empty array to setSelectedBufferRanges');
 
@@ -932,9 +950,9 @@ void TextEditor::setSelectedBufferRanges(const std::vector<Range> &bufferRanges 
     for (size_t i = 0; i < bufferRanges.size(); i++) {
       const Range bufferRange = bufferRanges[i];
       if (i < selections.size()) {
-        selections[i]->setBufferRange(bufferRange /* , options */);
+        selections[i]->setBufferRange(bufferRange, autoscroll);
       } else {
-        this->addSelectionForBufferRange(bufferRange /* , options */);
+        this->addSelectionForBufferRange(bufferRange, autoscroll);
       }
     }
   });
@@ -944,18 +962,19 @@ Range TextEditor::getSelectedScreenRange() {
   return this->getLastSelection()->getScreenRange();
 }
 
-Selection *TextEditor::addSelectionForBufferRange(Range bufferRange) {
+Selection *TextEditor::addSelectionForBufferRange(Range bufferRange, bool autoscroll) {
   this->selectionsMarkerLayer->markBufferRange(bufferRange /* , {
     invalidate: 'never',
     reversed: options.reversed != null ? options.reversed : false
   } */ );
+  if (autoscroll) this->getLastSelection()->autoscroll();
   return this->getLastSelection();
 }
 
-Selection *TextEditor::addSelectionForScreenRange(Range screenRange /* , options = {} */ ) {
+Selection *TextEditor::addSelectionForScreenRange(Range screenRange, bool autoscroll) {
   return this->addSelectionForBufferRange(
-    this->bufferRangeForScreenRange(screenRange) /* ,
-    options */
+    this->bufferRangeForScreenRange(screenRange),
+    autoscroll
   );
 }
 
@@ -1197,11 +1216,11 @@ void TextEditor::avoidMergingSelections(std::function<void()> fn) {
 }
 
 void TextEditor::mergeSelections( /* options, */ std::function<void()> fn, std::function<bool(Selection *, Selection *)> mergePredicate) {
-  //if (this.suppressSelectionMerging) return fn();
+  if (this->suppressSelectionMerging) return fn();
 
-  //this.suppressSelectionMerging = true;
+  this->suppressSelectionMerging = true;
   fn();
-  //this.suppressSelectionMerging = false;
+  this->suppressSelectionMerging = false;
 
   auto selections = this->getSelectionsOrderedByBufferPosition();
   Selection *lastSelection = selections.front();
@@ -1250,7 +1269,7 @@ bool TextEditor::consolidateSelections() {
     for (size_t i = 1; i < selections.size(); i++) {
       selections[i]->destroy();
     }
-    //selections[0].autoscroll({ center: true });
+    selections[0]->autoscroll(/*{ center: true }*/);
     return true;
   } else {
     return false;
@@ -1259,10 +1278,10 @@ bool TextEditor::consolidateSelections() {
 
 void TextEditor::createLastSelectionIfNeeded() {
   if (this->selections.size() == 0) {
-    this->addSelectionForBufferRange(Range(Point(0, 0), Point(0, 0)) /* , {
-      autoscroll: false,
-      preserveFolds: true
-    } */ );
+    this->addSelectionForBufferRange(Range(Point(0, 0), Point(0, 0)),
+      false
+      //preserveFolds: true
+    );
   }
 }
 
@@ -1415,6 +1434,31 @@ Section: Gutters
 /*
 Section: Scrolling the TextEditor
 */
+
+void TextEditor::scrollToCursorPosition() {
+  this->getLastCursor()->autoscroll(/*{
+    center: options && options.center !== false
+  }*/);
+}
+
+void TextEditor::scrollToBufferPosition(Point bufferPosition) {
+  return this->scrollToScreenPosition(
+    this->screenPositionForBufferPosition(bufferPosition)
+  );
+}
+
+void TextEditor::scrollToScreenPosition(Point screenPosition) {
+  this->scrollToScreenRange(
+    Range(screenPosition, screenPosition)
+  );
+}
+
+void TextEditor::scrollToScreenRange(Range screenRange, bool clip) {
+  if (clip) screenRange = this->clipScreenRange(screenRange);
+  //const scrollEvent = { screenRange, options };
+  //if (this.component) this.component.didRequestAutoscroll(scrollEvent);
+  this->didRequestAutoscrollEmitter.emit(screenRange);
+}
 
 /*
 Section: Config

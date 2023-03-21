@@ -2,6 +2,7 @@
 #define TREE_SITTER_GRAMMAR_H_
 
 #include "syntax-scope-map.h"
+#include <regex.h>
 #include <optional.h>
 #include <unordered_map>
 #include <vector>
@@ -30,6 +31,9 @@ public:
   std::unordered_map<int32_t, std::string> scopeNamesById;
   std::unordered_map<std::string, int32_t> idsByScope;
   int32_t nextScopeId;
+  Regex increaseIndentRegex;
+  Regex decreaseIndentRegex;
+  Regex decreaseNextIndentRegex;
 
   TreeSitterGrammar(const char *, const char *, const TSLanguage *);
   ~TreeSitterGrammar();
@@ -39,6 +43,8 @@ public:
     addFileTypes(std::forward<T0>(t0));
     addFileTypes(std::forward<T1>(t1), std::forward<T>(t)...);
   }
+  void setIncreaseIndentPattern(const char16_t *);
+  void setDecreaseIndentPattern(const char16_t *);
   static SyntaxScopeMap::Result *preprocessScopes(const char *);
   static SyntaxScopeMap::Result *preprocessScopes(Exact);
   static SyntaxScopeMap::Result *preprocessScopes(Match);

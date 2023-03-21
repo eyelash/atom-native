@@ -14,6 +14,15 @@ extern "C" TreeSitterGrammar *atom_language_javascript() {
     "jsx"
   );
 
+  grammar->setIncreaseIndentPattern(uR"--((?x)
+      \{ [^}"']*(//.*)? $
+    | \[ [^\]"']*(//.*)? $
+    | \( [^)"']*(//.*)? $
+  )--");
+  grammar->setDecreaseIndentPattern(uR"--((?x)
+      ^ \s* (\s* /[*] .* [*]/ \s*)* [}\])]
+  )--");
+
   grammar->addScopes("program", "source.js");
 
   grammar->addScopes("property_identifier",

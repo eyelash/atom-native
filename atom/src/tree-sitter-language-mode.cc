@@ -115,15 +115,10 @@ optional<double> TreeSitterLanguageMode::suggestedIndentForEditedBufferRow(doubl
   const double currentIndentLevel = this->indentLevelForLine(line, tabLength);
   if (currentIndentLevel == 0) return optional<double>();
 
-  /*const scopeDescriptor = this.scopeDescriptorForPosition(
-    new Point(bufferRow, 0)
-  );
-  const decreaseIndentRegex = this.decreaseIndentRegexForScopeDescriptor(
-    scopeDescriptor
-  );
-  if (!decreaseIndentRegex) return;*/
+  const Regex &decreaseIndentRegex = this->grammar->decreaseIndentRegex;
+  if (!decreaseIndentRegex) return optional<double>();
 
-  /* if (!decreaseIndentRegex.testSync(line)) */ return optional<double>();
+  if (!decreaseIndentRegex.match(line)) return optional<double>();
 
   const optional<double> precedingRow = this->buffer->previousNonBlankRow(bufferRow);
   if (!precedingRow) return optional<double>();
@@ -131,20 +126,16 @@ optional<double> TreeSitterLanguageMode::suggestedIndentForEditedBufferRow(doubl
   const std::u16string precedingLine = *this->buffer->lineForRow(*precedingRow);
   double desiredIndentLevel = this->indentLevelForLine(precedingLine, tabLength);
 
-  /*const increaseIndentRegex = this.increaseIndentRegexForScopeDescriptor(
-    scopeDescriptor
-  );
+  const Regex &increaseIndentRegex = this->grammar->increaseIndentRegex;
   if (increaseIndentRegex) {
-    if (!increaseIndentRegex.testSync(precedingLine)) desiredIndentLevel -= 1;
-  }*/
+    if (!increaseIndentRegex.match(precedingLine)) desiredIndentLevel -= 1;
+  }
 
-  /*const decreaseNextIndentRegex = this.decreaseNextIndentRegexForScopeDescriptor(
-    scopeDescriptor
-  );
+  const Regex &decreaseNextIndentRegex = this->grammar->decreaseNextIndentRegex;
   if (decreaseNextIndentRegex) {
-    if (decreaseNextIndentRegex.testSync(precedingLine))
+    if (decreaseNextIndentRegex.match(precedingLine))
       desiredIndentLevel -= 1;
-  }*/
+  }
 
   if (desiredIndentLevel < 0) return 0;
   if (desiredIndentLevel >= currentIndentLevel) return optional<double>();
@@ -157,15 +148,9 @@ double TreeSitterLanguageMode::suggestedIndentForLineWithScopeAtBufferRow_(
   double tabLength,
   bool skipBlankLines
 ) {
-  /*const increaseIndentRegex = this.increaseIndentRegexForScopeDescriptor(
-    scopeDescriptor
-  );
-  const decreaseIndentRegex = this.decreaseIndentRegexForScopeDescriptor(
-    scopeDescriptor
-  );
-  const decreaseNextIndentRegex = this.decreaseNextIndentRegexForScopeDescriptor(
-    scopeDescriptor
-  );*/
+  const Regex &increaseIndentRegex = this->grammar->increaseIndentRegex;
+  const Regex &decreaseIndentRegex = this->grammar->decreaseIndentRegex;
+  const Regex &decreaseNextIndentRegex = this->grammar->decreaseNextIndentRegex;
 
   optional<double> precedingRow;
   if (skipBlankLines) {
@@ -178,22 +163,22 @@ double TreeSitterLanguageMode::suggestedIndentForLineWithScopeAtBufferRow_(
 
   const std::u16string precedingLine = *this->buffer->lineForRow(*precedingRow);
   double desiredIndentLevel = this->indentLevelForLine(precedingLine, tabLength);
-  //if (!increaseIndentRegex) return desiredIndentLevel;
+  if (!increaseIndentRegex) return desiredIndentLevel;
 
-  /*if (!this.isRowCommented(precedingRow)) {
-    if (increaseIndentRegex && increaseIndentRegex.testSync(precedingLine))
+  //if (!this.isRowCommented(precedingRow)) {
+    if (increaseIndentRegex && increaseIndentRegex.match(precedingLine))
       desiredIndentLevel += 1;
     if (
       decreaseNextIndentRegex &&
-      decreaseNextIndentRegex.testSync(precedingLine)
+      decreaseNextIndentRegex.match(precedingLine)
     )
       desiredIndentLevel -= 1;
-  }*/
+  //}
 
-  /*if (!this.buffer.isRowBlank(precedingRow)) {
-    if (decreaseIndentRegex && decreaseIndentRegex.testSync(line))
+  if (!this->buffer->isRowBlank(precedingRow)) {
+    if (decreaseIndentRegex && decreaseIndentRegex.match(line))
       desiredIndentLevel -= 1;
-  }*/
+  }
 
   return std::max(desiredIndentLevel, 0.0);
 }

@@ -22,6 +22,9 @@ extern "C" TreeSitterGrammar *atom_language_python() {
     "wsgi"
   );
 
+  grammar->setIncreaseIndentPattern(u"^\\s*(class|def|elif|else|except|finally|for|if|try|with|while|async\\s+(def|for|with))\\b.*:\\s*$");
+  grammar->setDecreaseIndentPattern(u"^\\s*(elif|else|except|finally)\\b.*:\\s*$");
+
   grammar->addScopes("module", "source.python");
 
   grammar->addScopes("comment", "comment.line");

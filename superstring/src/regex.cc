@@ -93,6 +93,15 @@ Regex::~Regex() {
   if (code) pcre2_code_free(code);
 }
 
+Regex &Regex::operator=(Regex &&other) {
+  std::swap(code, other.code);
+  return *this;
+}
+
+Regex::operator bool() const {
+  return code != nullptr;
+}
+
 Regex::MatchData::MatchData(const Regex &regex)
   : data{pcre2_match_data_create_from_pattern(regex.code, nullptr)} {}
 

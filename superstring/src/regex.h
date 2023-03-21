@@ -18,6 +18,8 @@ class Regex {
   Regex(const std::u16string &, std::u16string *error_message, bool ignore_case = false, bool unicode = false);
   Regex(Regex &&);
   ~Regex();
+  Regex &operator=(Regex &&);
+  operator bool() const;
 
   struct Range {
     size_t start_offset;

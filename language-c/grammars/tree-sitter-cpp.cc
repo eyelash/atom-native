@@ -29,6 +29,20 @@ extern "C" TreeSitterGrammar *atom_language_cpp() {
     "tpp"
   );
 
+  grammar->setIncreaseIndentPattern(uR"--((?x)
+     ^ .* \{ [^}"']* $
+    |^ .* \( [^)"']* $
+    |^ \s* (public|private|protected): \s* $
+    |^ \s* @(public|private|protected) \s* $
+    |^ \s* \{ \} $
+  )--");
+  grammar->setDecreaseIndentPattern(uR"--((?x)
+     ^ \s* (\s* /[*] .* [*]/ \s*)* \}
+    |^ \s* (\s* /[*] .* [*]/ \s*)* \)
+    |^ \s* (public|private|protected): \s* $
+    |^ \s* @(public|private|protected) \s* $
+  )--");
+
   grammar->addScopes("translation_unit", "source.cpp");
   grammar->addScopes("comment", "comment.block");
 

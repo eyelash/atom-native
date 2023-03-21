@@ -19,6 +19,14 @@ void TreeSitterGrammar::addFileTypes(const char *fileType) {
   this->fileTypes.push_back(fileType);
 }
 
+void TreeSitterGrammar::setIncreaseIndentPattern(const char16_t *pattern) {
+  this->increaseIndentRegex = Regex(pattern, nullptr);
+}
+
+void TreeSitterGrammar::setDecreaseIndentPattern(const char16_t *pattern) {
+  this->decreaseIndentRegex = Regex(pattern, nullptr);
+}
+
 SyntaxScopeMap::Result *TreeSitterGrammar::preprocessScopes(const char *value) {
   class StringResult : public SyntaxScopeMap::Result {
     std::string rules;

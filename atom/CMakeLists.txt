@@ -4,6 +4,7 @@ project(atom)
 add_library(atom)
 target_link_libraries(atom text-buffer tree-sitter)
 target_sources(atom PRIVATE
+  src/bracket-matcher.cc
   src/cursor.cc
   src/decoration-manager.cc
   src/decoration.cc

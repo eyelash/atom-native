@@ -87,6 +87,7 @@ atom = declare_dependency(
   link_with: static_library(
     'atom',
     files(
+      'atom/src/bracket-matcher.cc',
       'atom/src/cursor.cc',
       'atom/src/decoration-manager.cc',
       'atom/src/decoration.cc',

@@ -5,7 +5,7 @@
 #include <display-marker-layer.h>
 #include <text-buffer.h>
 
-static const Regex NonWhitespaceRegExp = Regex(u"\\S", nullptr);
+static const Regex NonWhitespaceRegExp = Regex(u"\\S");
 
 Selection::Selection(TextEditor *editor, DisplayMarker *marker, Cursor *cursor) {
   this->editor = editor;
@@ -161,7 +161,7 @@ void Selection::clear(optional<bool> options_autoscroll) {
       ? *options_autoscroll
       : this->isLastSelection();
   if (autoscroll) this->autoscroll();
-  //this.finalize();
+  this->finalize();
 }
 
 void Selection::selectToScreenPosition(Point position) {
@@ -369,31 +369,26 @@ void Selection::insertText(const std::u16string &text) {
 }
 
 void Selection::backspace() {
-  //if (!this->ensureWritable('backspace', options)) return;
   if (this->isEmpty()) this->selectLeft();
   this->deleteSelectedText();
 }
 
 void Selection::deleteToPreviousWordBoundary(/* options = {} */) {
-  //if (!this->ensureWritable('deleteToPreviousWordBoundary', options)) return;
   if (this->isEmpty()) this->selectToPreviousWordBoundary();
   this->deleteSelectedText(/* options */);
 }
 
 void Selection::deleteToNextWordBoundary(/* options = {} */) {
-  //if (!this->ensureWritable('deleteToNextWordBoundary', options)) return;
   if (this->isEmpty()) this->selectToNextWordBoundary();
   this->deleteSelectedText(/* options */);
 }
 
 void Selection::deleteToBeginningOfWord(/* options = {} */) {
-  //if (!this->ensureWritable('deleteToBeginningOfWord', options)) return;
   if (this->isEmpty()) this->selectToBeginningOfWord();
   this->deleteSelectedText(/* options */);
 }
 
 void Selection::deleteToBeginningOfLine(/* options = {} */) {
-  //if (!this->ensureWritable('deleteToBeginningOfLine', options)) return;
   if (this->isEmpty() && this->cursor->isAtBeginningOfLine()) {
     this->selectLeft();
   } else {
@@ -403,13 +398,11 @@ void Selection::deleteToBeginningOfLine(/* options = {} */) {
 }
 
 void Selection::delete_() {
-  //if (!this->ensureWritable('delete', options)) return;
   if (this->isEmpty()) this->selectRight();
   this->deleteSelectedText();
 }
 
 void Selection::deleteToEndOfLine(/* options = {} */) {
-  //if (!this->ensureWritable('deleteToEndOfLine', options)) return;
   if (this->isEmpty()) {
     if (this->cursor->isAtEndOfLine()) {
       this->delete_(/* options */);
@@ -421,32 +414,27 @@ void Selection::deleteToEndOfLine(/* options = {} */) {
 }
 
 void Selection::deleteToEndOfWord(/* options = {} */) {
-  //if (!this->ensureWritable('deleteToEndOfWord', options)) return;
   if (this->isEmpty()) this->selectToEndOfWord();
   this->deleteSelectedText(/* options */);
 }
 
 void Selection::deleteToBeginningOfSubword(/* options = {} */) {
-  //if (!this->ensureWritable('deleteToBeginningOfSubword', options)) return;
   if (this->isEmpty()) this->selectToPreviousSubwordBoundary();
   this->deleteSelectedText(/* options */);
 }
 
 void Selection::deleteToEndOfSubword(/* options = {} */) {
-  //if (!this->ensureWritable('deleteToEndOfSubword', options)) return;
   if (this->isEmpty()) this->selectToNextSubwordBoundary();
   this->deleteSelectedText(/* options */);
 }
 
 void Selection::deleteSelectedText() {
-  //if (!this->ensureWritable('deleteSelectedText', options)) return;
   const Range bufferRange = this->getBufferRange();
   if (!bufferRange.isEmpty()) this->editor->getBuffer()->delete_(bufferRange);
   if (this->cursor) this->cursor->setBufferPosition(bufferRange.start);
 }
 
 void Selection::deleteLine(/* options = {} */) {
-  //if (!this->ensureWritable('deleteLine', options)) return;
   const Range range = this->getBufferRange();
   if (range.isEmpty()) {
     const double start = this->cursor->getScreenRow();
@@ -482,12 +470,11 @@ static std::u16string toString(double n) {
 }
 
 void Selection::outdentSelectedRows(/* options = {} */) {
-  //if (!this->ensureWritable('outdentSelectedRows', options)) return;
   const auto bufferRowRange = this->getBufferRowRange();
   const double start = bufferRowRange.first, end = bufferRowRange.second;
   TextBuffer *buffer = this->editor->getBuffer();
   const Regex leadingTabRegex = Regex(
-    u"^( {1," + toString(this->editor->getTabLength()) + u"}|\\t)",
+    u"^( {1," + toString(this->editor->getTabLength()) + u"}|\t)",
     nullptr
   );
   for (double row = start; row <= end; row++) {
@@ -499,7 +486,6 @@ void Selection::outdentSelectedRows(/* options = {} */) {
 }
 
 void Selection::indent(bool autoIndent) {
-  //if (!this->ensureWritable('indent', { bypassReadOnly })) return;
   const double row = this->cursor->getBufferPosition().row;
 
   if (this->isEmpty()) {
@@ -523,7 +509,6 @@ void Selection::indent(bool autoIndent) {
 }
 
 void Selection::indentSelectedRows(/* options = {} */) {
-  //if (!this->ensureWritable('indentSelectedRows', options)) return;
   const auto bufferRowRange = this->getBufferRowRange();
   const double start = bufferRowRange.first, end = bufferRowRange.second;
   for (double row = start; row <= end; row++) {

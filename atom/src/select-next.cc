@@ -66,11 +66,10 @@ void SelectNext::scanForNextOccurrence(Range range, TextBuffer::ScanIterator cal
     const char16_t *nonWordCharacters = this->editor->getNonWordCharacters(Point());
     text = u"(^|[ \t" + escapeRegExp(nonWordCharacters) + u"]+)" + text + u"(?=$|[\\s" + escapeRegExp(nonWordCharacters) + u"]+)";
   }
-  return this->editor->scanInBufferRange(Regex(text, nullptr), range, [&](TextBuffer::SearchCallbackArgument &result) {
+  return this->editor->scanInBufferRange(Regex(text), range, [&](TextBuffer::SearchCallbackArgument &result) {
     const std::u16string matchText = result.getMatchText();
     Regex::MatchData matchData(result.regex);
-    const unsigned options = Regex::MatchOptions::IsBeginningOfLine | Regex::MatchOptions::IsEndOfLine | Regex::MatchOptions::IsEndSearch;
-    const auto match = result.regex.match(matchText.data(), matchText.size(), matchData, options);
+    const auto match = result.regex.match(matchText, matchData);
     if (match && matchData.size() >= 2) {
       const double prefixLength = matchData[1].end_offset - matchData[1].start_offset;
       result.range = result.range.translate({0, prefixLength}, {0, 0});
@@ -82,7 +81,7 @@ void SelectNext::scanForNextOccurrence(Range range, TextBuffer::ScanIterator cal
 bool SelectNext::isNonWordCharacter(const std::u16string &character) {
   //nonWordCharacters = atom.config.get('editor.nonWordCharacters');
   const char16_t *nonWordCharacters = this->editor->getNonWordCharacters(Point());
-  return Regex(u"[ \t" + escapeRegExp(nonWordCharacters) + u"]", nullptr).match(character);
+  return Regex(u"[ \t" + escapeRegExp(nonWordCharacters) + u"]").match(character);
 }
 
 bool SelectNext::isNonWordCharacterToTheLeft(Selection *selection) {

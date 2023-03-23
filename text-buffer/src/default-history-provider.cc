@@ -63,7 +63,7 @@ DefaultHistoryProvider::StackEntry::~StackEntry() {
   }
 }
 
-DefaultHistoryProvider::StackEntry &DefaultHistoryProvider::StackEntry::operator =(StackEntry &&entry) {
+DefaultHistoryProvider::StackEntry &DefaultHistoryProvider::StackEntry::operator=(StackEntry &&entry) {
   std::swap(this->value, entry.value);
   std::swap(this->type, entry.type);
   return *this;

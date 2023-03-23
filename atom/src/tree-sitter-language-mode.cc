@@ -224,11 +224,7 @@ TreeSitterLanguageMode::LanguageLayer::LanguageLayer(TreeSitterLanguageMode *lan
 TreeSitterLanguageMode::LanguageLayer::~LanguageLayer() {}
 
 std::unique_ptr<TreeSitterLanguageMode::LayerHighlightIterator> TreeSitterLanguageMode::LanguageLayer::buildHighlightIterator() {
-  if (this->tree) {
-    return std::unique_ptr<TreeSitterLanguageMode::LayerHighlightIterator>(new LayerHighlightIterator(this, this->tree.walk()));
-  } else {
-    return nullptr;
-  }
+  return std::unique_ptr<TreeSitterLanguageMode::LayerHighlightIterator>(new LayerHighlightIterator(this, this->tree.walk()));
 }
 
 void TreeSitterLanguageMode::LanguageLayer::handleTextChange(const TSInputEdit &edit, const std::u16string &oldText, const std::u16string &newText) {
@@ -373,13 +369,6 @@ void TreeSitterLanguageMode::LanguageLayer::performUpdate_(/* nodeRangeSet, para
   }*/
 }
 
-#define read_number_from_js(out, value, name) \
-  *(out) = value;
-
-#define read_byte_count_from_js(out, value, name) \
-  read_number_from_js(out, value, name);          \
-  (*out) *= 2;
-
 TSInputEdit TreeSitterLanguageMode::LanguageLayer::treeEditForBufferChange_(Point start, Point oldEnd, Point newEnd, const std::u16string &oldText, const std::u16string &newText) {
   const double startIndex = this->languageMode->buffer->characterIndexForPosition(
     start
@@ -389,24 +378,16 @@ TSInputEdit TreeSitterLanguageMode::LanguageLayer::treeEditForBufferChange_(Poin
   const Point startPosition = start;
   const Point oldEndPosition = oldEnd;
   const Point newEndPosition = newEnd;
-  double info[] = {
-    startPosition.row, startPosition.column,
-    oldEndPosition.row, oldEndPosition.column,
-    newEndPosition.row, newEndPosition.column,
-    startIndex,
-    oldEndIndex,
-    newEndIndex
-  };
   TSInputEdit edit;
-  read_number_from_js(&edit.start_point.row, info[0], "startPosition.row");
-  read_byte_count_from_js(&edit.start_point.column, info[1], "startPosition.column");
-  read_number_from_js(&edit.old_end_point.row, info[2], "oldEndPosition.row");
-  read_byte_count_from_js(&edit.old_end_point.column, info[3], "oldEndPosition.column");
-  read_number_from_js(&edit.new_end_point.row, info[4], "newEndPosition.row");
-  read_byte_count_from_js(&edit.new_end_point.column, info[5], "newEndPosition.column");
-  read_byte_count_from_js(&edit.start_byte, info[6], "startIndex");
-  read_byte_count_from_js(&edit.old_end_byte, info[7], "oldEndIndex");
-  read_byte_count_from_js(&edit.new_end_byte, info[8], "newEndIndex");
+  edit.start_point.row = startPosition.row;
+  edit.start_point.column = startPosition.column * 2;
+  edit.old_end_point.row = oldEndPosition.row;
+  edit.old_end_point.column = oldEndPosition.column * 2;
+  edit.new_end_point.row = newEndPosition.row;
+  edit.new_end_point.column = newEndPosition.column * 2;
+  edit.start_byte = startIndex * 2;
+  edit.old_end_byte = oldEndIndex * 2;
+  edit.new_end_byte = newEndIndex * 2;
   return edit;
 }
 

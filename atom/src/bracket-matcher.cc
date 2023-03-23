@@ -104,8 +104,8 @@ void BracketMatcher::insertText(const std::u16string &text, bool groupUndo) {
   const std::u16string nextCharacter = this->editor->getTextInBufferRange({cursorBufferPosition, cursorBufferPosition.traverse({0, 1})});
   const std::u16string previousCharacter = previousCharacters.substr(std::max(previousCharacters.size(), static_cast<size_t>(1)) - 1);
 
-  const bool hasWordAfterCursor = Regex(u"\\w", nullptr).match(nextCharacter);
-  const bool hasWordBeforeCursor = Regex(u"\\w", nullptr).match(previousCharacter);
+  const bool hasWordAfterCursor = Regex(u"\\w").match(nextCharacter);
+  const bool hasWordBeforeCursor = Regex(u"\\w").match(previousCharacter);
   const bool hasQuoteBeforeCursor = this->isQuote(previousCharacter) && (previousCharacter == text);
   const bool hasEscapeCharacterBeforeCursor = endsWithEscapeCharacter(previousCharacters);
   const bool hasEscapeSequenceBeforeCursor = endsWithEscapeSequence(previousCharacters);
@@ -247,7 +247,7 @@ bool BracketMatcher::wrapSelectionInBrackets(const std::u16string &bracket) {
 }
 
 bool BracketMatcher::isQuote(const std::u16string &string) {
-  return Regex(u"['\"`]", nullptr).match(string);
+  return Regex(u"['\"`]").match(string);
 }
 
 bool BracketMatcher::isOpeningBracket(const std::u16string &string) {
@@ -258,24 +258,22 @@ bool BracketMatcher::isClosingBracket(const std::u16string &string) {
   return string.size() == 1 && this->matchManager->pairedCharactersInverse.count(string[0]);
 }
 
-static const Regex BACKSLASHES_REGEX = Regex(u"(\\\\+)$", nullptr);
-static const Regex ESCAPE_SEQUENCE_REGEX = Regex(u"(\\\\+)[^\\\\]$", nullptr);
+static const Regex BACKSLASHES_REGEX = Regex(u"(\\\\+)$");
+static const Regex ESCAPE_SEQUENCE_REGEX = Regex(u"(\\\\+)[^\\\\]$");
 
 // odd number of backslashes
 static bool endsWithEscapeCharacter(const std::u16string &string) {
-  const unsigned options = Regex::MatchOptions::IsBeginningOfLine | Regex::MatchOptions::IsEndOfLine | Regex::MatchOptions::IsEndSearch;
   Regex::MatchData backslashesMatchData(BACKSLASHES_REGEX);
-  const auto backslashesMatch = BACKSLASHES_REGEX.match(string.data(), string.size(), backslashesMatchData, options);
+  const auto backslashesMatch = BACKSLASHES_REGEX.match(string, backslashesMatchData);
   return backslashesMatch && (backslashesMatchData[1].end_offset - backslashesMatchData[1].start_offset) % 2 == 1;
 }
 
 // even number of backslashes or odd number of backslashes followed by another character
 static bool endsWithEscapeSequence(const std::u16string &string) {
-  const unsigned options = Regex::MatchOptions::IsBeginningOfLine | Regex::MatchOptions::IsEndOfLine | Regex::MatchOptions::IsEndSearch;
   Regex::MatchData backslashesMatchData(BACKSLASHES_REGEX);
   Regex::MatchData escapeSequenceMatchData(ESCAPE_SEQUENCE_REGEX);
-  const auto backslashesMatch = BACKSLASHES_REGEX.match(string.data(), string.size(), backslashesMatchData, options);
-  const auto escapeSequenceMatch = ESCAPE_SEQUENCE_REGEX.match(string.data(), string.size(), escapeSequenceMatchData, options);
+  const auto backslashesMatch = BACKSLASHES_REGEX.match(string, backslashesMatchData);
+  const auto escapeSequenceMatch = ESCAPE_SEQUENCE_REGEX.match(string, escapeSequenceMatchData);
   return (
     (escapeSequenceMatch && (escapeSequenceMatchData[1].end_offset - escapeSequenceMatchData[1].start_offset) % 2 == 1) ||
     (backslashesMatch && (backslashesMatchData[1].end_offset - backslashesMatchData[1].start_offset) % 2 == 0)

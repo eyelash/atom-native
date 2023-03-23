@@ -1,0 +1,4 @@
+*.js linguist-documentation
+*.coffee linguist-documentation
+vendor/ linguist-vendored
+parser.c linguist-generated

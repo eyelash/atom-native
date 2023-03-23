@@ -6,7 +6,7 @@
 #include <helpers.h>
 #include <cmath>
 
-static const Regex EmptyLineRegExp = Regex(u"(\\r\\n[\\t ]*\\r\\n)|(\\n[\\t ]*\\n)", nullptr);
+static const Regex EmptyLineRegExp = Regex(u"(\r\n[\t ]*\r\n)|(\n[\t ]*\n)");
 
 Cursor::Cursor(TextEditor *editor, DisplayMarker *marker) {
   this->editor = editor;
@@ -338,7 +338,7 @@ void Cursor::skipLeadingWhitespace() {
   const Point position = this->getBufferPosition();
   const Range scanRange = this->getCurrentLineBufferRange();
   Point endOfLeadingWhitespace;
-  this->editor->scanInBufferRange(Regex(u"^[ \\t]*", nullptr), scanRange, [&](TextBuffer::SearchCallbackArgument &argument) {
+  this->editor->scanInBufferRange(Regex(u"^[ \t]*", nullptr), scanRange, [&](TextBuffer::SearchCallbackArgument &argument) {
     endOfLeadingWhitespace = argument.range.end;
   });
 
@@ -524,7 +524,7 @@ Regex Cursor::wordRegExp(bool includeNonWordCharacters) {
   if (includeNonWordCharacters) {
     source += u"|[" + nonWordCharacters + u"]+";
   }
-  return Regex(source, nullptr);
+  return Regex(source);
 }
 
 Regex Cursor::subwordRegExp(bool backwards) {
@@ -546,7 +546,7 @@ Regex Cursor::subwordRegExp(bool backwards) {
     segments.push_back(u"\\s*[" + escapeRegExp(nonWordCharacters) + u"]+");
   }
   segments.push_back(u"_+");
-  return Regex(join(segments, u"|"), nullptr);
+  return Regex(join(segments, u"|"));
 }
 
 /*

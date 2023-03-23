@@ -262,12 +262,10 @@ void TextEditor::insertNewline() {
 }
 
 void TextEditor::delete_() {
-  //if (!this->ensureWritable('delete', options)) return;
   return this->mutateSelectedText([&](Selection *selection) { selection->delete_(); });
 }
 
 void TextEditor::backspace() {
-  //if (!this->ensureWritable('backspace', options)) return;
   return this->mutateSelectedText([&](Selection *selection) { selection->backspace(); });
 }
 
@@ -280,8 +278,6 @@ void TextEditor::mutateSelectedText(std::function<void(Selection *)> fn, double 
 }
 
 void TextEditor::moveLineUp(/* options = {} */) {
-  //if (!this.ensureWritable('moveLineUp', options)) return;
-
   auto selections = this->getSelectedBufferRanges();
   std::sort(selections.begin(), selections.end(), [](Range a, Range b) {
     return a.compare(b) < 0;
@@ -370,8 +366,6 @@ void TextEditor::moveLineUp(/* options = {} */) {
 }
 
 void TextEditor::moveLineDown(/* options = {} */) {
-  //if (!this.ensureWritable('moveLineDown', options)) return;
-
   auto selections = this->getSelectedBufferRanges();
   std::sort(selections.begin(), selections.end(), [](Range a, Range b) { return b.compare(a) < 0; });
 
@@ -458,7 +452,6 @@ void TextEditor::moveLineDown(/* options = {} */) {
 }
 
 void TextEditor::duplicateLines(/* options = {} */) {
-  //if (!this.ensureWritable('duplicateLines', options)) return;
   this->transact([&]() {
     const auto selections = this->getSelectionsOrderedByBufferPosition();
     std::vector<Range> previousSelectionRanges(selections.size());
@@ -544,7 +537,6 @@ void TextEditor::splitSelectionsIntoLines() {
 }
 
 void TextEditor::insertNewlineBelow(/* options = {} */) {
-  //if (!this->ensureWritable('insertNewlineBelow', options)) return;
   this->transact([&]() {
     this->moveToEndOfLine();
     this->insertNewline(/* options */);
@@ -552,7 +544,6 @@ void TextEditor::insertNewlineBelow(/* options = {} */) {
 }
 
 void TextEditor::insertNewlineAbove(/* options = {} */) {
-  //if (!this->ensureWritable('insertNewlineAbove', options)) return;
   this->transact([&]() {
     const double bufferRow = this->getCursorBufferPosition().row;
     const double indentLevel = this->indentationForBufferRow(bufferRow);
@@ -577,59 +568,50 @@ void TextEditor::insertNewlineAbove(/* options = {} */) {
 }
 
 void TextEditor::deleteToBeginningOfWord(/* options = {} */) {
-  //if (!this.ensureWritable('deleteToBeginningOfWord', options)) return;
   this->mutateSelectedText([](Selection *selection) {
     selection->deleteToBeginningOfWord(/* options */);
   });
 }
 
 void TextEditor::deleteToPreviousWordBoundary(/* options = {} */) {
-  //if (!this.ensureWritable('deleteToPreviousWordBoundary', options)) return;
   this->mutateSelectedText([](Selection *selection) {
     selection->deleteToPreviousWordBoundary(/* options */);
   });
 }
 
 void TextEditor::deleteToNextWordBoundary(/* options = {} */) {
-  //if (!this.ensureWritable('deleteToNextWordBoundary', options)) return;
   this->mutateSelectedText([](Selection *selection) {
     selection->deleteToNextWordBoundary(/* options */);
   });
 }
 
 void TextEditor::deleteToBeginningOfSubword(/* options = {} */) {
-  //if (!this.ensureWritable('deleteToBeginningOfSubword', options)) return;
   this->mutateSelectedText([](Selection *selection) {
     selection->deleteToBeginningOfSubword(/* options */);
   });
 }
 
 void TextEditor::deleteToEndOfSubword(/* options = {} */) {
-  //if (!this.ensureWritable('deleteToEndOfSubword', options)) return;
   this->mutateSelectedText([](Selection *selection) {
     selection->deleteToEndOfSubword(/* options */);
   });
 }
 
 void TextEditor::deleteToBeginningOfLine(/* options = {} */) {
-  //if (!this.ensureWritable('deleteToBeginningOfLine', options)) return;
   this->mutateSelectedText([](Selection *selection) {
     selection->deleteToBeginningOfLine(/* options */);
   });
 }
 
 void TextEditor::deleteToEndOfLine(/* options = {} */) {
-  //if (!this.ensureWritable('deleteToEndOfLine', options)) return;
   this->mutateSelectedText([](Selection *selection) { selection->deleteToEndOfLine(/* options */); });
 }
 
 void TextEditor::deleteToEndOfWord(/* options = {} */) {
-  //if (!this.ensureWritable('deleteToEndOfWord', options)) return;
   this->mutateSelectedText([](Selection *selection) { selection->deleteToEndOfWord(/* options */); });
 }
 
 void TextEditor::deleteLine(/* options = {} */) {
-  //if (!this.ensureWritable('deleteLine', options)) return;
   this->mergeSelectionsOnSameRows();
   this->mutateSelectedText([](Selection *selection) { selection->deleteLine(/* options */); });
 }
@@ -639,7 +621,6 @@ Section: History
 */
 
 void TextEditor::undo() {
-  //if (!this.ensureWritable('undo', options)) return;
   this->avoidMergingSelections([&]() {
     this->buffer->undo(this->selectionsMarkerLayer);
   });
@@ -647,7 +628,6 @@ void TextEditor::undo() {
 }
 
 void TextEditor::redo() {
-  //if (!this.ensureWritable('redo', options)) return;
   this->avoidMergingSelections([&]() {
     this->buffer->redo(this->selectionsMarkerLayer);
   });
@@ -896,7 +876,7 @@ Cursor *TextEditor::addCursor(DisplayMarker *marker) {
 
 void TextEditor::moveCursors(std::function<void(Cursor *)> fn) {
   return this->transact([&]() {
-    for (Cursor *cursor: getCursors()) fn(cursor);
+    for (Cursor *cursor : getCursors()) fn(cursor);
     this->mergeCursors();
   });
 }
@@ -1349,14 +1329,12 @@ Range TextEditor::setIndentationForBufferRow(
 }
 
 void TextEditor::indentSelectedRows(/* options = {} */) {
-  //if (!this->ensureWritable('indentSelectedRows', options)) return;
   return this->mutateSelectedText([](Selection *selection) {
     selection->indentSelectedRows(/* options */);
   });
 }
 
 void TextEditor::outdentSelectedRows(/* options = {} */) {
-  //if (!this->ensureWritable('outdentSelectedRows', options)) return;
   return this->mutateSelectedText([](Selection *selection) {
     selection->outdentSelectedRows(/* options */);
   });
@@ -1379,7 +1357,6 @@ double TextEditor::indentLevelForLine(const std::u16string &line) {
 }
 
 void TextEditor::indent(/* options = {} */) {
-  //if (!this->ensureWritable('indent', options)) return;
   //if (options.autoIndent == null)
   //  options.autoIndent = this->shouldAutoIndent();
   this->mutateSelectedText([](Selection *selection) { selection->indent(/* options */); });

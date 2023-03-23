@@ -14,8 +14,8 @@ class Regex {
 
  public:
   Regex();
-  Regex(const char16_t *, uint32_t, std::u16string *error_message, bool ignore_case = false, bool unicode = false);
-  Regex(const std::u16string &, std::u16string *error_message, bool ignore_case = false, bool unicode = false);
+  Regex(const char16_t *, uint32_t, std::u16string *error_message = nullptr, bool ignore_case = false, bool unicode = false);
+  Regex(const std::u16string &, std::u16string *error_message = nullptr, bool ignore_case = false, bool unicode = false);
   Regex(Regex &&);
   ~Regex();
   Regex &operator=(Regex &&);
@@ -59,7 +59,8 @@ class Regex {
     IsEndSearch = 4,
   };
 
-  MatchResult match(const char16_t *data, size_t length, MatchData &, unsigned options = 0) const;
+  MatchResult match(const char16_t *data, size_t length, MatchData &, unsigned options) const;
+  MatchResult match(const std::u16string &, MatchData &, unsigned options = 7) const;
   MatchResult match(const char16_t *, size_t) const;
   MatchResult match(const std::u16string &) const;
   MatchResult match(char16_t) const;

@@ -1,5 +1,7 @@
 #include "syntax-scope-map.h"
 
+namespace {
+
 enum class NodeType {
   tag,
   string,
@@ -72,6 +74,8 @@ template <class F> static void process(F f, const std::string &selector) {
   f(nodes);
 }
 
+}
+
 static void rejectSelector(const std::string &);
 
 SyntaxScopeMap::Result::~Result() {}
@@ -109,7 +113,7 @@ void SyntaxScopeMap::addSelector(const std::string &selector, Result *result) {
     Table *currentTable = nullptr;
     optional<double> currentIndexValue;
 
-    for (double i = nodes.size() - 1; i >= 0; i--) {
+    for (double i = nodes.size() - 1.0; i >= 0; i--) {
       const Node &termNode = nodes[i];
 
       switch (termNode.type) {

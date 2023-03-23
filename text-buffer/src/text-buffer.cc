@@ -205,11 +205,7 @@ Range TextBuffer::applyChange(Point oldStart, Point oldEnd, Point newStart, Poin
   const Range newRange = Range(newStart, traverse(newStart, newExtent));
 
   if (pushToHistory) {
-    //if (!change.oldExtent) change.oldExtent = oldExtent
-    //if (!change.newExtent) change.newExtent = newExtent
-    if (this->historyProvider) {
-      this->historyProvider->pushChange(newStart, oldExtent, newExtent, oldText, newText);
-    }
+    this->historyProvider->pushChange(newStart, oldExtent, newExtent, oldText, newText);
   }
 
   //const changeEvent = {oldRange, newRange, oldText, newText}

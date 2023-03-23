@@ -37,7 +37,7 @@ class DefaultHistoryProvider {
     StackEntry(Patch *);
     StackEntry(StackEntry &&);
     ~StackEntry();
-    StackEntry &operator =(StackEntry &&);
+    StackEntry &operator=(StackEntry &&);
   };
   size_t maxUndoEntries;
   unsigned nextCheckpointId;

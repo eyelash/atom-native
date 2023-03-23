@@ -167,6 +167,10 @@ MatchResult Regex::match(const char16_t *string, size_t length,
   return result;
 }
 
+MatchResult Regex::match(const std::u16string &string, MatchData &match_data, unsigned options) const {
+  return match(string.data(), string.size(), match_data, options);
+}
+
 MatchResult Regex::match(const char16_t *string, size_t length) const {
   MatchData match_data(*this);
   const unsigned options = MatchOptions::IsBeginningOfLine | MatchOptions::IsEndOfLine | MatchOptions::IsEndSearch;

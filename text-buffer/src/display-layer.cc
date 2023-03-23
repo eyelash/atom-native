@@ -18,7 +18,7 @@ DisplayLayer::DisplayLayer(unsigned id, TextBuffer *buffer) {
   this->buffer = buffer;
   this->screenLineBuilder = new ScreenLineBuilder(this);
   this->nextBuiltInScopeId = 1;
-  this->tabLength = 4;
+  this->tabLength = 2;
   this->softWrapColumn = INFINITY;
   this->softWrapHangingIndent = 0;
   this->showIndentGuides = false;

@@ -1,7 +1,7 @@
 #include "helpers.h"
 #include <regex.h>
 
-static const Regex LF_REGEX(u"\\n", nullptr);
+static const Regex LF_REGEX(u"\\n");
 
 Point extentForText(const std::u16string &text) {
   size_t lastLineStartIndex = 0;

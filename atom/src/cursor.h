@@ -14,9 +14,9 @@ class Selection;
 class Cursor {
   TextEditor *editor;
   DisplayMarker *marker;
-  optional<double> goalColumn;
 
 public:
+  optional<double> goalColumn;
   Selection *selection;
 
   Cursor(TextEditor *, DisplayMarker *);

@@ -43,6 +43,7 @@ public:
   void splice(Point, Point, Point);
   void restoreFromSnapshot(const Snapshot &, bool = false);
   Snapshot createSnapshot();
+  void emitChangeEvents(Snapshot &);
   void markerUpdated();
   void destroyMarker(Marker *, bool = false);
   bool hasMarker(unsigned);

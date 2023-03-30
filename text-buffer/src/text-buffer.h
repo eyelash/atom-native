@@ -120,7 +120,7 @@ public:
   TextBuffer *loadSync();
   MarkerSnapshot createMarkerSnapshot(DisplayMarkerLayer *);
   void restoreFromMarkerSnapshot(const MarkerSnapshot &, DisplayMarkerLayer *);
-  void emitMarkerChangeEvents(const MarkerSnapshot &);
+  void emitMarkerChangeEvents(MarkerSnapshot &);
   void emitDidChangeTextEvent();
   void markerCreated(MarkerLayer *, Marker *);
   void markersUpdated(MarkerLayer *);

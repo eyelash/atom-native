@@ -36,7 +36,9 @@ private:
   bool tailed;
   bool reversed;
   InvalidationStrategy invalidate;
+  bool hasChangeObservers;
   optional<bool> exclusive;
+  Snapshot previousEventState;
 
 public:
   unsigned id;

@@ -245,6 +245,13 @@ MarkerLayer::Snapshot MarkerLayer::createSnapshot() {
   return result;
 }
 
+void MarkerLayer::emitChangeEvents(Snapshot &snapshot) {
+  // TODO: markersWithChangeListeners
+  for (auto &marker : this->markersById) {
+    marker.second->emitChangeEvent(snapshot[marker.second->id].range, true, false);
+  }
+}
+
 /*
 Section: Private - Marker interface
 */

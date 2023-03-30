@@ -320,7 +320,7 @@ Section: History
 */
 
 bool TextBuffer::undo(DisplayMarkerLayer *selectionsMarkerLayer) {
-  const auto pop = this->historyProvider->undo();
+  auto pop = this->historyProvider->undo();
   if (!pop) return false;
 
   this->transactCallDepth++;
@@ -335,7 +335,7 @@ bool TextBuffer::undo(DisplayMarkerLayer *selectionsMarkerLayer) {
 }
 
 bool TextBuffer::redo(DisplayMarkerLayer *selectionsMarkerLayer) {
-  const auto pop = this->historyProvider->redo();
+  auto pop = this->historyProvider->redo();
   if (!pop) return false;
 
   this->transactCallDepth++;
@@ -359,7 +359,7 @@ void TextBuffer::transact(double groupingInterval, DisplayMarkerLayer *selection
   fn();
   this->transactCallDepth--;
 
-  const auto endMarkerSnapshot = this->createMarkerSnapshot(selectionsMarkerLayer);
+  auto endMarkerSnapshot = this->createMarkerSnapshot(selectionsMarkerLayer);
   this->historyProvider->groupChangesSinceCheckpoint(checkpointBefore,
     endMarkerSnapshot,
     true
@@ -659,7 +659,7 @@ void TextBuffer::restoreFromMarkerSnapshot(const MarkerSnapshot &snapshot, Displ
   }
 }
 
-void TextBuffer::emitMarkerChangeEvents(const MarkerSnapshot &snapshot) {
+void TextBuffer::emitMarkerChangeEvents(MarkerSnapshot &snapshot) {
   if (this->transactCallDepth == 0) {
     while (this->markerLayersWithPendingUpdateEvents.size() > 0) {
       std::vector<MarkerLayer *> updatedMarkerLayers(this->markerLayersWithPendingUpdateEvents.begin(), this->markerLayersWithPendingUpdateEvents.end());
@@ -674,7 +674,8 @@ void TextBuffer::emitMarkerChangeEvents(const MarkerSnapshot &snapshot) {
   }
 
   for (auto &markerLayer : this->markerLayers) {
-    //markerLayer.second->emitChangeEvents(snapshot && snapshot[markerLayerId]);
+    const unsigned markerLayerId = markerLayer.first;
+    markerLayer.second->emitChangeEvents(snapshot[markerLayerId]);
   }
 }
 

@@ -7,6 +7,7 @@ Marker::Marker(unsigned id, MarkerLayer *layer, Range range, const Params &param
   this->tailed = params.tailed ? *params.tailed : true;
   this->reversed = params.reversed ? *params.reversed : false;
   this->invalidate = InvalidationStrategy::overlap;
+  this->hasChangeObservers = false;
   if (!exclusivitySet) {
     this->layer->setMarkerIsExclusive(this->id, this->isExclusive());
   }
@@ -24,6 +25,11 @@ void Marker::onDidDestroy(std::function<void()> callback) {
 }
 
 void Marker::onDidChange(std::function<void()> callback) {
+  if (!this->hasChangeObservers) {
+    this->previousEventState = this->getSnapshot(this->getRange());
+    this->hasChangeObservers = true;
+    //this->layer->markersWithChangeListeners.add(this);
+  }
   return this->didChangeEmitter.on(callback);
 }
 
@@ -211,5 +217,13 @@ Section: Private
 */
 
 void Marker::emitChangeEvent(Range currentRange, bool textChanged, bool propertiesChanged) {
+  if (!this->hasChangeObservers) {
+    return;
+  }
+  auto oldState = this->previousEventState;
+  if (!(propertiesChanged || oldState.tailed != this->tailed || oldState.reversed != this->reversed || oldState.range.compare(currentRange) != 0)) {
+    return;
+  }
+  auto newState = this->previousEventState = this->getSnapshot(currentRange);
   this->didChangeEmitter.emit();
 }

@@ -4,6 +4,7 @@
 #include "marker-layer.h"
 #include "range.h"
 #include "file.h"
+#include "event-kit.h"
 #include <string>
 #include <unordered_map>
 #include <native-text-buffer.h>
@@ -17,6 +18,9 @@ class DisplayMarkerLayer;
 class TextBuffer {
   DefaultHistoryProvider *historyProvider;
   optional<File> file;
+  Emitter<> didChangeTextEmitter;
+  Emitter<> didChangeModifiedEmitter;
+  Emitter<> didChangePathEmitter;
   unsigned nextMarkerLayerId;
   unsigned nextDisplayLayerId;
   MarkerLayer *defaultMarkerLayer;
@@ -24,6 +28,7 @@ class TextBuffer {
   std::unordered_map<unsigned, MarkerLayer *> markerLayers;
   flat_set<MarkerLayer *> markerLayersWithPendingUpdateEvents;
   unsigned nextMarkerId;
+  bool previousModifiedStatus;
 
 public:
   NativeTextBuffer *buffer;
@@ -50,6 +55,9 @@ public:
   using ScanIterator = std::function<void(SearchCallbackArgument &)>;
   using MarkerSnapshot = std::unordered_map<unsigned, MarkerLayer::Snapshot>;
 
+  void onDidChange(std::function<void()>);
+  void onDidChangeModified(std::function<void()>);
+  void onDidChangePath(std::function<void()>);
   bool isModified();
   optional<std::string> getPath();
   void setPath(const std::string &filePath);
@@ -122,6 +130,8 @@ public:
   void restoreFromMarkerSnapshot(const MarkerSnapshot &, DisplayMarkerLayer *);
   void emitMarkerChangeEvents(MarkerSnapshot &);
   void emitDidChangeTextEvent();
+  void emitDidStopChangingEvent();
+  void emitModifiedStatusChanged(bool);
   void markerCreated(MarkerLayer *, Marker *);
   void markersUpdated(MarkerLayer *);
   unsigned getNextMarkerId();

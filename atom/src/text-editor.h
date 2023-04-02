@@ -20,6 +20,7 @@ class TextEditor {
   bool softTabs;
   double undoGroupingInterval;
   bool suppressSelectionMerging;
+  Emitter<> didChangeTitleEmitter;
   Emitter<> didChangeEmitter;
   Emitter<Range> didRequestAutoscrollEmitter;
   std::vector<Cursor *> cursors;
@@ -38,10 +39,14 @@ public:
   void decorateCursorLine();
   void subscribeToBuffer();
   void subscribeToDisplayLayer();
+  void onDidChangeTitle(std::function<void()>);
   void onDidChange(std::function<void()>);
+  void onDidChangeModified(std::function<void()>);
   void onDidRequestAutoscroll(std::function<void(Range)>);
   TextBuffer *getBuffer();
+  std::string getTitle();
   optional<std::string> getPath();
+  optional<std::string> getFileName();
   bool isModified();
   bool isEmpty();
   TextBuffer *save();

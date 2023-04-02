@@ -12,9 +12,10 @@ TextBuffer::TextBuffer() {
   this->nextMarkerLayerId = 0;
   this->nextDisplayLayerId = 0;
   this->defaultMarkerLayer = new MarkerLayer(this, this->nextMarkerLayerId++);
+  this->markerLayers[this->defaultMarkerLayer->id] = this->defaultMarkerLayer;
   this->nextMarkerId = 1;
   this->transactCallDepth = 0;
-  this->markerLayers[this->defaultMarkerLayer->id] = this->defaultMarkerLayer;
+  this->previousModifiedStatus = false;
 }
 
 TextBuffer::TextBuffer(const std::u16string &text) {
@@ -24,9 +25,10 @@ TextBuffer::TextBuffer(const std::u16string &text) {
   this->nextMarkerLayerId = 0;
   this->nextDisplayLayerId = 0;
   this->defaultMarkerLayer = new MarkerLayer(this, this->nextMarkerLayerId++);
+  this->markerLayers[this->defaultMarkerLayer->id] = this->defaultMarkerLayer;
   this->nextMarkerId = 1;
   this->transactCallDepth = 0;
-  this->markerLayers[this->defaultMarkerLayer->id] = this->defaultMarkerLayer;
+  this->previousModifiedStatus = false;
 }
 
 TextBuffer *TextBuffer::loadSync(const std::string &filePath) {
@@ -46,6 +48,22 @@ TextBuffer::~TextBuffer() {
   delete this->buffer;
   delete this->historyProvider;
   delete this->languageMode;
+}
+
+/*
+Section: Event Subscription
+*/
+
+void TextBuffer::onDidChange(std::function<void()> callback) {
+  return this->didChangeTextEmitter.on(callback);
+}
+
+void TextBuffer::onDidChangeModified(std::function<void()> callback) {
+  return this->didChangeModifiedEmitter.on(callback);
+}
+
+void TextBuffer::onDidChangePath(std::function<void()> callback) {
+  return this->didChangePathEmitter.on(callback);
 }
 
 /*
@@ -76,7 +94,7 @@ void TextBuffer::setFile(const File &file) {
   this->file = file;
   //this->subscribeToFile();
 
-  //this.emitter.emit('did-change-path', this.getPath());
+  this->didChangePathEmitter.emit();
 }
 
 optional<std::string> TextBuffer::getEncoding() {
@@ -556,7 +574,7 @@ TextBuffer *TextBuffer::saveTo(const File &file) {
   //this.fileHasChangedSinceLastLoad = false;
   //this.digestWhenLastPersisted = this.buffer.baseTextDigest();
   //this.loaded = true;
-  //this.emitModifiedStatusChanged(false);
+  this->emitModifiedStatusChanged(false);
   //this.emitter.emit('did-save', {path: filePath});
   return this;
 }
@@ -688,15 +706,33 @@ void TextBuffer::emitDidChangeTextEvent() {
       //if (compactedChanges.length > 0) {
         //const changeEvent = new ChangeEvent(this, compactedChanges);
         this->languageMode->bufferDidFinishTransaction(/* changeEvent */);
-        //this->emitter.emit('did-change-text', changeEvent);
+        this->didChangeTextEmitter.emit();
       //}
-      //this->debouncedEmitDidStopChangingEvent();
+      // TODO: debounce
+      this->emitDidStopChangingEvent();
       //this->_emittedWillChangeEvent = false;
     //}
     for (auto &displayLayer : this->displayLayers) {
       displayLayer.second->emitDeferredChangeEvents();
     }
   }
+}
+
+void TextBuffer::emitDidStopChangingEvent() {
+  //if (this->destroyed) return;
+  const bool modifiedStatus = this->isModified();
+  /*const compactedChanges = Object.freeze(normalizePatchChanges(
+    patchFromChanges(this->changesSinceLastStoppedChangingEvent).getChanges()
+  ));*/
+  //this->changesSinceLastStoppedChangingEvent.length = 0;
+  //this->emitter.emit('did-stop-changing', {changes: compactedChanges});
+  this->emitModifiedStatusChanged(modifiedStatus);
+}
+
+void TextBuffer::emitModifiedStatusChanged(bool modifiedStatus) {
+  if (modifiedStatus == this->previousModifiedStatus) return;
+  this->previousModifiedStatus = modifiedStatus;
+  return this->didChangeModifiedEmitter.emit();
 }
 
 /*

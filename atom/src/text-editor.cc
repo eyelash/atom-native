@@ -69,7 +69,13 @@ void TextEditor::decorateCursorLine() {
 }
 
 void TextEditor::subscribeToBuffer() {
-
+  //this->buffer->retain();
+  //this.disposables.add(
+    this->buffer->onDidChangePath([this]() {
+      this->didChangeTitleEmitter.emit();
+      //this->didChangePathEmitter.emit();
+    });
+  //);
 }
 
 void TextEditor::subscribeToDisplayLayer() {
@@ -86,8 +92,16 @@ void TextEditor::subscribeToDisplayLayer() {
 Section: Event Subscription
 */
 
+void TextEditor::onDidChangeTitle(std::function<void()> callback) {
+  return this->didChangeTitleEmitter.on(callback);
+}
+
 void TextEditor::onDidChange(std::function<void()> callback) {
   return this->didChangeEmitter.on(callback);
+}
+
+void TextEditor::onDidChangeModified(std::function<void()> callback) {
+  return this->getBuffer()->onDidChangeModified(callback);
 }
 
 void TextEditor::onDidRequestAutoscroll(std::function<void(Range)> callback) {
@@ -106,8 +120,18 @@ TextBuffer *TextEditor::getBuffer() {
 Section: File Details
 */
 
+std::string TextEditor::getTitle() {
+  const auto fileName = this->getFileName();
+  return fileName ? *fileName : "untitled";
+}
+
 optional<std::string> TextEditor::getPath() {
   return this->buffer->getPath();
+}
+
+optional<std::string> TextEditor::getFileName() {
+  // TODO: basename
+  return this->getPath();
 }
 
 bool TextEditor::isModified() {

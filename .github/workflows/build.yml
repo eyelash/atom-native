@@ -4,11 +4,11 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
       - run: cmake .
-      - run: cmake --build . --parallel 2
+      - run: cmake --build . --verbose

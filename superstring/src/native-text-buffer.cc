@@ -1211,6 +1211,8 @@ static FILE *open_file(const string &name, const char *flags) {
 
 #else
 
+foobar("error");
+
 static size_t get_file_size(FILE *file) {
   struct stat file_stats;
   if (fstat(fileno(file), &file_stats) != 0) return -1;

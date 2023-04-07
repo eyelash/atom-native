@@ -166,6 +166,22 @@ language_python = declare_dependency(
   )
 )
 
+language_rust = declare_dependency(
+  link_with: static_library(
+    'language-rust',
+    'language-rust/grammars/tree-sitter-rust.cc',
+    link_with: static_library(
+      'tree-sitter-rust',
+      'language-rust/tree-sitter-rust/src/parser.c',
+      'language-rust/tree-sitter-rust/src/scanner.c',
+      include_directories: include_directories(
+        'language-rust/tree-sitter-rust/src',
+      ),
+    ),
+    dependencies: [atom],
+  )
+)
+
 atom_dep = declare_dependency(
-  dependencies: [atom, language_c, language_javascript, language_python]
+  dependencies: [atom, language_c, language_javascript, language_python, language_rust]
 )

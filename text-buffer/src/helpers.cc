@@ -19,6 +19,26 @@ bool includes(const char16_t *string, char16_t character) {
   return std::char_traits<char16_t>::find(string, length, character) != nullptr;
 }
 
+std::u16string toUpperCase(std::u16string string) {
+  // this only works for ASCII strings
+  for (char16_t &c : string) {
+    if (c >= u'a' && c <= u'z') {
+      c = u'A' + (c - u'a');
+    }
+  }
+  return string;
+}
+
+std::u16string toLowerCase(std::u16string string) {
+  // this only works for ASCII strings
+  for (char16_t &c : string) {
+    if (c >= u'A' && c <= u'Z') {
+      c = u'a' + (c - u'A');
+    }
+  }
+  return string;
+}
+
 std::u16string join(const std::vector<std::u16string> &vector, const std::u16string &separator) {
   std::u16string result;
   auto iterator = vector.begin();

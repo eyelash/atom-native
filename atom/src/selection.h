@@ -74,7 +74,7 @@ public:
   void expandOverWord(optional<bool> = optional<bool>());
   void selectLine(optional<double> = optional<double>());
   void expandOverLine(optional<bool> = optional<bool>());
-  void insertText(const std::u16string &);
+  Range insertText(const std::u16string &);
   void backspace();
   void deleteToPreviousWordBoundary();
   void deleteToNextWordBoundary();

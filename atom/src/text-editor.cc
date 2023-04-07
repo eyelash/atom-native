@@ -537,6 +537,19 @@ void TextEditor::duplicateLines(/* options = {} */) {
   });
 }
 
+void TextEditor::replaceSelectedText(bool selectWordIfEmpty, std::function<std::u16string(std::u16string)> fn) {
+  this->mutateSelectedText([&](Selection *selection) {
+    selection->getBufferRange();
+    if (selectWordIfEmpty && selection->isEmpty()) {
+      selection->selectWord();
+    }
+    std::u16string text = selection->getText();
+    selection->deleteSelectedText();
+    const Range range = selection->insertText(fn(std::move(text)));
+    selection->setBufferRange(range);
+  });
+}
+
 void TextEditor::splitSelectionsIntoLines() {
   this->mergeIntersectingSelections([&]() {
     for (Selection *selection : this->getSelections()) {
@@ -557,6 +570,18 @@ void TextEditor::splitSelectionsIntoLines() {
         });
       selection->destroy();
     }
+  });
+}
+
+void TextEditor::upperCase() {
+  this->replaceSelectedText(true, [](std::u16string text) {
+    return toUpperCase(std::move(text));
+  });
+}
+
+void TextEditor::lowerCase() {
+  this->replaceSelectedText(true, [](std::u16string text) {
+    return toLowerCase(std::move(text));
   });
 }
 

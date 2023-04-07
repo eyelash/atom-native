@@ -344,7 +344,7 @@ void Selection::expandOverLine(optional<bool> options_autoscroll) {
 Section: Modifying the selected text
 */
 
-void Selection::insertText(const std::u16string &text) {
+Range Selection::insertText(const std::u16string &text) {
   const Range oldBufferRange = this->getBufferRange();
   const bool wasReversed = this->isReversed();
   this->clear();
@@ -366,6 +366,8 @@ void Selection::insertText(const std::u16string &text) {
   const bool autoscroll =
     /* options.autoscroll != null ? options.autoscroll : */ this->isLastSelection();
   if (autoscroll) this->autoscroll();
+
+  return newBufferRange;
 }
 
 void Selection::backspace() {

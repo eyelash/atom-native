@@ -83,7 +83,10 @@ public:
   void moveLineUp();
   void moveLineDown();
   void duplicateLines();
+  void replaceSelectedText(bool, std::function<std::u16string(std::u16string)>);
   void splitSelectionsIntoLines();
+  void upperCase();
+  void lowerCase();
   void insertNewlineBelow();
   void insertNewlineAbove();
   void deleteToBeginningOfWord();

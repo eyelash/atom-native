@@ -134,6 +134,21 @@ language_c = declare_dependency(
   )
 )
 
+language_go = declare_dependency(
+  link_with: static_library(
+    'language-go',
+    'language-go/grammars/tree-sitter-go.cc',
+    link_with: static_library(
+      'tree-sitter-go',
+      'language-go/tree-sitter-go/src/parser.c',
+      include_directories: include_directories(
+        'language-go/tree-sitter-go/src',
+      ),
+    ),
+    dependencies: [atom],
+  )
+)
+
 language_javascript = declare_dependency(
   link_with: static_library(
     'language-javascript',
@@ -183,5 +198,5 @@ language_rust = declare_dependency(
 )
 
 atom_dep = declare_dependency(
-  dependencies: [atom, language_c, language_javascript, language_python, language_rust]
+  dependencies: [atom, language_c, language_go, language_javascript, language_python, language_rust]
 )

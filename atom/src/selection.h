@@ -11,17 +11,16 @@ class DisplayMarker;
 class TextEditor;
 
 class Selection {
+public:
+  Cursor *cursor;
+  DisplayMarker *marker;
   TextEditor *editor;
   Emitter<> didChangeRangeEmitter;
   //Emitter<> didDestroyEmitter;
-  DisplayMarker *marker;
   optional<Range> goalScreenRange;
   bool wordwise;
   bool linewise;
   bool retainSelection;
-
-public:
-  Cursor *cursor;
 
   Selection(TextEditor *, DisplayMarker *, Cursor *);
   ~Selection();

@@ -12,10 +12,9 @@ class DisplayMarker;
 class Selection;
 
 class Cursor {
+public:
   TextEditor *editor;
   DisplayMarker *marker;
-
-public:
   optional<double> goalColumn;
   Selection *selection;
 

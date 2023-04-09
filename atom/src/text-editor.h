@@ -17,6 +17,7 @@ class DecorationManager;
 class LayerDecoration;
 
 class TextEditor {
+public:
   bool softTabs;
   double undoGroupingInterval;
   bool suppressSelectionMerging;
@@ -27,12 +28,10 @@ class TextEditor {
   std::unordered_map<unsigned, Cursor *> cursorsByMarkerId;
   std::vector<Selection *> selections;
   TextBuffer *buffer;
-public:
   DisplayLayer *displayLayer;
   DisplayMarkerLayer *selectionsMarkerLayer;
   DecorationManager *decorationManager;
 
-public:
   TextEditor(TextBuffer * = nullptr);
   ~TextEditor();
 
@@ -217,8 +216,6 @@ public:
   Range autoIndentBufferRow(double bufferRow, bool = false, bool = true);
   void autoIndentBufferRows(double startRow, double endRow);
   void autoDecreaseIndentForBufferRow(double bufferRow);
-
-private:
   void moveCursors(std::function<void(Cursor *)>);
   void mergeCursors();
   void createLastSelectionIfNeeded();

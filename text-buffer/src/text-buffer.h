@@ -16,11 +16,14 @@ class DisplayLayer;
 class DisplayMarkerLayer;
 
 class TextBuffer {
-  DefaultHistoryProvider *historyProvider;
+public:
   optional<File> file;
   Emitter<> didChangeTextEmitter;
   Emitter<> didChangeModifiedEmitter;
   Emitter<> didChangePathEmitter;
+  NativeTextBuffer *buffer;
+  DefaultHistoryProvider *historyProvider;
+  LanguageMode *languageMode;
   unsigned nextMarkerLayerId;
   unsigned nextDisplayLayerId;
   MarkerLayer *defaultMarkerLayer;
@@ -28,12 +31,8 @@ class TextBuffer {
   std::unordered_map<unsigned, MarkerLayer *> markerLayers;
   flat_set<MarkerLayer *> markerLayersWithPendingUpdateEvents;
   unsigned nextMarkerId;
-  bool previousModifiedStatus;
-
-public:
-  NativeTextBuffer *buffer;
-  LanguageMode *languageMode;
   double transactCallDepth;
+  bool previousModifiedStatus;
 
   TextBuffer();
   TextBuffer(const std::u16string &text);

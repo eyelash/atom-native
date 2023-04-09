@@ -11,13 +11,12 @@
 class DisplayMarker;
 
 class DisplayMarkerLayer {
+public:
   DisplayLayer *displayLayer;
   MarkerLayer *bufferMarkerLayer;
+  unsigned id;
   std::unordered_map<unsigned, DisplayMarker *> markersById;
   Emitter<> didUpdateEmitter;
-
-public:
-  unsigned id;
 
   DisplayMarkerLayer(DisplayLayer *, MarkerLayer *, bool);
   ~DisplayMarkerLayer();

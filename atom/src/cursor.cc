@@ -362,7 +362,7 @@ Section: Local Positions and Ranges
 
 Point Cursor::getPreviousWordBoundaryBufferPosition(const Regex *wordRegex) {
   const Point currentBufferPosition = this->getBufferPosition();
-  const optional<double> previousNonBlankRow = this->editor->getBuffer()->previousNonBlankRow(
+  const optional<double> previousNonBlankRow = this->editor->buffer->previousNonBlankRow(
     currentBufferPosition.row
   );
   const Range scanRange = Range(
@@ -370,7 +370,7 @@ Point Cursor::getPreviousWordBoundaryBufferPosition(const Regex *wordRegex) {
     currentBufferPosition
   );
 
-  const auto ranges = this->editor->getBuffer()->findAllInRangeSync(
+  const auto ranges = this->editor->buffer->findAllInRangeSync(
     wordRegex ? *wordRegex : static_cast<const Regex &>(this->wordRegExp()),
     scanRange
   );
@@ -399,7 +399,7 @@ Point Cursor::getNextWordBoundaryBufferPosition(const Regex *wordRegex) {
     this->editor->getEofBufferPosition()
   );
 
-  const auto range = this->editor->getBuffer()->findInRangeSync(
+  const auto range = this->editor->buffer->findInRangeSync(
     wordRegex ? *wordRegex : static_cast<const Regex &>(this->wordRegExp()),
     scanRange
   );
@@ -425,7 +425,7 @@ Point Cursor::getBeginningOfCurrentWordBufferPosition(/* options = {} */) {
     ? Range(Point(position.row - 1, 0), position)
     : Range(Point(position.row, 0), position);
 
-  const auto ranges = this->editor->getBuffer()->findAllInRangeSync(
+  const auto ranges = this->editor->buffer->findAllInRangeSync(
     /* options.wordRegex || */ this->wordRegExp( /* options */ ),
     scanRange
   );
@@ -448,7 +448,7 @@ Point Cursor::getEndOfCurrentWordBufferPosition(/* options = {} */) {
     ? Range(position, Point(position.row + 2, 0))
     : Range(position, Point(position.row, INFINITY));
 
-  const auto ranges = this->editor->getBuffer()->findAllInRangeSync(
+  const auto ranges = this->editor->buffer->findAllInRangeSync(
     /* options.wordRegex || */ this->wordRegExp(/* options */),
     scanRange
   );
@@ -483,7 +483,7 @@ Point Cursor::getBeginningOfNextWordBufferPosition(/* options = {} */) {
 
 Range Cursor::getCurrentWordBufferRange(const Regex *wordRegex, bool includeNonWordCharacters) {
   const Point position = this->getBufferPosition();
-  const auto ranges = this->editor->getBuffer()->findAllInRangeSync(
+  const auto ranges = this->editor->buffer->findAllInRangeSync(
     wordRegex ? *wordRegex : static_cast<const Regex &>(this->wordRegExp(includeNonWordCharacters)),
     Range(Point(position.row, 0), Point(position.row, INFINITY))
   );

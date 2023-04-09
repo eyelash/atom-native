@@ -29,7 +29,7 @@ public:
     optional<bool> tailed;
   };
 
-private:
+  unsigned id;
   MarkerLayer *layer;
   Emitter<> didDestroyEmitter;
   Emitter<> didChangeEmitter;
@@ -39,9 +39,6 @@ private:
   bool hasChangeObservers;
   optional<bool> exclusive;
   Snapshot previousEventState;
-
-public:
-  unsigned id;
 
   Marker(unsigned, MarkerLayer *, Range, const Params & = Params{}, bool = false);
   ~Marker();

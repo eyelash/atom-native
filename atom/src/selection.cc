@@ -8,12 +8,12 @@
 static const Regex NonWhitespaceRegExp = Regex(u"\\S");
 
 Selection::Selection(TextEditor *editor, DisplayMarker *marker, Cursor *cursor) {
-  this->editor = editor;
+  this->cursor = cursor;
   this->marker = marker;
+  this->editor = editor;
   this->wordwise = false;
   this->linewise = false;
   this->retainSelection = false;
-  this->cursor = cursor;
   this->cursor->selection = this;
   /* this->decoration = */ this->editor->decorateMarker(this->marker, {
     Decoration::Type::highlight,
@@ -127,7 +127,7 @@ bool Selection::isSingleScreenLine() {
 }
 
 std::u16string Selection::getText() {
-  return this->editor->getBuffer()->getTextInRange(this->getBufferRange());
+  return this->editor->buffer->getTextInRange(this->getBufferRange());
 }
 
 bool Selection::intersectsBufferRange(Range bufferRange) {
@@ -218,7 +218,7 @@ void Selection::selectToBottom() {
 }
 
 void Selection::selectAll() {
-  this->setBufferRange(this->editor->getBuffer()->getRange(), false);
+  this->setBufferRange(this->editor->buffer->getRange(), false);
 }
 
 void Selection::selectToBeginningOfLine() {
@@ -349,7 +349,7 @@ Range Selection::insertText(const std::u16string &text) {
   const bool wasReversed = this->isReversed();
   this->clear();
 
-  const Range newBufferRange = this->editor->getBuffer()->setTextInRange(
+  const Range newBufferRange = this->editor->buffer->setTextInRange(
     oldBufferRange,
     text
   );
@@ -432,7 +432,7 @@ void Selection::deleteToEndOfSubword(/* options = {} */) {
 
 void Selection::deleteSelectedText() {
   const Range bufferRange = this->getBufferRange();
-  if (!bufferRange.isEmpty()) this->editor->getBuffer()->delete_(bufferRange);
+  if (!bufferRange.isEmpty()) this->editor->buffer->delete_(bufferRange);
   if (this->cursor) this->cursor->setBufferPosition(bufferRange.start);
 }
 
@@ -442,16 +442,16 @@ void Selection::deleteLine(/* options = {} */) {
     const double start = this->cursor->getScreenRow();
     const auto range = this->editor->bufferRowsForScreenRows(start, start + 1);
     if (range[1] > range[0]) {
-      this->editor->getBuffer()->deleteRows(range[0], range[1] - 1);
+      this->editor->buffer->deleteRows(range[0], range[1] - 1);
     } else {
-      this->editor->getBuffer()->deleteRow(range[0]);
+      this->editor->buffer->deleteRow(range[0]);
     }
   } else {
     const double start = range.start.row;
     double end = range.end.row;
-    if (end != this->editor->getBuffer()->getLastRow() && range.end.column == 0)
+    if (end != this->editor->buffer->getLastRow() && range.end.column == 0)
       end--;
-    this->editor->getBuffer()->deleteRows(start, end);
+    this->editor->buffer->deleteRows(start, end);
   }
   this->cursor->setBufferPosition({
     this->cursor->getBufferRow(),
@@ -514,8 +514,8 @@ void Selection::indentSelectedRows(/* options = {} */) {
   const auto bufferRowRange = this->getBufferRowRange();
   const double start = bufferRowRange.first, end = bufferRowRange.second;
   for (double row = start; row <= end; row++) {
-    if (this->editor->getBuffer()->lineLengthForRow(row) != 0) {
-      this->editor->getBuffer()->insert({row, 0}, this->editor->getTabText());
+    if (this->editor->buffer->lineLengthForRow(row) != 0) {
+      this->editor->buffer->insert({row, 0}, this->editor->getTabText());
     }
   }
 }

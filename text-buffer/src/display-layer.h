@@ -38,8 +38,6 @@ public:
   };
 
   unsigned id;
-  double tabLength;
-private:
   TextBuffer *buffer;
   Emitter<> didChangeEmitter;
   ScreenLineBuilder *screenLineBuilder;
@@ -50,6 +48,7 @@ private:
   std::unordered_map<unsigned, DisplayMarkerLayer *> displayMarkerLayersById;
   Patch changesSinceLastEvent;
   Invisibles invisibles;
+  double tabLength;
   double softWrapColumn;
   double softWrapHangingIndent;
   bool showIndentGuides;
@@ -64,7 +63,6 @@ private:
   Point rightmostScreenPosition;
   double indexedBufferRowCount;
 
-public:
   DisplayLayer(unsigned, TextBuffer *);
   ~DisplayLayer();
 
@@ -118,8 +116,6 @@ public:
   std::pair<double, double> findBoundaryFollowingScreenRow(double);
   std::unordered_map<double, std::unordered_map<double, Point>> computeFoldsInBufferRowRange(double, double);
   static bool isSoftWrapHunk(const Patch::Change &);
-
-  friend class ScreenLineBuilder;
 };
 
 #endif // DISPLAY_LAYER_H_

@@ -15,16 +15,15 @@ class TextBuffer;
 class DisplayMarkerLayer;
 
 class MarkerLayer {
+public:
+  using Snapshot = std::unordered_map<unsigned, Marker::Snapshot>;
+
   TextBuffer *delegate;
+  unsigned id;
   Emitter<> didUpdateEmitter;
   Emitter<Marker *> didCreateMarkerEmitter;
   MarkerIndex *index;
   std::unordered_map<unsigned, Marker *> markersById;
-
-public:
-  using Snapshot = std::unordered_map<unsigned, Marker::Snapshot>;
-
-  unsigned id;
   std::unordered_set<DisplayMarkerLayer *> displayMarkerLayers;
 
   MarkerLayer(TextBuffer *, unsigned);

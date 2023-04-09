@@ -22,6 +22,7 @@ public:
   double undoGroupingInterval;
   bool suppressSelectionMerging;
   Emitter<> didChangeTitleEmitter;
+  Emitter<> didChangePathEmitter;
   Emitter<> didChangeEmitter;
   Emitter<Range> didRequestAutoscrollEmitter;
   std::vector<Cursor *> cursors;
@@ -39,6 +40,7 @@ public:
   void subscribeToBuffer();
   void subscribeToDisplayLayer();
   void onDidChangeTitle(std::function<void()>);
+  void onDidChangePath(std::function<void()>);
   void onDidChange(std::function<void()>);
   void onDidChangeModified(std::function<void()>);
   void onDidRequestAutoscroll(std::function<void(Range)>);

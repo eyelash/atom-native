@@ -20,11 +20,15 @@ void TreeSitterGrammar::addFileTypes(const char *fileType) {
 }
 
 void TreeSitterGrammar::setIncreaseIndentPattern(const char16_t *pattern) {
-  this->increaseIndentRegex = Regex(pattern, nullptr);
+  this->increaseIndentRegex = Regex(pattern);
 }
 
 void TreeSitterGrammar::setDecreaseIndentPattern(const char16_t *pattern) {
-  this->decreaseIndentRegex = Regex(pattern, nullptr);
+  this->decreaseIndentRegex = Regex(pattern);
+}
+
+void TreeSitterGrammar::setDecreaseNextIndentPattern(const char16_t *pattern) {
+  this->decreaseNextIndentRegex = Regex(pattern);
 }
 
 SyntaxScopeMap::Result *TreeSitterGrammar::preprocessScopes(const char *value) {

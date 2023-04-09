@@ -474,10 +474,9 @@ static std::u16string toString(double n) {
 void Selection::outdentSelectedRows(/* options = {} */) {
   const auto bufferRowRange = this->getBufferRowRange();
   const double start = bufferRowRange.first, end = bufferRowRange.second;
-  TextBuffer *buffer = this->editor->getBuffer();
+  TextBuffer *buffer = this->editor->buffer;
   const Regex leadingTabRegex = Regex(
-    u"^( {1," + toString(this->editor->getTabLength()) + u"}|\t)",
-    nullptr
+    u"^( {1," + toString(this->editor->getTabLength()) + u"}|\t)"
   );
   for (double row = start; row <= end; row++) {
     const auto match = leadingTabRegex.match(buffer->lineForRow(row));

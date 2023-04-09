@@ -15,25 +15,25 @@ extern "C" TreeSitterGrammar *atom_language_c() {
     "h.in"
   );
 
-  grammar->setIncreaseIndentPattern(uR"--((?x)
+  grammar->setIncreaseIndentPattern(uR"""((?x)
      ^ .* \{ [^}"']* $
     |^ .* \( [^)"']* $
     |^ \s* (public|private|protected): \s* $
     |^ \s* @(public|private|protected) \s* $
     |^ \s* \{ \} $
-  )--");
-  grammar->setDecreaseIndentPattern(uR"--((?x)
+  )""");
+  grammar->setDecreaseIndentPattern(uR"""((?x)
      ^ \s* (\s* /[*] .* [*]/ \s*)* \}
     |^ \s* (\s* /[*] .* [*]/ \s*)* \)
     |^ \s* (public|private|protected): \s* $
     |^ \s* @(public|private|protected) \s* $
-  )--");
+  )""");
 
   grammar->addScopes("translation_unit", "source.c");
   grammar->addScopes("comment", "comment.block");
 
   grammar->addScopes("identifier",
-    TreeSitterGrammar::Match{u"^[A-Z\\d_]+$","constant.other"}
+    TreeSitterGrammar::Match{u"^[A-Z\\d_]+$", "constant.other"}
   );
 
   grammar->addScopes("\"#if\"", "keyword.control.directive");

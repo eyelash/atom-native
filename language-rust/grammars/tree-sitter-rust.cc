@@ -13,15 +13,15 @@ extern "C" TreeSitterGrammar *atom_language_rust() {
     "rs"
   );
 
-  grammar->setIncreaseIndentPattern(uR"--((?x)
+  grammar->setIncreaseIndentPattern(uR"""((?x)
      ^ .* \{ [^}"']* $
     |^ .* \( [^\)"']* $
     |^ \s* \{ \} $
-  )--");
-  grammar->setDecreaseIndentPattern(uR"--((?x)
+  )""");
+  grammar->setDecreaseIndentPattern(uR"""((?x)
      ^ \s* (\s* /[*] .* [*]/ \s*)* \}
     |^ \s* (\s* /[*] .* [*]/ \s*)* \)
-  )--");
+  )""");
 
   grammar->addScopes("type_identifier", "support.type");
   grammar->addScopes("primitive_type", "support.type");

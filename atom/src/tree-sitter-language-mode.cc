@@ -175,7 +175,7 @@ double TreeSitterLanguageMode::suggestedIndentForLineWithScopeAtBufferRow_(
       desiredIndentLevel -= 1;
   //}
 
-  if (!this->buffer->isRowBlank(precedingRow)) {
+  if (!this->buffer->isRowBlank(*precedingRow)) {
     if (decreaseIndentRegex && decreaseIndentRegex.match(line))
       desiredIndentLevel -= 1;
   }

@@ -15,6 +15,7 @@ extern "C" TreeSitterGrammar *atom_language_go() {
 
   grammar->setIncreaseIndentPattern(u"^.*(\\bcase\\b.*:|\\bdefault\\b:|(\\b(func|if|else|switch|select|for|struct)\\b.*)?{[^}]*|\\([^)]*)$");
   grammar->setDecreaseIndentPattern(u"^\\s*(\\bcase\\b.*:|\\bdefault\\b:|}[),]?|\\)[,]?)$");
+  grammar->setDecreaseNextIndentPattern(u"^\\s*[^\\s()}]+(?<m>[^()]*\\((?:\\g<m>[^()]*|[^()]*)\\))*[^()]*\\)[,]?$");
 
   grammar->addScopes("source_file", "source.go");
 

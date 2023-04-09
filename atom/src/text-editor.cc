@@ -73,7 +73,7 @@ void TextEditor::subscribeToBuffer() {
   //this.disposables.add(
     this->buffer->onDidChangePath([this]() {
       this->didChangeTitleEmitter.emit();
-      //this->didChangePathEmitter.emit();
+      this->didChangePathEmitter.emit();
     });
   //);
 }
@@ -94,6 +94,10 @@ Section: Event Subscription
 
 void TextEditor::onDidChangeTitle(std::function<void()> callback) {
   return this->didChangeTitleEmitter.on(callback);
+}
+
+void TextEditor::onDidChangePath(std::function<void()> callback) {
+  return this->didChangePathEmitter.on(callback);
 }
 
 void TextEditor::onDidChange(std::function<void()> callback) {

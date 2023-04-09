@@ -26,7 +26,6 @@ public:
   std::unordered_map<std::string, Table *> namedScopeTable;
   std::unordered_map<std::string, Table *> anonymousScopeTable;
 
-public:
   SyntaxScopeMap();
   ~SyntaxScopeMap();
 

@@ -17,7 +17,7 @@ public:
   const T *operator->() const { return &value; }
   T *operator->() { return &value; }
   operator bool() const { return is_some; }
-  bool operator==(const optional<T> &other) {
+  bool operator==(const optional<T> &other) const {
     if (is_some) {
       return other.is_some && value == other.value;
     } else {

@@ -219,29 +219,29 @@ bool BracketMatcher::wrapSelectionInBrackets(const std::u16string &bracket) {
     pair = this->matchManager->pairedCharacters[bracket[0]];
   }
 
-  //if (!this.editor.selections.some(s => !s.isEmpty())) return false;
+  if (!std::any_of(this->editor->selections.begin(), this->editor->selections.end(), [](Selection *s) { return !s->isEmpty(); })) return false;
   //if (!this.getScopedSetting('bracket-matcher.wrapSelectionsInBrackets')) return false;
 
   bool selectionWrapped = false;
-  /*this->editor->mutateSelectedText([&](Selection *selection) {
+  this->editor->mutateSelectedText([&](Selection *selection) {
     Point selectionEnd;
     if (selection->isEmpty()) return;
 
     // Don't wrap in #{} if the selection spans more than one line
-    if ((bracket === '#{') && !selection.getBufferRange().isSingleLine()) return
+    //if ((bracket == u"#{") && !selection->getBufferRange().isSingleLine()) return;
 
     selectionWrapped = true;
     const Range range = selection->getBufferRange();
-    const options = {reversed: selection.isReversed()}
-    selection.insertText(`${bracket}${selection.getText()}${pair}`)
+    const bool reversed = selection->isReversed();
+    selection->insertText(bracket + selection->getText() + pair);
     const Point selectionStart = range.start.traverse({0, static_cast<double>(bracket.size())});
     if (range.start.row == range.end.row) {
       selectionEnd = range.end.traverse({0, static_cast<double>(bracket.size())});
     } else {
       selectionEnd = range.end;
     }
-    selection->setBufferRange({selectionStart, selectionEnd}, options);
-  });*/
+    selection->setBufferRange({selectionStart, selectionEnd}, optional<bool>(), reversed);
+  });
 
   return selectionWrapped;
 }

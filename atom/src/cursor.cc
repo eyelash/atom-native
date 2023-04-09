@@ -267,7 +267,7 @@ void Cursor::moveToFirstCharacterOfLine() {
 
   optional<double> firstCharacterColumn;
   this->editor->scanInBufferRange(
-    Regex(u"\\S", nullptr),
+    Regex(u"\\S"),
     screenLineBufferRange,
     [&](TextBuffer::SearchCallbackArgument &argument) {
       firstCharacterColumn = argument.range.start.column;
@@ -338,7 +338,7 @@ void Cursor::skipLeadingWhitespace() {
   const Point position = this->getBufferPosition();
   const Range scanRange = this->getCurrentLineBufferRange();
   Point endOfLeadingWhitespace;
-  this->editor->scanInBufferRange(Regex(u"^[ \t]*", nullptr), scanRange, [&](TextBuffer::SearchCallbackArgument &argument) {
+  this->editor->scanInBufferRange(Regex(u"^[ \t]*"), scanRange, [&](TextBuffer::SearchCallbackArgument &argument) {
     endOfLeadingWhitespace = argument.range.end;
   });
 

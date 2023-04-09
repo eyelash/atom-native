@@ -45,6 +45,7 @@ public:
   }
   void setIncreaseIndentPattern(const char16_t *);
   void setDecreaseIndentPattern(const char16_t *);
+  void setDecreaseNextIndentPattern(const char16_t *);
   static SyntaxScopeMap::Result *preprocessScopes(const char *);
   static SyntaxScopeMap::Result *preprocessScopes(Exact);
   static SyntaxScopeMap::Result *preprocessScopes(Match);

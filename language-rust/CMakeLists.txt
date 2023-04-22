@@ -4,11 +4,11 @@ project(language-rust)
 add_library(tree-sitter-rust STATIC)
 target_compile_features(tree-sitter-rust PRIVATE c_std_99)
 target_sources(tree-sitter-rust PRIVATE
-  tree-sitter-rust/src/parser.c
-  tree-sitter-rust/src/scanner.c
+  vendor/tree-sitter-rust/src/parser.c
+  vendor/tree-sitter-rust/src/scanner.c
 )
 target_include_directories(tree-sitter-rust PRIVATE
-  tree-sitter-rust/src
+  vendor/tree-sitter-rust/src
 )
 
 add_library(language-rust STATIC)

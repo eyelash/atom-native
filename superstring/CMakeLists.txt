@@ -50,4 +50,4 @@ target_include_directories(tests PRIVATE
   src
 )
 
-add_subdirectory(vendor/pcre)
+add_subdirectory(vendor/pcre2)

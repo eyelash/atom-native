@@ -4,11 +4,11 @@ project(language-python)
 add_library(tree-sitter-python STATIC)
 target_compile_features(tree-sitter-python PRIVATE c_std_99)
 target_sources(tree-sitter-python PRIVATE
-  tree-sitter-python/src/parser.c
-  tree-sitter-python/src/scanner.cc
+  vendor/tree-sitter-python/src/parser.c
+  vendor/tree-sitter-python/src/scanner.cc
 )
 target_include_directories(tree-sitter-python PRIVATE
-  tree-sitter-python/src
+  vendor/tree-sitter-python/src
 )
 
 add_library(language-python STATIC)

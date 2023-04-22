@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(pcre)
+project(pcre2)
 
 add_library(pcre2 STATIC)
 target_sources(pcre2 PRIVATE

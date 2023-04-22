@@ -6,17 +6,17 @@ language_c = declare_dependency(
     link_with: [
       static_library(
         'tree-sitter-c',
-        'tree-sitter-c/src/parser.c',
+        'vendor/tree-sitter-c/src/parser.c',
         include_directories: include_directories(
-          'tree-sitter-c/src',
+          'vendor/tree-sitter-c/src',
         ),
       ),
       static_library(
         'tree-sitter-cpp',
-        'tree-sitter-cpp/src/parser.c',
-        'tree-sitter-cpp/src/scanner.cc',
+        'vendor/tree-sitter-cpp/src/parser.c',
+        'vendor/tree-sitter-cpp/src/scanner.cc',
         include_directories: include_directories(
-          'tree-sitter-cpp/src',
+          'vendor/tree-sitter-cpp/src',
         ),
       ),
     ],

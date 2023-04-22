@@ -4,11 +4,11 @@ project(language-javascript)
 add_library(tree-sitter-javascript STATIC)
 target_compile_features(tree-sitter-javascript PRIVATE c_std_99)
 target_sources(tree-sitter-javascript PRIVATE
-  tree-sitter-javascript/src/parser.c
-  tree-sitter-javascript/src/scanner.c
+  vendor/tree-sitter-javascript/src/parser.c
+  vendor/tree-sitter-javascript/src/scanner.c
 )
 target_include_directories(tree-sitter-javascript PRIVATE
-  tree-sitter-javascript/src
+  vendor/tree-sitter-javascript/src
 )
 
 add_library(language-javascript STATIC)

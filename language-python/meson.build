@@ -4,10 +4,10 @@ language_python = declare_dependency(
     'grammars/tree-sitter-python.cc',
     link_with: static_library(
       'tree-sitter-python',
-      'tree-sitter-python/src/parser.c',
-      'tree-sitter-python/src/scanner.cc',
+      'vendor/tree-sitter-python/src/parser.c',
+      'vendor/tree-sitter-python/src/scanner.cc',
       include_directories: include_directories(
-        'tree-sitter-python/src',
+        'vendor/tree-sitter-python/src',
       ),
     ),
     dependencies: [atom],

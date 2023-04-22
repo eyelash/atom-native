@@ -4,20 +4,20 @@ project(language-c)
 add_library(tree-sitter-c STATIC)
 target_compile_features(tree-sitter-c PRIVATE c_std_99)
 target_sources(tree-sitter-c PRIVATE
-  tree-sitter-c/src/parser.c
+  vendor/tree-sitter-c/src/parser.c
 )
 target_include_directories(tree-sitter-c PRIVATE
-  tree-sitter-c/src
+  vendor/tree-sitter-c/src
 )
 
 add_library(tree-sitter-cpp STATIC)
 target_compile_features(tree-sitter-cpp PRIVATE c_std_99)
 target_sources(tree-sitter-cpp PRIVATE
-  tree-sitter-cpp/src/parser.c
-  tree-sitter-cpp/src/scanner.cc
+  vendor/tree-sitter-cpp/src/parser.c
+  vendor/tree-sitter-cpp/src/scanner.cc
 )
 target_include_directories(tree-sitter-cpp PRIVATE
-  tree-sitter-cpp/src
+  vendor/tree-sitter-cpp/src
 )
 
 add_library(language-c STATIC)

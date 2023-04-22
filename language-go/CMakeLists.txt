@@ -4,10 +4,10 @@ project(language-go)
 add_library(tree-sitter-go STATIC)
 target_compile_features(tree-sitter-go PRIVATE c_std_99)
 target_sources(tree-sitter-go PRIVATE
-  tree-sitter-go/src/parser.c
+  vendor/tree-sitter-go/src/parser.c
 )
 target_include_directories(tree-sitter-go PRIVATE
-  tree-sitter-go/src
+  vendor/tree-sitter-go/src
 )
 
 add_library(language-go STATIC)

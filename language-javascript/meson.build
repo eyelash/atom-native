@@ -4,10 +4,10 @@ language_javascript = declare_dependency(
     'grammars/tree-sitter-javascript.cc',
     link_with: static_library(
       'tree-sitter-javascript',
-      'tree-sitter-javascript/src/parser.c',
-      'tree-sitter-javascript/src/scanner.c',
+      'vendor/tree-sitter-javascript/src/parser.c',
+      'vendor/tree-sitter-javascript/src/scanner.c',
       include_directories: include_directories(
-        'tree-sitter-javascript/src',
+        'vendor/tree-sitter-javascript/src',
       ),
     ),
     dependencies: [atom],

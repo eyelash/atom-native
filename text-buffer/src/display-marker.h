@@ -30,7 +30,7 @@ public:
   Range getBufferRange() const;
   Range getScreenRange();
   bool setBufferRange(const Range &, optional<bool> = optional<bool>());
-  bool setScreenRange(const Range &);
+  bool setScreenRange(const Range &, optional<bool> = optional<bool>());
   Point getHeadBufferPosition() const;
   bool setHeadBufferPosition(const Point &);
   Point getHeadScreenPosition();

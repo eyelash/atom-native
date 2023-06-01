@@ -17,6 +17,7 @@ public:
   TextEditor *editor;
   Emitter<> didChangeRangeEmitter;
   //Emitter<> didDestroyEmitter;
+  optional<Range> initialScreenRange;
   optional<Range> goalScreenRange;
   bool wordwise;
   bool linewise;

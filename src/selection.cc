@@ -166,18 +166,18 @@ void Selection::clear(optional<bool> options_autoscroll) {
 
 void Selection::selectToScreenPosition(Point position) {
   this->modifySelection([&]() {
-    /* if (this.initialScreenRange) {
-      if (position.isLessThan(this.initialScreenRange.start)) {
-        this.marker.setScreenRange([position, this.initialScreenRange.end], {
-          reversed: true
-        });
+    if (this->initialScreenRange) {
+      if (position.isLessThan(this->initialScreenRange->start)) {
+        this->marker->setScreenRange({position, this->initialScreenRange->end},
+          true
+        );
       } else {
-        this.marker.setScreenRange(
-          [this.initialScreenRange.start, position],
-          { reversed: false }
+        this->marker->setScreenRange(
+          {this->initialScreenRange->start, position},
+          false
         );
       }
-    } else */ {
+    } else {
       this->cursor->setScreenPosition(position);
     }
 
@@ -291,7 +291,7 @@ void Selection::selectWord(/* options = {} */) {
     options */
   );
   this->wordwise = true;
-  //this.initialScreenRange = this.getScreenRange();
+  this->initialScreenRange = this->getScreenRange();
 }
 
 void Selection::expandOverWord(optional<bool> options_autoscroll) {
@@ -325,7 +325,7 @@ void Selection::selectLine(optional<double> row /* , options */) {
 
   this->linewise = true;
   this->wordwise = false;
-  //this->initialScreenRange = this->getScreenRange();
+  this->initialScreenRange = this->getScreenRange();
 }
 
 void Selection::expandOverLine(optional<bool> options_autoscroll) {
@@ -636,12 +636,12 @@ void Selection::markerDidDestroy() {
 }
 
 void Selection::finalize() {
-  /*if (
+  if (
     !this->initialScreenRange ||
-    !this->initialScreenRange.isEqual(this->getScreenRange())
+    !this->initialScreenRange->isEqual(this->getScreenRange())
   ) {
-    this->initialScreenRange = null;
-  }*/
+    this->initialScreenRange = optional<Range>();
+  }
   if (this->isEmpty()) {
     this->wordwise = false;
     this->linewise = false;

@@ -68,8 +68,8 @@ bool DisplayMarker::setBufferRange(const Range &bufferRange, optional<bool> reve
   return this->bufferMarker->setRange(bufferRange, reversed);
 }
 
-bool DisplayMarker::setScreenRange(const Range &screenRange) {
-  return this->setBufferRange(this->layer->translateScreenRange(screenRange));
+bool DisplayMarker::setScreenRange(const Range &screenRange, optional<bool> reversed) {
+  return this->setBufferRange(this->layer->translateScreenRange(screenRange), reversed);
 }
 
 Point DisplayMarker::getHeadBufferPosition() const {

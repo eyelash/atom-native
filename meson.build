@@ -41,6 +41,7 @@ text_buffer = declare_dependency(
       'text-buffer/src/language-mode.cc',
       'text-buffer/src/marker-layer.cc',
       'text-buffer/src/marker.cc',
+      'text-buffer/src/path.cc',
       'text-buffer/src/point-helpers.cc',
       'text-buffer/src/point.cc',
       'text-buffer/src/range.cc',

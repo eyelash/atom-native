@@ -7,6 +7,7 @@
 #include <display-marker.h>
 #include <language-mode.h>
 #include <helpers.h>
+#include <path.h>
 #include <set>
 
 constexpr const char16_t *DEFAULT_NON_WORD_CHARACTERS = u"/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…";
@@ -134,8 +135,9 @@ optional<std::string> TextEditor::getPath() {
 }
 
 optional<std::string> TextEditor::getFileName() {
-  // TODO: basename
-  return this->getPath();
+  const auto fullPath = this->getPath();
+  if (fullPath) return path::basename(*fullPath);
+  return optional<std::string>();
 }
 
 bool TextEditor::isModified() {

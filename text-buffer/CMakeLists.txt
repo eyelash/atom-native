@@ -14,6 +14,7 @@ target_sources(text-buffer PRIVATE
   src/language-mode.cc
   src/marker-layer.cc
   src/marker.cc
+  src/path.cc
   src/point-helpers.cc
   src/point.cc
   src/range.cc

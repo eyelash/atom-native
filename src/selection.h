@@ -22,6 +22,7 @@ public:
   bool wordwise;
   bool linewise;
   bool retainSelection;
+  std::vector<Range> rangeStack_;
 
   Selection(TextEditor *, DisplayMarker *, Cursor *);
   ~Selection();

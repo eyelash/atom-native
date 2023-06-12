@@ -7,6 +7,8 @@
 static void insertContainingTag(int32_t, double, std::vector<int32_t> &, std::vector<double> &);
 static Range rangeForNode(TSNode);
 static Range rangeForNode(TSRange);
+static bool nodeContainsIndices(TSNode, double, double);
+static bool nodeIsSmaller(TSNode, TSNode);
 static TreeSitterLanguageMode::LayerHighlightIterator *last(const std::vector<std::unique_ptr<TreeSitterLanguageMode::LayerHighlightIterator>> &);
 
 TreeSitterLanguageMode::TreeSitterLanguageMode(TextBuffer *buffer, TreeSitterGrammar *grammar) {
@@ -196,6 +198,65 @@ double TreeSitterLanguageMode::indentLevelForLine(const std::u16string &line, do
     }
   }
   return indentLength / tabLength;
+}
+
+/*
+Section - Folding
+*/
+
+void TreeSitterLanguageMode::forEachTreeWithRange_(Range range, std::function<void(const Tree &, TreeSitterGrammar *)> callback) {
+  if (this->rootLanguageLayer->tree) {
+    callback(this->rootLanguageLayer->tree, this->rootLanguageLayer->grammar);
+  }
+
+  /*const injectionMarkers = this.injectionsMarkerLayer.findMarkers({
+    intersectsRange: range
+  });
+
+  for (const injectionMarker of injectionMarkers) {
+    const { tree, grammar } = injectionMarker.languageLayer;
+    if (tree) callback(tree, grammar);
+  }*/
+}
+
+/*
+Section - Syntax Tree APIs
+*/
+
+TSNode TreeSitterLanguageMode::getSyntaxNodeContainingRange(Range range, std::function<bool(TSNode, TreeSitterGrammar *)> where) {
+  return this->getSyntaxNodeAndGrammarContainingRange(range, where).first;
+}
+
+std::pair<TSNode, TreeSitterGrammar *> TreeSitterLanguageMode::getSyntaxNodeAndGrammarContainingRange(Range range, std::function<bool(TSNode, TreeSitterGrammar *)> where) {
+  const double startIndex = this->buffer->characterIndexForPosition(range.start);
+  const double endIndex = this->buffer->characterIndexForPosition(range.end);
+  const double searchEndIndex = std::max(0.0, endIndex - 1);
+
+  TSNode smallestNode = {};
+  TreeSitterGrammar *smallestNodeGrammar = this->grammar;
+  this->forEachTreeWithRange_(range, [&](const Tree &tree, TreeSitterGrammar *grammar) {
+    TSNode node = ts_node_descendant_for_byte_range(tree.rootNode(), startIndex * 2, searchEndIndex * 2);
+    while (!ts_node_is_null(node)) {
+      if (
+        nodeContainsIndices(node, startIndex, endIndex) &&
+        where(node, grammar)
+      ) {
+        if (nodeIsSmaller(node, smallestNode)) {
+          smallestNode = node;
+          smallestNodeGrammar = grammar;
+        }
+        break;
+      }
+      node = ts_node_parent(node);
+    }
+  });
+
+  return { smallestNode, smallestNodeGrammar };
+}
+
+optional<Range> TreeSitterLanguageMode::getRangeForSyntaxNodeContainingRange(Range range) {
+  TSNode node = this->getSyntaxNodeContainingRange(range);
+  return !ts_node_is_null(node) ? rangeForNode(node) : optional<Range>();
 }
 
 /*
@@ -742,6 +803,13 @@ static void insertContainingTag(int32_t tag, double index, std::vector<int32_t> 
   }
 }
 
+static double startIndex(TSNode node) {
+  return ts_node_start_byte(node) / 2;
+}
+static double endIndex(TSNode node) {
+  return ts_node_end_byte(node) / 2;
+}
+
 static Point pointForTSPoint(TSPoint point) {
   return Point(point.row, point.column / 2);
 }
@@ -750,6 +818,18 @@ static Range rangeForNode(TSNode node) {
 }
 static Range rangeForNode(TSRange node) {
   return Range(pointForTSPoint(node.start_point), pointForTSPoint(node.end_point));
+}
+
+static bool nodeContainsIndices(TSNode node, double start, double end) {
+  if (startIndex(node) < start) return endIndex(node) >= end;
+  if (startIndex(node) == start) return endIndex(node) > end;
+  return false;
+}
+
+static bool nodeIsSmaller(TSNode left, TSNode right) {
+  if (ts_node_is_null(left)) return false;
+  if (ts_node_is_null(right)) return true;
+  return endIndex(left) - startIndex(left) < endIndex(right) - startIndex(right);
 }
 
 static TreeSitterLanguageMode::LayerHighlightIterator *last(const std::vector<std::unique_ptr<TreeSitterLanguageMode::LayerHighlightIterator>> &array) {

@@ -26,8 +26,8 @@ struct Range {
   bool isEqual(const Range &) const;
   bool coversSameRows(const Range &) const;
   bool intersectsWith(const Range &, bool = false) const;
-  bool containsRange(const Range &, bool) const;
-  bool containsPoint(const Point &, bool) const;
+  bool containsRange(const Range &, bool = false) const;
+  bool containsPoint(const Point &, bool = false) const;
   bool intersectsRow(double) const;
   bool intersectsRowRange(double, double) const;
   Point getExtent() const;

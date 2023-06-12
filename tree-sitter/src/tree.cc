@@ -37,7 +37,7 @@ void Tree::edit(const TSInputEdit &edit) {
   ts_tree_edit(tree, &edit);
 }
 
-TSNode Tree::rootNode() {
+TSNode Tree::rootNode() const {
   return ts_tree_root_node(tree);
 }
 

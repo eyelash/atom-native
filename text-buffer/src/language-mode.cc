@@ -61,3 +61,7 @@ double LanguageMode::suggestedIndentForBufferRow(double, double, bool) {
 optional<double> LanguageMode::suggestedIndentForEditedBufferRow(double, double) {
   return optional<double>();
 }
+
+optional<Range> LanguageMode::getRangeForSyntaxNodeContainingRange(Range) {
+  return optional<Range>();
+}

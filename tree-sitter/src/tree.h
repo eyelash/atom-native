@@ -18,7 +18,7 @@ public:
   operator bool() const;
 
   void edit(const TSInputEdit &);
-  TSNode rootNode();
+  TSNode rootNode() const;
   std::vector<TSRange> getChangedRanges(const Tree &);
   TreeCursor walk();
   std::u16string getText(const TreeCursor &);

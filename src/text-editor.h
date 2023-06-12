@@ -176,6 +176,8 @@ public:
   void selectToBeginningOfNextWord();
   void selectToBeginningOfNextParagraph();
   void selectToBeginningOfPreviousParagraph();
+  void selectLargerSyntaxNode();
+  void selectSmallerSyntaxNode();
   Selection *getLastSelection();
   Selection *getSelectionAtScreenPosition(Point);
   std::vector<Selection *> getSelections();

@@ -29,6 +29,7 @@ public:
   virtual double suggestedIndentForLineAtBufferRow(double, const std::u16string &, double);
   virtual double suggestedIndentForBufferRow(double, double, bool);
   virtual optional<double> suggestedIndentForEditedBufferRow(double, double);
+  virtual optional<Range> getRangeForSyntaxNodeContainingRange(Range);
 };
 
 #endif // LANGUAGE_MODE_H_

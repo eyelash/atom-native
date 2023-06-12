@@ -87,6 +87,10 @@ public:
   optional<double> suggestedIndentForEditedBufferRow(double, double) override;
   double suggestedIndentForLineWithScopeAtBufferRow_(double, const std::u16string &, double, bool = true);
   double indentLevelForLine(const std::u16string &, double);
+  void forEachTreeWithRange_(Range, std::function<void(const Tree &, TreeSitterGrammar *)>);
+  TSNode getSyntaxNodeContainingRange(Range, std::function<bool(TSNode, TreeSitterGrammar *)> = [](TSNode, TreeSitterGrammar *) { return true; });
+  std::pair<TSNode, TreeSitterGrammar *> getSyntaxNodeAndGrammarContainingRange(Range, std::function<bool(TSNode, TreeSitterGrammar *)> = [](TSNode, TreeSitterGrammar *) { return true; });
+  optional<Range> getRangeForSyntaxNodeContainingRange(Range) override;
   void emitRangeUpdate(Range);
 };
 

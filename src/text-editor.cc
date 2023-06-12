@@ -1153,6 +1153,33 @@ void TextEditor::selectToBeginningOfPreviousParagraph() {
   });
 }
 
+void TextEditor::selectLargerSyntaxNode() {
+  LanguageMode *languageMode = this->buffer->getLanguageMode();
+
+  this->expandSelectionsForward([&](Selection *selection) {
+    const Range currentRange = selection->getBufferRange();
+    const auto newRange = languageMode->getRangeForSyntaxNodeContainingRange(
+      currentRange
+    );
+    if (newRange) {
+      selection->rangeStack_.push_back(currentRange);
+      selection->setBufferRange(*newRange);
+    }
+  });
+}
+
+void TextEditor::selectSmallerSyntaxNode() {
+  this->expandSelectionsForward([](Selection *selection) {
+    if (!selection->rangeStack_.empty()) {
+      const Range lastRange = selection->rangeStack_.back();
+      if (selection->getBufferRange().containsRange(lastRange)) {
+        selection->rangeStack_.pop_back();
+        selection->setBufferRange(lastRange);
+      }
+    }
+  });
+}
+
 Selection *TextEditor::getLastSelection() {
   this->createLastSelectionIfNeeded();
   return this->selections.back();

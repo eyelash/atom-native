@@ -91,6 +91,15 @@ std::string TreeSitterLanguageMode::classNameForScopeId(int32_t scopeId) {
 Section - Commenting
 */
 
+bool TreeSitterLanguageMode::isRowCommented(double row) {
+  const auto range = this->firstNonWhitespaceRange(row);
+  if (range) {
+    TSNode firstNode = this->getSyntaxNodeContainingRange(*range);
+    if (!ts_node_is_null(firstNode)) return std::string(ts_node_type(firstNode)).find("comment") != std::string::npos;
+  }
+  return false;
+}
+
 /*
 Section - Indentation
 */
@@ -167,7 +176,7 @@ double TreeSitterLanguageMode::suggestedIndentForLineWithScopeAtBufferRow_(
   double desiredIndentLevel = this->indentLevelForLine(precedingLine, tabLength);
   if (!increaseIndentRegex) return desiredIndentLevel;
 
-  //if (!this.isRowCommented(precedingRow)) {
+  if (!this->isRowCommented(*precedingRow)) {
     if (increaseIndentRegex && increaseIndentRegex.match(precedingLine))
       desiredIndentLevel += 1;
     if (
@@ -175,7 +184,7 @@ double TreeSitterLanguageMode::suggestedIndentForLineWithScopeAtBufferRow_(
       decreaseNextIndentRegex.match(precedingLine)
     )
       desiredIndentLevel -= 1;
-  //}
+  }
 
   if (!this->buffer->isRowBlank(*precedingRow)) {
     if (decreaseIndentRegex && decreaseIndentRegex.match(line))
@@ -262,6 +271,13 @@ optional<Range> TreeSitterLanguageMode::getRangeForSyntaxNodeContainingRange(Ran
 /*
 Section - Private
 */
+
+optional<NativeRange> TreeSitterLanguageMode::firstNonWhitespaceRange(double row) {
+  return this->buffer->findInRangeSync(
+    Regex(u"\\S"),
+    Range(Point(row, 0), Point(row, INFINITY))
+  );
+}
 
 void TreeSitterLanguageMode::emitRangeUpdate(Range range) {
   const double startRow = range.start.row;

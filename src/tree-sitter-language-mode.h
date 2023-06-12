@@ -82,6 +82,7 @@ public:
   std::unique_ptr<LanguageMode::HighlightIterator> buildHighlightIterator() override;
   void onDidChangeHighlighting(std::function<void(Range)>) override;
   std::string classNameForScopeId(int32_t) override;
+  bool isRowCommented(double);
   double suggestedIndentForLineAtBufferRow(double, const std::u16string &, double) override;
   double suggestedIndentForBufferRow(double, double, bool) override;
   optional<double> suggestedIndentForEditedBufferRow(double, double) override;
@@ -91,6 +92,7 @@ public:
   TSNode getSyntaxNodeContainingRange(Range, std::function<bool(TSNode, TreeSitterGrammar *)> = [](TSNode, TreeSitterGrammar *) { return true; });
   std::pair<TSNode, TreeSitterGrammar *> getSyntaxNodeAndGrammarContainingRange(Range, std::function<bool(TSNode, TreeSitterGrammar *)> = [](TSNode, TreeSitterGrammar *) { return true; });
   optional<Range> getRangeForSyntaxNodeContainingRange(Range) override;
+  optional<NativeRange> firstNonWhitespaceRange(double);
   void emitRangeUpdate(Range);
 };
 

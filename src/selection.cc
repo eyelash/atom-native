@@ -479,10 +479,32 @@ void Selection::outdentSelectedRows(/* options = {} */) {
     u"^( {1," + toString(this->editor->getTabLength()) + u"}|\t)"
   );
   for (double row = start; row <= end; row++) {
-    const auto match = leadingTabRegex.match(buffer->lineForRow(row));
+    const auto match = leadingTabRegex.match(*buffer->lineForRow(row));
     if (match && match.end_offset > match.start_offset) {
       buffer->delete_({{row, static_cast<double>(match.start_offset)}, {row, static_cast<double>(match.end_offset)}});
     }
+  }
+}
+
+void Selection::cut(std::u16string &clipboard, bool maintainClipboard, bool fullLine) {
+  this->copy(clipboard, maintainClipboard, fullLine);
+  this->delete_();
+}
+
+void Selection::copy(std::u16string &clipboard, bool maintainClipboard, bool fullLine) {
+  if (this->isEmpty()) return;
+  //const auto [start, end] = this->getBufferRange();
+  const Range range = this->getBufferRange();
+  const Point start = range.start, end = range.end;
+  const std::u16string selectionText = this->editor->getTextInRange({start, end});
+  const std::u16string precedingText = this->editor->getTextInRange({{start.row, 0}, start});
+  const double startLevel = this->editor->indentLevelForLine(precedingText);
+
+  if (maintainClipboard) {
+    clipboard += '\n';
+    clipboard += selectionText;
+  } else {
+    clipboard += selectionText;
   }
 }
 

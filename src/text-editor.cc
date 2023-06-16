@@ -1482,6 +1482,44 @@ Section: Managing Syntax Scopes
 Section: Clipboard Operations
 */
 
+std::u16string TextEditor::copySelectedText() {
+  std::u16string clipboard;
+  bool maintainClipboard = false;
+  for (Selection *selection : this->getSelectionsOrderedByBufferPosition()) {
+    if (selection->isEmpty()) {
+      const Range previousRange = selection->getBufferRange();
+      selection->selectLine();
+      selection->copy(clipboard, maintainClipboard, true);
+      selection->setBufferRange(previousRange);
+    } else {
+      selection->copy(clipboard, maintainClipboard, false);
+    }
+    maintainClipboard = true;
+  }
+  return clipboard;
+}
+
+std::u16string TextEditor::cutSelectedText(/* options = {} */) {
+  std::u16string clipboard;
+  bool maintainClipboard = false;
+  this->mutateSelectedText([&](Selection *selection) {
+    if (selection->isEmpty()) {
+      selection->selectLine();
+      selection->cut(clipboard, maintainClipboard, true);
+    } else {
+      selection->cut(clipboard, maintainClipboard, false);
+    }
+    maintainClipboard = true;
+  });
+  return clipboard;
+}
+
+void TextEditor::pasteText(const std::u16string &text /* options = {} */) {
+  this->mutateSelectedText([&](Selection *selection) {
+    selection->insertText(text);
+  });
+}
+
 /*
 Section: Folds
 */

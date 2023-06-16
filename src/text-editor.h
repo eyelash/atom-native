@@ -209,6 +209,9 @@ public:
   double indentLevelForLine(const std::u16string &);
   void indent();
   std::u16string buildIndentString(double, double = 0);
+  std::u16string copySelectedText();
+  std::u16string cutSelectedText();
+  void pasteText(const std::u16string &);
   void scrollToCursorPosition();
   void scrollToBufferPosition(Point);
   void scrollToScreenPosition(Point);

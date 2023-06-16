@@ -89,6 +89,8 @@ public:
   void deleteSelectedText();
   void deleteLine();
   void outdentSelectedRows();
+  void cut(std::u16string &, bool = false, bool = false);
+  void copy(std::u16string &, bool = false, bool = false);
   void indent(bool = false);
   void indentSelectedRows();
   void addSelectionBelow();

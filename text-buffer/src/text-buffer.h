@@ -87,8 +87,8 @@ public:
   MarkerLayer *addMarkerLayer();
   MarkerLayer *getMarkerLayer(unsigned);
   MarkerLayer *getDefaultMarkerLayer();
-  Marker *markRange(Range);
-  Marker *markPosition(Point);
+  unsigned markRange(Range);
+  unsigned markPosition(Point);
   std::vector<Marker *> getMarkers();
   Marker *getMarker(unsigned);
   std::size_t getMarkerCount();

@@ -45,20 +45,20 @@ Section: Marker creation
 
 DisplayMarker *DisplayMarkerLayer::markScreenRange(Range screenRange) {
   Range bufferRange = this->displayLayer->translateScreenRange(screenRange);
-  return this->getMarker(this->bufferMarkerLayer->markRange(bufferRange)->id);
+  return this->getMarker(this->bufferMarkerLayer->markRange(bufferRange));
 }
 
 DisplayMarker *DisplayMarkerLayer::markScreenPosition(Point screenPosition) {
   Point bufferPosition = this->displayLayer->translateScreenPosition(screenPosition);
-  return this->getMarker(this->bufferMarkerLayer->markPosition(bufferPosition)->id);
+  return this->getMarker(this->bufferMarkerLayer->markPosition(bufferPosition));
 }
 
 DisplayMarker *DisplayMarkerLayer::markBufferRange(Range bufferRange) {
-  return this->getMarker(this->bufferMarkerLayer->markRange(bufferRange)->id);
+  return this->getMarker(this->bufferMarkerLayer->markRange(bufferRange));
 }
 
 DisplayMarker *DisplayMarkerLayer::markBufferPosition(Point bufferPosition) {
-  return this->getMarker(this->bufferMarkerLayer->markPosition(bufferPosition)->id);
+  return this->getMarker(this->bufferMarkerLayer->markPosition(bufferPosition));
 }
 
 /*
@@ -66,8 +66,8 @@ Section: Querying
 */
 
 DisplayMarker *DisplayMarkerLayer::getMarker(unsigned id) {
-  if (DisplayMarker *displayMarker = this->markersById[id]) {
-    return displayMarker;
+  if (this->markersById.count(id)) {
+    return this->markersById[id];
   } else if (Marker *bufferMarker = this->bufferMarkerLayer->getMarker(id)) {
     return this->markersById[id] = new DisplayMarker(this, bufferMarker);
   }

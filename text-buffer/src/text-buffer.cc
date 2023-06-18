@@ -313,11 +313,11 @@ MarkerLayer *TextBuffer::getDefaultMarkerLayer() {
   return this->defaultMarkerLayer;
 }
 
-Marker *TextBuffer::markRange(Range range) {
+unsigned TextBuffer::markRange(Range range) {
   return this->defaultMarkerLayer->markRange(range);
 }
 
-Marker *TextBuffer::markPosition(Point position) {
+unsigned TextBuffer::markPosition(Point position) {
   return this->defaultMarkerLayer->markPosition(position);
 }
 

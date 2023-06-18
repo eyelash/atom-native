@@ -34,7 +34,7 @@ Section: Querying
 */
 
 Marker *MarkerLayer::getMarker(unsigned id) {
-  return this->markersById[id];
+  return this->markersById.count(id) ? this->markersById[id] : nullptr;
 }
 
 std::vector<Marker *> MarkerLayer::getMarkers() {
@@ -161,11 +161,11 @@ std::vector<Marker *> MarkerLayer::findMarkers(Slice<FindParam> params) {
 Section: Marker creation
 */
 
-Marker *MarkerLayer::markRange(Range range) {
+unsigned MarkerLayer::markRange(Range range) {
   return this->createMarker(this->delegate->clipRange(range));
 }
 
-Marker *MarkerLayer::markPosition(Point position) {
+unsigned MarkerLayer::markPosition(Point position) {
   position = this->delegate->clipPosition(position);
   return this->createMarker(Range{position, position});
 }
@@ -223,7 +223,7 @@ void MarkerLayer::restoreFromSnapshot(const Snapshot &snapshots, bool alwaysCrea
           this.emitter.emit('did-create-marker', marker);
         }
       } else */ {
-        Marker *newMarker = this->createMarker(snapshot.second.range, {snapshot.second.range, snapshot.second.reversed, snapshot.second.tailed}, true);
+        this->createMarker(snapshot.second.range, {snapshot.second.range, snapshot.second.reversed, snapshot.second.tailed}, true);
       }
     }
   }
@@ -308,7 +308,7 @@ void MarkerLayer::setMarkerIsExclusive(unsigned id, bool exclusive) {
   this->index->set_exclusive(id, exclusive);
 }
 
-Marker *MarkerLayer::createMarker(const Range &range, const Marker::Params &params, bool suppressMarkerLayerUpdateEvents) {
+unsigned MarkerLayer::createMarker(const Range &range, const Marker::Params &params, bool suppressMarkerLayerUpdateEvents) {
   unsigned id = this->delegate->getNextMarkerId();
   Marker *marker = this->addMarker(id, range, params);
   this->delegate->markerCreated(this, marker);
@@ -316,12 +316,11 @@ Marker *MarkerLayer::createMarker(const Range &range, const Marker::Params &para
     this->delegate->markersUpdated(this);
   }
   //marker.trackDestruction = (ref = this.trackDestructionInOnDidCreateMarkerCallbacks) != null ? ref : false;
-  /*if (this.emitCreateMarkerEvents) {
-    this.emitter.emit('did-create-marker', marker);
-  }*/
+  //if (this->emitCreateMarkerEvents) {
+    this->didCreateMarkerEmitter.emit(marker);
+  //}
   //marker.trackDestruction = false;
-  this->didCreateMarkerEmitter.emit(marker);
-  return marker;
+  return id;
 }
 
 /*

@@ -3,13 +3,12 @@
 
 #include "decoration.h"
 
-class DisplayMarkerLayer;
-class DecorationManager;
+struct DisplayMarkerLayer;
+struct DecorationManager;
 
-class LayerDecoration {
+struct LayerDecoration {
   Decoration::Properties properties;
 
-public:
   LayerDecoration(DisplayMarkerLayer *, DecorationManager *, Decoration::Properties);
   ~LayerDecoration();
 

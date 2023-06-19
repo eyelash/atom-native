@@ -9,7 +9,7 @@ TreeCursor::~TreeCursor() {
   ts_tree_cursor_delete(&this->tree_cursor);
 }
 
-TreeCursor &TreeCursor::operator =(const TreeCursor &tree_cursor) {
+TreeCursor &TreeCursor::operator=(const TreeCursor &tree_cursor) {
   ts_tree_cursor_delete(&this->tree_cursor);
   this->tree_cursor = ts_tree_cursor_copy(&tree_cursor.tree_cursor);
   this->tree = tree_cursor.tree;

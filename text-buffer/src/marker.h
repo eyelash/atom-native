@@ -5,10 +5,9 @@
 #include "event-kit.h"
 #include <optional.h>
 
-class MarkerLayer;
+struct MarkerLayer;
 
-class Marker {
-public:
+struct Marker {
   enum class InvalidationStrategy {
     never,
     surround,

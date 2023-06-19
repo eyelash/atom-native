@@ -22,7 +22,7 @@ Tree::~Tree() {
   }
 }
 
-Tree &Tree::operator =(const Tree &tree) {
+Tree &Tree::operator=(const Tree &tree) {
   ts_tree_delete(this->tree);
   this->tree = tree.tree ? ts_tree_copy(tree.tree) : nullptr;
   this->input = tree.input;

@@ -10,13 +10,12 @@
 #include <native-text-buffer.h>
 #include <flat_set.h>
 
-class DefaultHistoryProvider;
-class LanguageMode;
-class DisplayLayer;
-class DisplayMarkerLayer;
+struct DefaultHistoryProvider;
+struct LanguageMode;
+struct DisplayLayer;
+struct DisplayMarkerLayer;
 
-class TextBuffer {
-public:
+struct TextBuffer {
   optional<File> file;
   Emitter<> didChangeTextEmitter;
   Emitter<> didChangeModifiedEmitter;
@@ -39,9 +38,8 @@ public:
   static TextBuffer *loadSync(const std::string &);
   ~TextBuffer();
 
-  class SearchCallbackArgument {
+  struct SearchCallbackArgument {
     TextBuffer *buffer;
-  public:
     Range range;
     const Regex &regex;
     bool stopped;

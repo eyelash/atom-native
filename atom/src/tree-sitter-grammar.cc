@@ -32,9 +32,8 @@ void TreeSitterGrammar::setDecreaseNextIndentPattern(const char16_t *pattern) {
 }
 
 SyntaxScopeMap::Result *TreeSitterGrammar::preprocessScopes(const char *value) {
-  class StringResult : public SyntaxScopeMap::Result {
+  struct StringResult : SyntaxScopeMap::Result {
     std::string rules;
-  public:
     StringResult(const char *value) : rules(value) {}
     optional<std::string> applyLeafRules(const TreeCursor &) override {
       return rules;
@@ -44,10 +43,9 @@ SyntaxScopeMap::Result *TreeSitterGrammar::preprocessScopes(const char *value) {
 }
 
 SyntaxScopeMap::Result *TreeSitterGrammar::preprocessScopes(Exact value) {
-  class ExactResult : public SyntaxScopeMap::Result {
+  struct ExactResult : SyntaxScopeMap::Result {
     std::u16string exact;
     std::string scopes;
-  public:
     ExactResult(Exact value) : exact(value.exact), scopes(value.scopes) {}
     optional<std::string> applyLeafRules(const TreeCursor &cursor) override {
       return cursor.nodeText() == exact
@@ -59,10 +57,9 @@ SyntaxScopeMap::Result *TreeSitterGrammar::preprocessScopes(Exact value) {
 }
 
 SyntaxScopeMap::Result *TreeSitterGrammar::preprocessScopes(Match value) {
-  class MatchResult : public SyntaxScopeMap::Result {
+  struct MatchResult : SyntaxScopeMap::Result {
     Regex match;
     std::string scopes;
-  public:
     MatchResult(Match value) : match(value.match, nullptr), scopes(value.scopes) {}
     optional<std::string> applyLeafRules(const TreeCursor &cursor) override {
       return match.match(cursor.nodeText())
@@ -74,9 +71,8 @@ SyntaxScopeMap::Result *TreeSitterGrammar::preprocessScopes(Match value) {
 }
 
 SyntaxScopeMap::Result *TreeSitterGrammar::preprocessScopes(std::initializer_list<SyntaxScopeMap::Result *> value) {
-  class ArrayResult : public SyntaxScopeMap::Result {
+  struct ArrayResult : SyntaxScopeMap::Result {
     std::vector<SyntaxScopeMap::Result *> rules;
-  public:
     ArrayResult(std::initializer_list<SyntaxScopeMap::Result *> value) : rules(value) {}
     ~ArrayResult() {
       for (SyntaxScopeMap::Result *result : this->rules) {

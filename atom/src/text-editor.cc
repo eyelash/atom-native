@@ -10,7 +10,7 @@
 #include <path.h>
 #include <set>
 
-constexpr const char16_t *DEFAULT_NON_WORD_CHARACTERS = u"/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…";
+static const std::u16string DEFAULT_NON_WORD_CHARACTERS = u"/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…";
 
 TextEditor::TextEditor(TextBuffer *buffer) {
   this->softTabs = true;
@@ -325,8 +325,7 @@ void TextEditor::moveLineUp(/* options = {} */) {
 
     while (selections.size() > 0) {
       // Find selections spanning a contiguous set of lines
-      Range selection = selections.front();
-      selections.erase(selections.begin());
+      Range selection = shift(selections);
       std::vector<Range> selectionsToMove;
       selectionsToMove.push_back(selection);
 
@@ -336,7 +335,7 @@ void TextEditor::moveLineUp(/* options = {} */) {
       ) {
         selectionsToMove.push_back(selections[0]);
         selection.end.row = selections[0].end.row;
-        selections.erase(selections.begin());
+        shift(selections);
       }
 
       // Compute the buffer range spanned by all these selections, expanding it
@@ -405,8 +404,7 @@ void TextEditor::moveLineDown(/* options = {} */) {
 
     while (selections.size() > 0) {
       // Find selections spanning a contiguous set of lines
-      Range selection = selections.front();
-      selections.erase(selections.begin());
+      Range selection = shift(selections);
 
       std::vector<Range> selectionsToMove;
       selectionsToMove.push_back(selection);
@@ -418,7 +416,7 @@ void TextEditor::moveLineDown(/* options = {} */) {
       ) {
         selectionsToMove.push_back(selections[0]);
         selection.start.row = selections[0].start.row;
-        selections.erase(selections.begin());
+        shift(selections);
       }
 
       // Compute the buffer range spanned by all these selections, expanding it
@@ -1285,8 +1283,7 @@ void TextEditor::mergeSelections( /* options, */ std::function<void()> fn, std::
   this->suppressSelectionMerging = false;
 
   auto selections = this->getSelectionsOrderedByBufferPosition();
-  Selection *lastSelection = selections.front();
-  selections.erase(selections.begin());
+  Selection *lastSelection = shift(selections);
   for (Selection *selection : selections) {
     if (mergePredicate(lastSelection, selection)) {
       lastSelection->merge(selection);
@@ -1570,7 +1567,7 @@ double TextEditor::getUndoGroupingInterval() {
   return this->undoGroupingInterval;
 }
 
-const char16_t *TextEditor::getNonWordCharacters(Point position) {
+std::u16string TextEditor::getNonWordCharacters(Point position) {
   //const languageMode = this->buffer->getLanguageMode();
   return (
     //(languageMode.getNonWordCharacters &&

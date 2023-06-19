@@ -14,7 +14,7 @@ public:
   TreeCursor(TSNode, Tree *);
   TreeCursor(const TreeCursor &);
   ~TreeCursor();
-  TreeCursor &operator =(const TreeCursor &);
+  TreeCursor &operator=(const TreeCursor &);
   TSNode currentNode() const;
   bool gotoParent();
   bool gotoNextSibling();

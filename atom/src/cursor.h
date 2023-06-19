@@ -7,12 +7,11 @@
 #include <regex.h>
 #include <functional>
 
-class TextEditor;
-class DisplayMarker;
-class Selection;
+struct TextEditor;
+struct DisplayMarker;
+struct Selection;
 
-class Cursor {
-public:
+struct Cursor {
   TextEditor *editor;
   DisplayMarker *marker;
   optional<double> goalColumn;
@@ -22,10 +21,10 @@ public:
   ~Cursor();
   void destroy();
 
-  void setScreenPosition(Point, optional<bool> = optional<bool>(), DisplayLayer::ClipDirection = DisplayLayer::ClipDirection::closest);
+  void setScreenPosition(Point, optional<bool> = {}, DisplayLayer::ClipDirection = DisplayLayer::ClipDirection::closest);
   void setScreenPosition(Point, DisplayLayer::ClipDirection);
   Point getScreenPosition();
-  void setBufferPosition(Point, optional<bool> = optional<bool>());
+  void setBufferPosition(Point, optional<bool> = {});
   Point getBufferPosition();
   double getScreenRow();
   double getScreenColumn();
@@ -71,7 +70,7 @@ public:
   void clearSelection(bool);
   Regex wordRegExp(bool = true);
   Regex subwordRegExp(bool = false);
-  const char16_t *getNonWordCharacters();
+  std::u16string getNonWordCharacters();
   void changePosition(optional<bool>, std::function<void()>);
   Range getScreenRange();
   void autoscroll();

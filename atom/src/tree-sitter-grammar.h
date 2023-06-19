@@ -8,11 +8,10 @@
 #include <vector>
 #include <string>
 
-class SyntaxScopeMap;
+struct SyntaxScopeMap;
 struct TSLanguage;
 
-class TreeSitterGrammar {
-public:
+struct TreeSitterGrammar {
   struct Exact {
     const char16_t *exact;
     const char *scopes;

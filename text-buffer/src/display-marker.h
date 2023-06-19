@@ -5,11 +5,10 @@
 #include "event-kit.h"
 #include "display-layer.h"
 
-class DisplayMarkerLayer;
-class Marker;
+struct DisplayMarkerLayer;
+struct Marker;
 
-class DisplayMarker {
-public:
+struct DisplayMarker {
   DisplayMarkerLayer *layer;
   Marker *bufferMarker;
   bool hasChangeObservers;

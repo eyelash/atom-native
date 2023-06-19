@@ -5,8 +5,7 @@
 #include <text-buffer.h>
 
 static void insertContainingTag(int32_t, double, std::vector<int32_t> &, std::vector<double> &);
-static Range rangeForNode(TSNode);
-static Range rangeForNode(TSRange);
+template <class T> static Range rangeForNode(T);
 static bool nodeContainsIndices(TSNode, double, double);
 static bool nodeIsSmaller(TSNode, TSNode);
 static TreeSitterLanguageMode::LayerHighlightIterator *last(const std::vector<std::unique_ptr<TreeSitterLanguageMode::LayerHighlightIterator>> &);
@@ -826,14 +825,25 @@ static double endIndex(TSNode node) {
   return ts_node_end_byte(node) / 2;
 }
 
-static Point pointForTSPoint(TSPoint point) {
+static Point PointToJS(TSPoint point) {
   return Point(point.row, point.column / 2);
 }
-static Range rangeForNode(TSNode node) {
-  return Range(pointForTSPoint(ts_node_start_point(node)), pointForTSPoint(ts_node_end_point(node)));
+
+static Point startPosition(TSNode node) {
+  return PointToJS(ts_node_start_point(node));
 }
-static Range rangeForNode(TSRange node) {
-  return Range(pointForTSPoint(node.start_point), pointForTSPoint(node.end_point));
+static Point endPosition(TSNode node) {
+  return PointToJS(ts_node_end_point(node));
+}
+static Point startPosition(TSRange range) {
+  return PointToJS(range.start_point);
+}
+static Point endPosition(TSRange range) {
+  return PointToJS(range.end_point);
+}
+
+template <class T> static Range rangeForNode(T node) {
+  return Range(startPosition(node), endPosition(node));
 }
 
 static bool nodeContainsIndices(TSNode node, double start, double end) {

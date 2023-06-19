@@ -2,6 +2,10 @@
 #include "display-marker-layer.h"
 #include "marker.h"
 
+/*
+Section: Construction and Destruction
+*/
+
 DisplayMarker::DisplayMarker(DisplayMarkerLayer *layer, Marker *bufferMarker) {
   this->layer = layer;
   this->bufferMarker = bufferMarker;
@@ -44,9 +48,17 @@ void DisplayMarker::onDidDestroy(std::function<void()> callback) {
   return this->didDestroyEmitter.on(callback);
 }
 
+/*
+Section: TextEditorMarker Details
+*/
+
 bool DisplayMarker::isReversed() const {
   return this->bufferMarker->isReversed();
 }
+
+/*
+Section: Comparing to other markers
+*/
 
 int DisplayMarker::compare(const DisplayMarker *otherMarker) const {
   return this->bufferMarker->compare(otherMarker->bufferMarker);
@@ -55,6 +67,10 @@ int DisplayMarker::compare(const DisplayMarker *otherMarker) const {
 bool DisplayMarker::isEqual(const DisplayMarker *other) const {
   return this->bufferMarker->isEqual(other->bufferMarker);
 }
+
+/*
+Section: Managing the marker's range
+*/
 
 Range DisplayMarker::getBufferRange() const {
   return this->bufferMarker->getRange();

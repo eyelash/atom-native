@@ -3,6 +3,7 @@
 
 #include "optional.h"
 #include <string>
+#include <cstdint>
 
 struct pcre2_real_code_16;
 struct pcre2_real_match_data_16;
@@ -15,6 +16,7 @@ class Regex {
  public:
   Regex();
   Regex(const char16_t *, uint32_t, std::u16string *error_message = nullptr, bool ignore_case = false, bool unicode = false);
+  Regex(const char16_t *, std::u16string *error_message = nullptr, bool ignore_case = false, bool unicode = false);
   Regex(const std::u16string &, std::u16string *error_message = nullptr, bool ignore_case = false, bool unicode = false);
   Regex(Regex &&);
   ~Regex();
@@ -35,7 +37,7 @@ class Regex {
     ~MatchData();
 
     uint32_t size();
-    Range operator [](uint32_t);
+    Range operator[](uint32_t);
   };
 
   struct MatchResult {

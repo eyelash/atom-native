@@ -6,14 +6,12 @@
 #include <tree-cursor.h>
 #include <event-kit.h>
 
-class TreeSitterGrammar;
-class TextBuffer;
+struct TreeSitterGrammar;
+struct TextBuffer;
 
-class TreeSitterLanguageMode : public LanguageMode {
-public:
-  class LayerHighlightIterator;
-  class LanguageLayer {
-  public:
+struct TreeSitterLanguageMode : LanguageMode {
+  struct LayerHighlightIterator;
+  struct LanguageLayer {
     TreeSitterLanguageMode *languageMode;
     TreeSitterGrammar *grammar;
     Tree tree;
@@ -27,7 +25,7 @@ public:
     TSInputEdit treeEditForBufferChange_(Point, Point, Point, const std::u16string &, const std::u16string &);
   };
 
-  class LayerHighlightIterator {
+  struct LayerHighlightIterator {
     LanguageLayer *languageLayer;
     double depth;
     bool atEnd;
@@ -38,7 +36,6 @@ public:
     std::vector<double> containingNodeEndIndices;
     std::vector<int32_t> closeTags;
     std::vector<int32_t> openTags;
-  public:
     LayerHighlightIterator(LanguageLayer *, TreeCursor);
     ~LayerHighlightIterator();
     bool seek(double, std::vector<int32_t> &, std::vector<double> &);
@@ -53,11 +50,10 @@ public:
     optional<int32_t> currentScopeId_();
   };
 
-  class HighlightIterator : public LanguageMode::HighlightIterator {
+  struct HighlightIterator : LanguageMode::HighlightIterator {
     TreeSitterLanguageMode *languageMode;
     std::vector<std::unique_ptr<LayerHighlightIterator>> iterators;
     bool currentScopeIsCovered;
-  public:
     HighlightIterator(TreeSitterLanguageMode *);
     ~HighlightIterator();
     std::vector<int32_t> seek(Point, double) override;

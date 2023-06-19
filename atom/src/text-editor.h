@@ -10,14 +10,13 @@
 #include <text-buffer.h>
 #include <event-kit.h>
 
-class Cursor;
-class Selection;
-class DisplayMarker;
-class DecorationManager;
-class LayerDecoration;
+struct Cursor;
+struct Selection;
+struct DisplayMarker;
+struct DecorationManager;
+struct LayerDecoration;
 
-class TextEditor {
-public:
+struct TextEditor {
   bool softTabs;
   double undoGroupingInterval;
   bool suppressSelectionMerging;
@@ -218,7 +217,7 @@ public:
   void scrollToScreenRange(Range, bool = true);
   bool shouldAutoIndent();
   double getUndoGroupingInterval();
-  const char16_t *getNonWordCharacters(Point);
+  std::u16string getNonWordCharacters(Point);
   double suggestedIndentForBufferRow(double bufferRow, bool);
   Range autoIndentBufferRow(double bufferRow, bool = false, bool = true);
   void autoIndentBufferRows(double startRow, double endRow);

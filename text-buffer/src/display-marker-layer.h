@@ -8,10 +8,9 @@
 #include <unordered_map>
 #include <functional>
 
-class DisplayMarker;
+struct DisplayMarker;
 
-class DisplayMarkerLayer {
-public:
+struct DisplayMarkerLayer {
   DisplayLayer *displayLayer;
   MarkerLayer *bufferMarkerLayer;
   unsigned id;

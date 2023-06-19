@@ -4,9 +4,9 @@
 #include "display-layer.h"
 #include "language-mode.h"
 
-class DisplayLayer;
+struct DisplayLayer;
 
-class ScreenLineBuilder {
+struct ScreenLineBuilder {
   DisplayLayer *displayLayer;
   double requestedStartScreenRow;
   double requestedEndScreenRow;
@@ -26,7 +26,6 @@ class ScreenLineBuilder {
   int32_t currentTokenLength;
   bool emitBuiltInTagBoundary;
 
-public:
   ScreenLineBuilder(DisplayLayer *);
   ~ScreenLineBuilder();
 

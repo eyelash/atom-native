@@ -1,4 +1,6 @@
 Copyright (c) 2011-2021 GitHub Inc.
+Copyright Joyent, Inc. and other Node contributors.
+Copyright (c) 2021-2023 Elias Aebi
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the

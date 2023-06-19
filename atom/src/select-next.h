@@ -3,14 +3,13 @@
 
 #include <text-buffer.h>
 
-class TextEditor;
-class Selection;
+struct TextEditor;
+struct Selection;
 
-class SelectNext {
+struct SelectNext {
   TextEditor *editor;
   bool wordSelected;
 
-public:
   SelectNext(TextEditor *);
   ~SelectNext();
 

@@ -7,10 +7,9 @@
 #include <vector>
 #include <functional>
 
-class TextEditor;
+struct TextEditor;
 
-class MatchManager {
-public:
+struct MatchManager {
   TextEditor *editor;
   std::unordered_map<char16_t, char16_t> pairedCharacters;
   std::unordered_map<char16_t, char16_t> pairedCharactersInverse;
@@ -23,8 +22,7 @@ public:
   MatchManager(TextEditor *);
 };
 
-class BracketMatcher {
-public:
+struct BracketMatcher {
   TextEditor *editor;
   MatchManager *matchManager;
 

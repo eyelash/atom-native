@@ -82,6 +82,9 @@ Regex::Regex(const char16_t *pattern, uint32_t pattern_length, u16string *error_
   );
 }
 
+Regex::Regex(const char16_t *pattern, u16string *error_message, bool ignore_case, bool unicode)
+  : Regex(pattern, std::char_traits<char16_t>::length(pattern), error_message, ignore_case, unicode) {}
+
 Regex::Regex(const u16string &pattern, u16string *error_message, bool ignore_case, bool unicode)
   : Regex(pattern.data(), pattern.size(), error_message, ignore_case, unicode) {}
 
@@ -113,7 +116,7 @@ uint32_t Regex::MatchData::size() {
   return pcre2_get_ovector_count(data);
 }
 
-Regex::Range Regex::MatchData::operator [](uint32_t index) {
+Regex::Range Regex::MatchData::operator[](uint32_t index) {
   PCRE2_SIZE *ovector_pointer = pcre2_get_ovector_pointer(data);
   return {
     ovector_pointer[index * 2],
@@ -167,7 +170,7 @@ MatchResult Regex::match(const char16_t *string, size_t length,
   return result;
 }
 
-MatchResult Regex::match(const std::u16string &string, MatchData &match_data, unsigned options) const {
+MatchResult Regex::match(const u16string &string, MatchData &match_data, unsigned options) const {
   return match(string.data(), string.size(), match_data, options);
 }
 
@@ -177,7 +180,7 @@ MatchResult Regex::match(const char16_t *string, size_t length) const {
   return match(string, length, match_data, options);
 }
 
-MatchResult Regex::match(const std::u16string &string) const {
+MatchResult Regex::match(const u16string &string) const {
   return match(string.data(), string.size());
 }
 
@@ -201,6 +204,6 @@ bool Regex::match(const char16_t *string, size_t length, size_t &last_index) con
   }
 }
 
-bool Regex::match(const std::u16string &string, size_t &last_index) const {
+bool Regex::match(const u16string &string, size_t &last_index) const {
   return match(string.data(), string.size(), last_index);
 }

@@ -5,21 +5,13 @@ static const std::vector<int32_t> EMPTY;
 LanguageMode::HighlightIterator::~HighlightIterator() {}
 
 std::vector<int32_t> LanguageMode::HighlightIterator::seek(Point position, double endRow) {
-	return EMPTY;
+  return EMPTY;
 }
 
 void LanguageMode::HighlightIterator::moveToSuccessor() {}
 
 Point LanguageMode::HighlightIterator::getPosition() {
   return Point::INFINITY_;
-}
-
-std::vector<int32_t> LanguageMode::HighlightIterator::getCloseTags() {
-  return EMPTY;
-}
-
-std::vector<int32_t> LanguageMode::HighlightIterator::getOpenTags() {
-  return EMPTY;
 }
 
 std::vector<int32_t> LanguageMode::HighlightIterator::getCloseScopeIds() {

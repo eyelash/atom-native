@@ -91,7 +91,7 @@ std::pair<double, double> Selection::getBufferRowRange() {
   const double start = range.start.row;
   double end = range.end.row;
   if (range.end.column == 0) end = std::max(start, end - 1);
-  return std::make_pair(start, end);
+  return {start, end};
 }
 
 Point Selection::getTailScreenPosition() {

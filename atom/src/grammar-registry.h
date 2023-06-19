@@ -6,14 +6,13 @@
 #include <vector>
 #include <optional.h>
 
-class TextBuffer;
-class LanguageMode;
-class TreeSitterGrammar;
+struct TextBuffer;
+struct LanguageMode;
+struct TreeSitterGrammar;
 
-class GrammarRegistry {
+struct GrammarRegistry {
   std::unordered_map<std::string, TreeSitterGrammar *> treeSitterGrammarsById;
 
-public:
   GrammarRegistry();
   ~GrammarRegistry();
 

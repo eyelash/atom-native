@@ -6,16 +6,12 @@
 #include <memory>
 #include <functional>
 
-class LanguageMode {
-public:
-  class HighlightIterator {
-  public:
+struct LanguageMode {
+  struct HighlightIterator {
     virtual ~HighlightIterator();
     virtual std::vector<int32_t> seek(Point, double);
     virtual void moveToSuccessor();
     virtual Point getPosition();
-    virtual std::vector<int32_t> getCloseTags();
-    virtual std::vector<int32_t> getOpenTags();
     virtual std::vector<int32_t> getCloseScopeIds();
     virtual std::vector<int32_t> getOpenScopeIds();
   };

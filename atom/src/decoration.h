@@ -1,11 +1,10 @@
 #ifndef DECORATION_H_
 #define DECORATION_H_
 
-class DisplayMarker;
-class DecorationManager;
+struct DisplayMarker;
+struct DecorationManager;
 
-class Decoration {
-public:
+struct Decoration {
   enum class Type {
     line,
     line_number,
@@ -27,12 +26,10 @@ public:
     Properties(Type, const char * = nullptr);
   };
 
-private:
   DisplayMarker *marker;
   DecorationManager *decorationManager;
   Properties properties;
 
-public:
   Decoration(DisplayMarker *, DecorationManager *, Properties);
   ~Decoration();
 

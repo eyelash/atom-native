@@ -6,14 +6,13 @@
 #include <unordered_map>
 #include <patch.h>
 
-class TextBuffer;
-class ScreenLineBuilder;
-class MarkerLayer;
-class DisplayMarkerLayer;
-class LanguageMode;
+struct TextBuffer;
+struct ScreenLineBuilder;
+struct MarkerLayer;
+struct DisplayMarkerLayer;
+struct LanguageMode;
 
-class DisplayLayer {
-public:
+struct DisplayLayer {
   struct ScreenLine {
     unsigned id;
     std::u16string lineText;

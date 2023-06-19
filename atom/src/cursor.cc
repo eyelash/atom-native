@@ -100,7 +100,7 @@ bool Cursor::isBetweenWordAndNonWord() {
   static const Regex regex(u"\\s", nullptr);
   if (regex.match(text[0]) || regex.match(text[1])) return false;
 
-  const char16_t *nonWordCharacters = this->getNonWordCharacters();
+  const std::u16string nonWordCharacters = this->getNonWordCharacters();
   return (
     includes(nonWordCharacters, text[0]) !=
     includes(nonWordCharacters, text[1])
@@ -528,7 +528,7 @@ Regex Cursor::wordRegExp(bool includeNonWordCharacters) {
 }
 
 Regex Cursor::subwordRegExp(bool backwards) {
-  const char16_t *nonWordCharacters = this->getNonWordCharacters();
+  const std::u16string nonWordCharacters = this->getNonWordCharacters();
   const std::u16string lowercaseLetters = u"a-z\\u00DF-\\u00F6\\u00F8-\\u00FF";
   const std::u16string uppercaseLetters = u"A-Z\\u00C0-\\u00D6\\u00D8-\\u00DE";
   const std::u16string snakeCamelSegment = u"[" + uppercaseLetters + u"]?[" + lowercaseLetters + u"]+";
@@ -553,7 +553,7 @@ Regex Cursor::subwordRegExp(bool backwards) {
 Section: Private
 */
 
-const char16_t *Cursor::getNonWordCharacters() {
+std::u16string Cursor::getNonWordCharacters() {
   return this->editor->getNonWordCharacters(this->getBufferPosition());
 }
 

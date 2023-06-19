@@ -14,7 +14,7 @@ public:
   Tree();
   Tree(const Tree &);
   ~Tree();
-  Tree &operator =(const Tree &);
+  Tree &operator=(const Tree &);
   operator bool() const;
 
   void edit(const TSInputEdit &);

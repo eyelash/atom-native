@@ -6,13 +6,13 @@
 #include <unordered_set>
 #include <vector>
 
-class TextEditor;
-class DisplayLayer;
-class DisplayMarker;
-class DisplayMarkerLayer;
-class LayerDecoration;
+struct TextEditor;
+struct DisplayLayer;
+struct DisplayMarker;
+struct DisplayMarkerLayer;
+struct LayerDecoration;
 
-class DecorationManager {
+struct DecorationManager {
   TextEditor *editor;
   DisplayLayer *displayLayer;
   std::unordered_map<DisplayMarkerLayer *, double> decorationCountsByLayer;
@@ -21,7 +21,6 @@ class DecorationManager {
   std::unordered_map<DisplayMarkerLayer *, std::unordered_set<LayerDecoration *>> layerDecorationsByMarkerLayer;
   //this.overlayDecorations = new Set();
 
-public:
   DecorationManager(TextEditor *);
   ~DecorationManager();
 

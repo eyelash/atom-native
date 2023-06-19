@@ -84,8 +84,8 @@ bool Range::intersectsWith(const Range &otherRange, bool exclusive) const {
 }
 
 bool Range::containsRange(const Range &otherRange, bool exclusive) const {
-  const Point& start = otherRange.start;
-  const Point& end = otherRange.end;
+  const Point &start = otherRange.start;
+  const Point &end = otherRange.end;
   return this->containsPoint(start, exclusive) && this->containsPoint(end, exclusive);
 }
 

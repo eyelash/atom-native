@@ -7,7 +7,7 @@
 #include <string>
 #include "point.h"
 
-class DefaultHistoryProvider {
+struct DefaultHistoryProvider {
   struct Checkpoint {
     unsigned id;
     TextBuffer::MarkerSnapshot snapshot;
@@ -44,7 +44,6 @@ class DefaultHistoryProvider {
   std::vector<StackEntry> undoStack;
   std::vector<StackEntry> redoStack;
 
-public:
   struct Result {
     Patch patch;
     TextBuffer::MarkerSnapshot markers;

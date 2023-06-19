@@ -6,17 +6,14 @@
 #include <string>
 #include <unordered_map>
 
-class TreeCursor;
+struct TreeCursor;
 
-class SyntaxScopeMap {
-public:
-  class Result {
-  public:
+struct SyntaxScopeMap {
+  struct Result {
     virtual ~Result();
     virtual optional<std::string> applyLeafRules(const TreeCursor &) = 0;
   };
-  class Table {
-  public:
+  struct Table {
     std::unordered_map<double, Table *> indices;
     std::unordered_map<std::string, Table *> parents;
     Result *result;

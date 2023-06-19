@@ -57,13 +57,56 @@ public:
   }
 };
 
-bool includes(const char16_t *string, char16_t character);
+template <class CharT> bool includes(const std::basic_string<CharT> &haystack, const CharT *needle, size_t needle_length, size_t position = 0) {
+  return haystack.find(needle, position, needle_length) != std::basic_string<CharT>::npos;
+}
+template <class CharT> bool includes(const std::basic_string<CharT> &haystack, CharT needle, size_t position = 0) {
+  return includes(haystack, &needle, 1, position);
+}
 
 std::u16string toUpperCase(std::u16string);
 std::u16string toLowerCase(std::u16string);
 
-std::u16string join(const std::vector<std::u16string> &, const std::u16string &);
+template <class CharT> std::basic_string<CharT> join(const std::vector<std::basic_string<CharT>> &vector, const CharT *separator, size_t separator_length) {
+  std::basic_string<CharT> result;
+  auto iterator = vector.begin();
+  if (iterator != vector.end()) {
+    result.append(*iterator);
+    ++iterator;
+    while (iterator != vector.end()) {
+      result.append(separator, separator_length);
+      result.append(*iterator);
+      ++iterator;
+    }
+  }
+  return result;
+}
+template <class CharT> std::basic_string<CharT> join(const std::vector<std::basic_string<CharT>> &vector, const CharT *separator) {
+  return join(vector, separator, std::char_traits<CharT>::length(separator));
+}
+
+template <class CharT> std::vector<std::basic_string<CharT>> split(const std::basic_string<CharT> &string, const CharT *separator, size_t separator_length) {
+  std::vector<std::basic_string<CharT>> result;
+  size_t position = 0;
+  for (size_t i; (i = string.find(separator, position, separator_length)) != std::basic_string<CharT>::npos; position = i + separator_length) {
+    result.push_back(string.substr(position, i - position));
+  }
+  result.push_back(string.substr(position));
+  return result;
+}
 
 std::u16string escapeRegExp(const std::u16string &string);
+
+template <class T> T pop(std::vector<T> &v) {
+  T result = std::move(v.back());
+  v.pop_back();
+  return result;
+}
+
+template <class T> T shift(std::vector<T> &v) {
+  T result = std::move(v.front());
+  v.erase(v.begin());
+  return result;
+}
 
 #endif // HELPERS_H_

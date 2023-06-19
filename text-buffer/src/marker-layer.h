@@ -11,11 +11,10 @@
 #include <unordered_set>
 #include <functional>
 
-class TextBuffer;
-class DisplayMarkerLayer;
+struct TextBuffer;
+struct DisplayMarkerLayer;
 
-class MarkerLayer {
-public:
+struct MarkerLayer {
   using Snapshot = std::unordered_map<unsigned, Marker::Snapshot>;
 
   TextBuffer *delegate;

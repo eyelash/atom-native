@@ -207,3 +207,44 @@ bool Regex::match(const char16_t *string, size_t length, size_t &last_index) con
 bool Regex::match(const u16string &string, size_t &last_index) const {
   return match(string.data(), string.size(), last_index);
 }
+
+u16string Regex::replace(const char16_t *string, size_t length, const char16_t *replacement, size_t replacement_length) const {
+  MatchData match_data(*this);
+  const MatchResult match_result = match(string, length, match_data);
+  if (match_result.type == MatchResult::Full) {
+    u16string result;
+    result.append(string, match_result.start_offset);
+    for (size_t i = 0; i < replacement_length;) {
+      char16_t c = replacement[i];
+      if (c == u'$' && i + 1 < replacement_length) {
+        if (replacement[i + 1] == u'&') {
+          result.append(string + match_result.start_offset, match_result.end_offset - match_result.start_offset);
+          i += 2;
+          continue;
+        } else if (replacement[i + 1] == u'`') {
+          result.append(string, match_result.start_offset);
+          i += 2;
+          continue;
+        } else if (replacement[i + 1] == u'\'') {
+          result.append(string + match_result.end_offset, length - match_result.end_offset);
+          i += 2;
+          continue;
+        } else if (replacement[i + 1] == u'$') {
+          result.push_back(u'$');
+          i += 2;
+          continue;
+        }
+      }
+      result.push_back(c);
+      i++;
+    }
+    result.append(string + match_result.end_offset, length - match_result.end_offset);
+    return result;
+  } else {
+    return u16string(string, length);
+  }
+}
+
+u16string Regex::replace(const u16string &string, const u16string &replacement) const {
+  return replace(string.data(), string.size(), replacement.data(), replacement.size());
+}

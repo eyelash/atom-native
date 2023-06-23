@@ -61,13 +61,15 @@ class Regex {
     IsEndSearch = 4,
   };
 
-  MatchResult match(const char16_t *data, size_t length, MatchData &, unsigned options) const;
+  MatchResult match(const char16_t *data, size_t length, MatchData &, unsigned options = 7) const;
   MatchResult match(const std::u16string &, MatchData &, unsigned options = 7) const;
   MatchResult match(const char16_t *, size_t) const;
   MatchResult match(const std::u16string &) const;
   MatchResult match(char16_t) const;
   bool match(const char16_t *, size_t, size_t &last_index) const;
   bool match(const std::u16string &, size_t &last_index) const;
+  std::u16string replace(const char16_t *, size_t, const char16_t *, size_t) const;
+  std::u16string replace(const std::u16string &, const std::u16string &) const;
 };
 
 struct BuildRegexResult {

@@ -74,7 +74,7 @@ struct Selection {
   void expandOverWord(optional<bool> = {});
   void selectLine(optional<double> = {});
   void expandOverLine(optional<bool> = {});
-  Range insertText(const std::u16string &);
+  Range insertText(std::u16string, optional<double> = {});
   void backspace();
   void deleteToPreviousWordBoundary();
   void deleteToNextWordBoundary();
@@ -90,6 +90,7 @@ struct Selection {
   void outdentSelectedRows();
   void cut(std::u16string &, bool = false, bool = false);
   void copy(std::u16string &, bool = false, bool = false);
+  void adjustIndent(std::vector<std::u16string> &, double);
   void indent(bool = false);
   void indentSelectedRows();
   void addSelectionBelow();

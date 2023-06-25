@@ -94,6 +94,9 @@ template <class CharT> std::vector<std::basic_string<CharT>> split(const std::ba
   result.push_back(string.substr(position));
   return result;
 }
+template <class CharT> std::vector<std::basic_string<CharT>> split(const std::basic_string<CharT> &string, CharT separator) {
+  return split(string, &separator, 1);
+}
 
 std::u16string escapeRegExp(const std::u16string &string);
 

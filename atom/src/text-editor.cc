@@ -1511,9 +1511,13 @@ std::u16string TextEditor::cutSelectedText(/* options = {} */) {
   return clipboard;
 }
 
-void TextEditor::pasteText(const std::u16string &text /* options = {} */) {
+void TextEditor::pasteText(const std::u16string &clipboardText /* options = {} */) {
+  auto selections = split(clipboardText, u'\n');
+  size_t index = 0;
   this->mutateSelectedText([&](Selection *selection) {
+    const std::u16string &text = selections.size() == this->getSelections().size() ? selections[index] : clipboardText;
     selection->insertText(text);
+    index++;
   });
 }
 

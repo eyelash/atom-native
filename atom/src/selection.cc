@@ -4,6 +4,7 @@
 #include <display-marker.h>
 #include <display-marker-layer.h>
 #include <text-buffer.h>
+#include <language-mode.h>
 
 static const Regex NonWhitespaceRegExp = Regex(u"\\S");
 
@@ -344,15 +345,65 @@ void Selection::expandOverLine(optional<bool> options_autoscroll) {
 Section: Modifying the selected text
 */
 
-Range Selection::insertText(const std::u16string &text) {
+Range Selection::insertText(std::u16string text, optional<double> indentBasis) {
+  double desiredIndentLevel, indentAdjustment;
   const Range oldBufferRange = this->getBufferRange();
   const bool wasReversed = this->isReversed();
   this->clear();
+
+  bool autoIndentFirstLine = false;
+  const std::u16string precedingText = this->editor->getTextInRange({
+    {oldBufferRange.start.row, 0},
+    oldBufferRange.start
+  });
+  auto remainingLines = split(text, u'\n');
+  const std::u16string firstInsertedLine = shift(remainingLines);
+
+  if (
+    indentBasis
+  ) {
+    indentAdjustment =
+      this->editor->indentLevelForLine(precedingText) - *indentBasis;
+    this->adjustIndent(remainingLines, indentAdjustment);
+  }
+
+  const bool textIsAutoIndentable =
+    text == u"\n" || text == u"\r\n" || NonWhitespaceRegExp.match(text);
+  if (
+    /* options.autoIndent && */
+    textIsAutoIndentable &&
+    !NonWhitespaceRegExp.match(precedingText) &&
+    remainingLines.size() > 0
+  ) {
+    autoIndentFirstLine = true;
+    const std::u16string firstLine = precedingText + firstInsertedLine;
+    LanguageMode *languageMode = this->editor->buffer->getLanguageMode();
+    desiredIndentLevel =
+      /* languageMode->suggestedIndentForLineAtBufferRow && */
+      languageMode->suggestedIndentForLineAtBufferRow(
+        oldBufferRange.start.row,
+        firstLine,
+        this->editor->getTabLength()
+      );
+    indentAdjustment =
+      desiredIndentLevel - this->editor->indentLevelForLine(firstLine);
+    this->adjustIndent(remainingLines, indentAdjustment);
+  }
+
+  text = firstInsertedLine;
+  if (remainingLines.size() > 0) text += u"\n" + join(remainingLines, u"\n");
 
   const Range newBufferRange = this->editor->buffer->setTextInRange(
     oldBufferRange,
     text
   );
+
+  if (autoIndentFirstLine) {
+    this->editor->setIndentationForBufferRow(
+      oldBufferRange.start.row,
+      desiredIndentLevel
+    );
+  }
 
   if (/* options.autoIndentNewline && */ text == u"\n") {
     this->editor->autoIndentBufferRow(newBufferRange.end.row,
@@ -501,10 +552,28 @@ void Selection::copy(std::u16string &clipboard, bool maintainClipboard, bool ful
   const double startLevel = this->editor->indentLevelForLine(precedingText);
 
   if (maintainClipboard) {
-    clipboard += '\n';
+    clipboard += u'\n';
     clipboard += selectionText;
   } else {
     clipboard += selectionText;
+  }
+}
+
+void Selection::adjustIndent(std::vector<std::u16string> &lines, double indentAdjustment) {
+  for (size_t i = 0; i < lines.size(); i++) {
+    const std::u16string &line = lines[i];
+    if (indentAdjustment == 0 || line == u"") {
+      continue;
+    } else if (indentAdjustment > 0) {
+      lines[i] = this->editor->buildIndentString(indentAdjustment) + line;
+    } else {
+      const double currentIndentLevel = this->editor->indentLevelForLine(lines[i]);
+      const double indentLevel = std::max(0.0, currentIndentLevel + indentAdjustment);
+      lines[i] = Regex(u"^[\t ]+").replace(
+        line,
+        this->editor->buildIndentString(indentLevel)
+      );
+    }
   }
 }
 

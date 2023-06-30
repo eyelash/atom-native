@@ -88,8 +88,8 @@ struct Selection {
   void deleteSelectedText();
   void deleteLine();
   void outdentSelectedRows();
-  void cut(std::u16string &, bool = false, bool = false);
-  void copy(std::u16string &, bool = false, bool = false);
+  void cut(bool = false, bool = false);
+  void copy(bool = false, bool = false);
   void adjustIndent(std::vector<std::u16string> &, double);
   void indent(bool = false);
   void indentSelectedRows();

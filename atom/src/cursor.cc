@@ -137,17 +137,18 @@ bool Cursor::isInsideWord(/* options */) {
   );
 }*/
 
-/*hasPrecedingCharactersOnLine() {
-  const bufferPosition = this.getBufferPosition();
-  const line = this.editor.lineTextForBufferRow(bufferPosition.row);
-  const firstCharacterColumn = line.search(/\S/);
+bool Cursor::hasPrecedingCharactersOnLine() {
+  const Point bufferPosition = this->getBufferPosition();
+  const auto line = this->editor->lineTextForBufferRow(bufferPosition.row);
+  const auto match = Regex(u"\\S").match(*line);
+  const double firstCharacterColumn = match ? match.start_offset : -1;
 
-  if (firstCharacterColumn === -1) {
+  if (firstCharacterColumn == -1) {
     return false;
   } else {
     return bufferPosition.column > firstCharacterColumn;
   }
-}*/
+}
 
 bool Cursor::isLastCursor() {
   return this == this->editor->getLastCursor();

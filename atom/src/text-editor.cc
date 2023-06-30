@@ -2,6 +2,7 @@
 #include "cursor.h"
 #include "selection.h"
 #include "decoration-manager.h"
+#include "clipboard.h"
 #include <text-buffer.h>
 #include <display-marker-layer.h>
 #include <display-marker.h>
@@ -11,6 +12,8 @@
 #include <set>
 
 static const std::u16string DEFAULT_NON_WORD_CHARACTERS = u"/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…";
+
+Clipboard *TextEditor::clipboard = nullptr;
 
 TextEditor::TextEditor(TextBuffer *buffer) {
   this->softTabs = true;
@@ -1479,44 +1482,90 @@ Section: Managing Syntax Scopes
 Section: Clipboard Operations
 */
 
-std::u16string TextEditor::copySelectedText() {
-  std::u16string clipboard;
+void TextEditor::copySelectedText() {
   bool maintainClipboard = false;
   for (Selection *selection : this->getSelectionsOrderedByBufferPosition()) {
     if (selection->isEmpty()) {
       const Range previousRange = selection->getBufferRange();
       selection->selectLine();
-      selection->copy(clipboard, maintainClipboard, true);
+      selection->copy(maintainClipboard, true);
       selection->setBufferRange(previousRange);
     } else {
-      selection->copy(clipboard, maintainClipboard, false);
+      selection->copy(maintainClipboard, false);
     }
     maintainClipboard = true;
   }
-  return clipboard;
 }
 
-std::u16string TextEditor::cutSelectedText(/* options = {} */) {
-  std::u16string clipboard;
+void TextEditor::cutSelectedText(/* options = {} */) {
   bool maintainClipboard = false;
   this->mutateSelectedText([&](Selection *selection) {
     if (selection->isEmpty()) {
       selection->selectLine();
-      selection->cut(clipboard, maintainClipboard, true);
+      selection->cut(maintainClipboard, true);
     } else {
-      selection->cut(clipboard, maintainClipboard, false);
+      selection->cut(maintainClipboard, false);
     }
     maintainClipboard = true;
   });
-  return clipboard;
 }
 
-void TextEditor::pasteText(const std::u16string &clipboardText /* options = {} */) {
-  auto selections = split(clipboardText, u'\n');
+void TextEditor::pasteText(/* options = {} */) {
+  //auto [
+  //  clipboardText,
+  //  metadata
+  //] = this->clipboard->readWithMetadata();
+  auto pair = this->clipboard->readWithMetadata();
+  std::u16string clipboardText = std::move(pair.first);
+  Clipboard::Metadata *metadata = pair.second;
+  //if (!this.emitWillInsertTextEvent(clipboardText)) return false;
+
+  //if (!metadata) metadata = new Clipboard::Metadata{};
+  //if (options.autoIndent == null)
+  //  options.autoIndent = this.shouldAutoIndentOnPaste();
+
   size_t index = 0;
   this->mutateSelectedText([&](Selection *selection) {
-    const std::u16string &text = selections.size() == this->getSelections().size() ? selections[index] : clipboardText;
-    selection->insertText(text);
+    bool fullLine;
+    optional<double> indentBasis;
+    std::u16string text;
+    optional<double> options_indentBasis;
+    if (
+      metadata &&
+      /* metadata->selections && */
+      metadata->selections.size() == this->getSelections().size()
+    ) {
+      text = metadata->selections[index].text;
+      indentBasis = metadata->selections[index].indentBasis;
+      fullLine = metadata->selections[index].fullLine;
+    } else {
+      indentBasis = metadata ? optional<double>(metadata->indentBasis) : optional<double>();
+      fullLine = metadata ? metadata->fullLine : false;
+      text = clipboardText;
+    }
+
+    if (
+      indentBasis &&
+      (includes(text, u'\n') ||
+        !selection->cursor->hasPrecedingCharactersOnLine())
+    ) {
+      options_indentBasis = *indentBasis;
+    } else {
+      options_indentBasis = optional<double>();
+    }
+
+    Range range;
+    if (fullLine && selection->isEmpty()) {
+      const Point oldPosition = selection->getBufferRange().start;
+      selection->setBufferRange({{oldPosition.row, 0}, {oldPosition.row, 0}});
+      range = selection->insertText(text, options_indentBasis);
+      const Point newPosition = oldPosition.translate({1, 0});
+      selection->setBufferRange({newPosition, newPosition});
+    } else {
+      range = selection->insertText(text, options_indentBasis);
+    }
+
+    //this.emitter.emit('did-insert-text', { text, range });
     index++;
   });
 }

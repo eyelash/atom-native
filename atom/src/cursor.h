@@ -37,6 +37,7 @@ struct Cursor {
   bool isSurroundedByWhitespace();
   bool isBetweenWordAndNonWord();
   bool isInsideWord();
+  bool hasPrecedingCharactersOnLine();
   bool isLastCursor();
   void moveUp(double = 1, bool = false);
   void moveDown(double = 1, bool = false);

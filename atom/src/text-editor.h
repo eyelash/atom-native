@@ -15,8 +15,10 @@ struct Selection;
 struct DisplayMarker;
 struct DecorationManager;
 struct LayerDecoration;
+struct Clipboard;
 
 struct TextEditor {
+  static Clipboard *clipboard;
   bool softTabs;
   double undoGroupingInterval;
   bool suppressSelectionMerging;
@@ -208,9 +210,9 @@ struct TextEditor {
   double indentLevelForLine(const std::u16string &);
   void indent();
   std::u16string buildIndentString(double, double = 0);
-  std::u16string copySelectedText();
-  std::u16string cutSelectedText();
-  void pasteText(const std::u16string &);
+  void copySelectedText();
+  void cutSelectedText();
+  void pasteText();
   void scrollToCursorPosition();
   void scrollToBufferPosition(Point);
   void scrollToScreenPosition(Point);

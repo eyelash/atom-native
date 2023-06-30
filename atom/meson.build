@@ -3,6 +3,7 @@ atom = declare_dependency(
     'atom',
     files(
       'src/bracket-matcher.cc',
+      'src/clipboard.cc',
       'src/cursor.cc',
       'src/decoration-manager.cc',
       'src/decoration.cc',

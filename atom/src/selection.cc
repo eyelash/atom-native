@@ -1,6 +1,7 @@
 #include "selection.h"
 #include "cursor.h"
 #include "text-editor.h"
+#include "clipboard.h"
 #include <display-marker.h>
 #include <display-marker-layer.h>
 #include <text-buffer.h>
@@ -537,12 +538,12 @@ void Selection::outdentSelectedRows(/* options = {} */) {
   }
 }
 
-void Selection::cut(std::u16string &clipboard, bool maintainClipboard, bool fullLine) {
-  this->copy(clipboard, maintainClipboard, fullLine);
+void Selection::cut(bool maintainClipboard, bool fullLine) {
+  this->copy(maintainClipboard, fullLine);
   this->delete_();
 }
 
-void Selection::copy(std::u16string &clipboard, bool maintainClipboard, bool fullLine) {
+void Selection::copy(bool maintainClipboard, bool fullLine) {
   if (this->isEmpty()) return;
   //const auto [start, end] = this->getBufferRange();
   const Range range = this->getBufferRange();
@@ -552,10 +553,37 @@ void Selection::copy(std::u16string &clipboard, bool maintainClipboard, bool ful
   const double startLevel = this->editor->indentLevelForLine(precedingText);
 
   if (maintainClipboard) {
-    clipboard += u'\n';
-    clipboard += selectionText;
+    //auto [
+    //  clipboardText,
+    //  metadata
+    //] = this->editor->clipboard->readWithMetadata();
+    auto pair = this->editor->clipboard->readWithMetadata();
+    std::u16string clipboardText = std::move(pair.first);
+    Clipboard::Metadata *metadata = pair.second;
+    if (!metadata) metadata = new Clipboard::Metadata{};
+    if (metadata->selections.empty()) {
+      metadata->selections = {
+        {
+          clipboardText,
+          metadata->indentBasis,
+          metadata->fullLine
+        }
+      };
+    }
+    metadata->selections.push_back({
+      selectionText,
+      startLevel,
+      fullLine
+    });
+    this->editor->clipboard->write(
+      clipboardText + u"\n" + selectionText,
+      metadata
+    );
   } else {
-    clipboard += selectionText;
+    this->editor->clipboard->write(selectionText, new Clipboard::Metadata{
+      startLevel,
+      fullLine
+    });
   }
 }
 

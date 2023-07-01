@@ -108,6 +108,10 @@ void TextEditor::onDidChange(std::function<void()> callback) {
   return this->didChangeEmitter.on(callback);
 }
 
+void TextEditor::onDidChangeSelectionRange(std::function<void()> callback) {
+  return this->didChangeSelectionRangeEmitter.on(callback);
+}
+
 void TextEditor::onDidChangeModified(std::function<void()> callback) {
   return this->getBuffer()->onDidChangeModified(callback);
 }
@@ -1336,6 +1340,11 @@ bool TextEditor::consolidateSelections() {
   } else {
     return false;
   }
+}
+
+void TextEditor::selectionRangeChanged() {
+  //if (this.component) this.component.didChangeSelectionRange();
+  this->didChangeSelectionRangeEmitter.emit();
 }
 
 void TextEditor::createLastSelectionIfNeeded() {

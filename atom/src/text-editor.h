@@ -25,6 +25,7 @@ struct TextEditor {
   Emitter<> didChangeTitleEmitter;
   Emitter<> didChangePathEmitter;
   Emitter<> didChangeEmitter;
+  Emitter<> didChangeSelectionRangeEmitter;
   Emitter<Range> didRequestAutoscrollEmitter;
   std::vector<Cursor *> cursors;
   std::unordered_map<unsigned, Cursor *> cursorsByMarkerId;
@@ -43,6 +44,7 @@ struct TextEditor {
   void onDidChangeTitle(std::function<void()>);
   void onDidChangePath(std::function<void()>);
   void onDidChange(std::function<void()>);
+  void onDidChangeSelectionRange(std::function<void()>);
   void onDidChangeModified(std::function<void()>);
   void onDidRequestAutoscroll(std::function<void(Range)>);
   TextBuffer *getBuffer();
@@ -197,6 +199,8 @@ struct TextEditor {
   void addSelection(DisplayMarker *);
   void removeSelection(Selection *);
   bool consolidateSelections();
+  void selectionRangeChanged();
+  void createLastSelectionIfNeeded();
   void scan(const Regex &, TextBuffer::ScanIterator);
   void scanInBufferRange(const Regex &, Range, TextBuffer::ScanIterator);
   void backwardsScanInBufferRange(const Regex &, Range, TextBuffer::ScanIterator);
@@ -226,7 +230,6 @@ struct TextEditor {
   void autoDecreaseIndentForBufferRow(double bufferRow);
   void moveCursors(std::function<void(Cursor *)>);
   void mergeCursors();
-  void createLastSelectionIfNeeded();
 };
 
 #endif // TEXT_EDITOR_H_

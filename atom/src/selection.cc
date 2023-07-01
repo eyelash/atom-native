@@ -747,7 +747,7 @@ Range Selection::getGoalScreenRange() {
 void Selection::markerDidChange() {
   this->cursor->goalColumn = optional<double>();
   this->didChangeRangeEmitter.emit();
-  //this->editor->selectionRangeChanged();
+  this->editor->selectionRangeChanged();
 }
 
 void Selection::markerDidDestroy() {

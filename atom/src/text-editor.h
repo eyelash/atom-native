@@ -89,6 +89,7 @@ struct TextEditor {
   void duplicateLines();
   void replaceSelectedText(bool, std::function<std::u16string(std::u16string)>);
   void splitSelectionsIntoLines();
+  void transpose();
   void upperCase();
   void lowerCase();
   void insertNewlineBelow();

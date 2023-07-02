@@ -584,6 +584,22 @@ void TextEditor::splitSelectionsIntoLines() {
   });
 }
 
+void TextEditor::transpose(/*options = {}*/) {
+  this->mutateSelectedText([](Selection *selection) {
+    if (selection->isEmpty()) {
+      selection->selectRight();
+      const std::u16string text = selection->getText();
+      selection->delete_();
+      selection->cursor->moveLeft();
+      selection->insertText(text);
+    } else {
+      std::u16string text = selection->getText();
+      std::reverse(text.begin(), text.end());
+      selection->insertText(text);
+    }
+  });
+}
+
 void TextEditor::upperCase() {
   this->replaceSelectedText(true, [](std::u16string text) {
     return toUpperCase(std::move(text));

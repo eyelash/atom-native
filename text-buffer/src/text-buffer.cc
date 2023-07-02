@@ -136,12 +136,12 @@ std::vector<std::u16string> TextBuffer::getLines() {
   return result;
 }
 
-optional<std::u16string> TextBuffer::getLastLine() {
+std::u16string TextBuffer::getLastLine() {
   return this->lineForRow(this->getLastRow());
 }
 
-optional<std::u16string> TextBuffer::lineForRow(double row) {
-  return this->buffer->line_for_row(row);
+std::u16string TextBuffer::lineForRow(double row) {
+  return *this->buffer->line_for_row(row);
 }
 
 const char16_t *TextBuffer::lineEndingForRow(double row) {
@@ -153,8 +153,7 @@ double TextBuffer::lineLengthForRow(double row) {
 }
 
 bool TextBuffer::isRowBlank(double row) {
-  static const Regex regex(u"\\S", nullptr);
-  return !regex.match(this->lineForRow(row));
+  return !Regex(u"\\S").match(this->lineForRow(row));
 }
 
 optional<double> TextBuffer::previousNonBlankRow(double startRow) {

@@ -208,6 +208,19 @@ bool Regex::match(const u16string &string, size_t &last_index) const {
   return match(string.data(), string.size(), last_index);
 }
 
+double Regex::search(const char16_t *string, size_t length) const {
+  const MatchResult match_result = match(string, length);
+  if (match_result.type == MatchResult::Full) {
+    return match_result.start_offset;
+  } else {
+    return -1;
+  }
+}
+
+double Regex::search(const u16string &string) const {
+  return search(string.data(), string.size());
+}
+
 u16string Regex::replace(const char16_t *string, size_t length, const char16_t *replacement, size_t replacement_length) const {
   MatchData match_data(*this);
   const MatchResult match_result = match(string, length, match_data);

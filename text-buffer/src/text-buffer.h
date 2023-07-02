@@ -66,8 +66,8 @@ struct TextBuffer {
   uint16_t getCharacterAtPosition(Point);
   std::u16string getTextInRange(Range);
   std::vector<std::u16string> getLines();
-  optional<std::u16string> getLastLine();
-  optional<std::u16string> lineForRow(double);
+  std::u16string getLastLine();
+  std::u16string lineForRow(double);
   const char16_t *lineEndingForRow(double);
   double lineLengthForRow(double);
   bool isRowBlank(double);

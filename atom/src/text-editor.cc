@@ -199,7 +199,7 @@ double TextEditor::getLastScreenRow() {
   return this->getScreenLineCount() - 1;
 }
 
-optional<std::u16string> TextEditor::lineTextForBufferRow(double bufferRow) {
+std::u16string TextEditor::lineTextForBufferRow(double bufferRow) {
   return this->buffer->lineForRow(bufferRow);
 }
 
@@ -323,7 +323,7 @@ void TextEditor::moveLineUp(/* options = {} */) {
   if (selections[0].start.row == 0) return;
   if (
     selections[selections.size() - 1].start.row == this->getLastBufferRow() &&
-    *this->buffer->getLastLine() == u""
+    this->buffer->getLastLine() == u""
   )
     return;
 
@@ -1413,7 +1413,7 @@ Section: Indentation
 */
 
 double TextEditor::indentationForBufferRow(double bufferRow) {
-  return this->indentLevelForLine(*this->lineTextForBufferRow(bufferRow));
+  return this->indentLevelForLine(this->lineTextForBufferRow(bufferRow));
 }
 
 Range TextEditor::setIndentationForBufferRow(
@@ -1425,8 +1425,7 @@ Range TextEditor::setIndentationForBufferRow(
   if (preserveLeadingWhitespace) {
     endColumn = 0;
   } else {
-    static const Regex regex(u"^\\s*", nullptr);
-    endColumn = regex.match(*this->lineTextForBufferRow(bufferRow)).end_offset;
+    endColumn = Regex(u"^\\s*").match(this->lineTextForBufferRow(bufferRow)).end_offset;
   }
   std::u16string newIndentString = this->buildIndentString(newLevel);
   return this->buffer->setTextInRange(
@@ -1564,7 +1563,7 @@ void TextEditor::pasteText(/* options = {} */) {
       indentBasis = metadata->selections[index].indentBasis;
       fullLine = metadata->selections[index].fullLine;
     } else {
-      indentBasis = metadata ? optional<double>(metadata->indentBasis) : optional<double>();
+      indentBasis = metadata ? metadata->indentBasis : optional<double>();
       fullLine = metadata ? metadata->fullLine : false;
       text = clipboardText;
     }

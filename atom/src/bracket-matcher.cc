@@ -1,7 +1,6 @@
 #include "bracket-matcher.h"
 #include "text-editor.h"
 #include "selection.h"
-#include <initializer_list>
 
 static bool endsWithEscapeCharacter(const std::u16string &);
 static bool endsWithEscapeSequence(const std::u16string &);
@@ -44,9 +43,9 @@ void MatchManager::processAutoPairs(const std::vector<const char16_t *> &autocom
 
 void MatchManager::updateConfig() {
   using pair = std::pair<char16_t, char16_t>;
-  this->processAutoPairs(::autocompleteCharacters, this->pairedCharacters, [](pair x) -> pair { return {std::get<0>(x), std::get<1>(x)}; });
-  this->processAutoPairs(::autocompleteCharacters, this->pairedCharactersInverse, [](pair x) -> pair { return {std::get<1>(x), std::get<0>(x)}; });
-  this->processAutoPairs(::pairsWithExtraNewline, this->pairsWithExtraNewline, [](pair x) -> pair { return {std::get<0>(x), std::get<1>(x)}; });
+  this->processAutoPairs(::autocompleteCharacters, this->pairedCharacters, [](pair x) -> pair { return {x.first, x.second}; });
+  this->processAutoPairs(::autocompleteCharacters, this->pairedCharactersInverse, [](pair x) -> pair { return {x.second, x.first}; });
+  this->processAutoPairs(::pairsWithExtraNewline, this->pairsWithExtraNewline, [](pair x) -> pair { return {x.first, x.second}; });
   /*for (let startPair in this.pairedCharacters) {
     const endPair = this.pairedCharacters[startPair]
     this.pairRegexes[startPair] = new RegExp(`[${_.escapeRegExp(startPair + endPair)}]`, 'g')

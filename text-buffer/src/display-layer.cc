@@ -253,7 +253,7 @@ Point DisplayLayer::expandHardTabs(Point targetScreenPosition, Point targetBuffe
   double expandedScreenColumn = 0;
   const Point bufferPosition = this->translateScreenPositionWithSpatialIndex(screenRowStart);
   double bufferRow = bufferPosition.row, bufferColumn = bufferPosition.column;
-  auto bufferLine = this->buffer->lineForRow(bufferRow);
+  std::u16string bufferLine = this->buffer->lineForRow(bufferRow);
 
   while (tabCount > 0) {
     if (unexpandedScreenColumn == targetScreenPosition.column) {
@@ -277,7 +277,7 @@ Point DisplayLayer::expandHardTabs(Point targetScreenPosition, Point targetBuffe
       continue;
     }
 
-    if ((*bufferLine)[bufferColumn] == u'\t') {
+    if (bufferLine[bufferColumn] == u'\t') {
       expandedScreenColumn += (this->tabLength - std::fmod(expandedScreenColumn, this->tabLength));
       tabCount--;
     } else {
@@ -305,7 +305,7 @@ Point DisplayLayer::collapseHardTabs(Point targetScreenPosition, double tabCount
   double expandedScreenColumn = 0;
   const Point bufferPosition = this->translateScreenPositionWithSpatialIndex(screenRowStart);
   double bufferRow = bufferPosition.row, bufferColumn = bufferPosition.column;
-  auto bufferLine = this->buffer->lineForRow(bufferRow);
+  std::u16string bufferLine = this->buffer->lineForRow(bufferRow);
 
   while (tabCount > 0) {
     if (expandedScreenColumn == targetScreenPosition.column) {
@@ -328,7 +328,7 @@ Point DisplayLayer::collapseHardTabs(Point targetScreenPosition, double tabCount
       continue;
     }
 
-    if ((*bufferLine)[bufferColumn] == u'\t') {
+    if (bufferLine[bufferColumn] == u'\t') {
       const double nextTabStopColumn = expandedScreenColumn + this->tabLength - std::fmod(expandedScreenColumn, this->tabLength);
       if (nextTabStopColumn > targetScreenPosition.column) {
         if (clipDirection == ClipDirection::backward) {
@@ -492,18 +492,18 @@ std::vector<double> DisplayLayer::bufferRowsForScreenRows(double startRow, doubl
 double DisplayLayer::leadingWhitespaceLengthForSurroundingLines(double startBufferRow) {
   double length = 0;
   for (double bufferRow = startBufferRow - 1; bufferRow >= 0; bufferRow--) {
-    auto line = this->buffer->lineForRow(bufferRow);
-    if (line->size() > 0) {
-      length = this->leadingWhitespaceLengthForNonEmptyLine(*line);
+    std::u16string line = this->buffer->lineForRow(bufferRow);
+    if (line.size() > 0) {
+      length = this->leadingWhitespaceLengthForNonEmptyLine(line);
       break;
     }
   }
 
   const double lineCount = this->buffer->getLineCount();
   for (double bufferRow = startBufferRow + 1; bufferRow < lineCount; bufferRow++) {
-    auto line = this->buffer->lineForRow(bufferRow);
-    if (line->size() > 0) {
-      length = std::max(length, this->leadingWhitespaceLengthForNonEmptyLine(*line));
+    std::u16string line = this->buffer->lineForRow(bufferRow);
+    if (line.size() > 0) {
+      length = std::max(length, this->leadingWhitespaceLengthForNonEmptyLine(line));
       break;
     }
   }
@@ -675,9 +675,9 @@ DisplayLayer::UpdateResult DisplayLayer::updateSpatialIndex(double startBufferRo
     if (bufferRow >= newEndBufferRow) break;
     if (screenRow >= endScreenRow && bufferColumn == 0) break;
     //if (deadline.timeRemaining() < 2) break;
-    auto bufferLine = this->buffer->lineForRow(bufferRow);
-    if (!bufferLine) break;
-    double bufferLineLength = bufferLine->size();
+    std::u16string bufferLine = this->buffer->lineForRow(bufferRow);
+    if (bufferLine.empty()) break;
+    double bufferLineLength = bufferLine.size();
     currentScreenLineTabColumns.resize(0);
     double screenLineWidth = 0;
     double lastWrapBoundaryUnexpandedScreenColumn = 0;
@@ -687,8 +687,8 @@ DisplayLayer::UpdateResult DisplayLayer::updateSpatialIndex(double startBufferRo
 
     while (bufferColumn <= bufferLineLength) {
       const optional<Point> foldEnd = folds.count(bufferRow) && folds[bufferRow].count(bufferColumn) ? folds[bufferRow][bufferColumn] : optional<Point>();
-      const optional<char16_t> previousCharacter = bufferColumn >= 1 ? optional<char16_t>((*bufferLine)[bufferColumn - 1]) : optional<char16_t>();
-      const optional<char16_t> character = foldEnd ? optional<char16_t>(this->foldCharacter) : bufferColumn <= bufferLineLength - 1 ? optional<char16_t>((*bufferLine)[bufferColumn]) : optional<char16_t>();
+      const optional<char16_t> previousCharacter = bufferColumn >= 1 ? bufferLine[bufferColumn - 1] : optional<char16_t>();
+      const optional<char16_t> character = foldEnd ? this->foldCharacter : bufferColumn <= bufferLineLength - 1 ? bufferLine[bufferColumn] : optional<char16_t>();
 
       // Are we in leading whitespace? If yes, record the *end* of the leading
       // whitespace if we've reached a non whitespace character. If no, record
@@ -793,7 +793,7 @@ DisplayLayer::UpdateResult DisplayLayer::updateSpatialIndex(double startBufferRo
         bufferRow = foldEnd->row;
         bufferColumn = foldEnd->column;
         bufferLine = this->buffer->lineForRow(bufferRow);
-        bufferLineLength = bufferLine->size();
+        bufferLineLength = bufferLine.size();
       } else {
         // If there is no fold at this position, check if we need to handle
         // a hard tab at this position and advance by a single buffer column.

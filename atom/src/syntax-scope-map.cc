@@ -2,7 +2,7 @@
 
 namespace {
 
-enum class NodeType {
+enum struct NodeType {
   tag,
   string,
   universal,
@@ -20,7 +20,7 @@ static bool isNameChar(char c) {
   return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '-';
 }
 
-template <class F> static void process(F f, const std::string &selector) {
+template <typename F> static void process(F f, const std::string &selector) {
   std::vector<Node> nodes;
   for (size_t i = 0; i < selector.size();) {
     const char c = selector[i];

@@ -62,7 +62,7 @@ struct TextEditor {
   double getApproximateScreenLineCount();
   double getLastBufferRow();
   double getLastScreenRow();
-  optional<std::u16string> lineTextForBufferRow(double);
+  std::u16string lineTextForBufferRow(double);
   std::u16string lineTextForScreenRow(double);
   DisplayLayer::ScreenLine screenLineForScreenRow(double);
   double bufferRowForScreenRow(double);
@@ -149,6 +149,8 @@ struct TextEditor {
   std::vector<Cursor *> getCursors();
   std::vector<Cursor *> getCursorsOrderedByBufferPosition();
   Cursor *addCursor(DisplayMarker *);
+  void moveCursors(std::function<void(Cursor *)>);
+  void mergeCursors();
   std::u16string getSelectedText();
   Range getSelectedBufferRange();
   std::vector<Range> getSelectedBufferRanges();
@@ -229,8 +231,6 @@ struct TextEditor {
   Range autoIndentBufferRow(double bufferRow, bool = false, bool = true);
   void autoIndentBufferRows(double startRow, double endRow);
   void autoDecreaseIndentForBufferRow(double bufferRow);
-  void moveCursors(std::function<void(Cursor *)>);
-  void mergeCursors();
 };
 
 #endif // TEXT_EDITOR_H_

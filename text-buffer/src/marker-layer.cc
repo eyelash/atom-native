@@ -192,7 +192,7 @@ void MarkerLayer::splice(Point start, Point oldExtent, Point newExtent) {
   // TODO: destroy invalidated markers
 }
 
-template <class K, class V> static std::vector<K> keys(const std::unordered_map<K, V> &map) {
+template <typename K, typename V> static std::vector<K> keys(const std::unordered_map<K, V> &map) {
   std::vector<K> result;
   for (const auto &entry : map) {
     result.push_back(entry.first);

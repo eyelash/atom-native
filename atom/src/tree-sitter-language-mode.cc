@@ -5,7 +5,7 @@
 #include <text-buffer.h>
 
 static void insertContainingTag(int32_t, double, std::vector<int32_t> &, std::vector<double> &);
-template <class T> static Range rangeForNode(T);
+template <typename T> static Range rangeForNode(T);
 static bool nodeContainsIndices(TSNode, double, double);
 static bool nodeIsSmaller(TSNode, TSNode);
 static TreeSitterLanguageMode::LayerHighlightIterator *last(const std::vector<std::unique_ptr<TreeSitterLanguageMode::LayerHighlightIterator>> &);
@@ -114,14 +114,14 @@ double TreeSitterLanguageMode::suggestedIndentForLineAtBufferRow(double row, con
 double TreeSitterLanguageMode::suggestedIndentForBufferRow(double row, double tabLength, bool skipBlankLines) {
   return this->suggestedIndentForLineWithScopeAtBufferRow_(
     row,
-    *this->buffer->lineForRow(row),
+    this->buffer->lineForRow(row),
     tabLength,
     skipBlankLines
   );
 }
 
 optional<double> TreeSitterLanguageMode::suggestedIndentForEditedBufferRow(double bufferRow, double tabLength) {
-  const std::u16string line = *this->buffer->lineForRow(bufferRow);
+  const std::u16string line = this->buffer->lineForRow(bufferRow);
   const double currentIndentLevel = this->indentLevelForLine(line, tabLength);
   if (currentIndentLevel == 0) return optional<double>();
 
@@ -133,7 +133,7 @@ optional<double> TreeSitterLanguageMode::suggestedIndentForEditedBufferRow(doubl
   const optional<double> precedingRow = this->buffer->previousNonBlankRow(bufferRow);
   if (!precedingRow) return optional<double>();
 
-  const std::u16string precedingLine = *this->buffer->lineForRow(*precedingRow);
+  const std::u16string precedingLine = this->buffer->lineForRow(*precedingRow);
   double desiredIndentLevel = this->indentLevelForLine(precedingLine, tabLength);
 
   const Regex &increaseIndentRegex = this->grammar->increaseIndentRegex;
@@ -171,7 +171,7 @@ double TreeSitterLanguageMode::suggestedIndentForLineWithScopeAtBufferRow_(
     if (*precedingRow < 0) return 0;
   }
 
-  const std::u16string precedingLine = *this->buffer->lineForRow(*precedingRow);
+  const std::u16string precedingLine = this->buffer->lineForRow(*precedingRow);
   double desiredIndentLevel = this->indentLevelForLine(precedingLine, tabLength);
   if (!increaseIndentRegex) return desiredIndentLevel;
 
@@ -527,8 +527,7 @@ void TreeSitterLanguageMode::HighlightIterator::moveToSuccessor() {
     while (i > 0 && this->iterators[i - 1]->compare(leader) < 0) i--;
     if (i < leaderIndex) {
       //this->iterators.splice(i, 0, this->iterators.pop());
-      std::unique_ptr<LayerHighlightIterator> iterator = std::move(this->iterators.back());
-      this->iterators.pop_back();
+      std::unique_ptr<LayerHighlightIterator> iterator = pop(this->iterators);
       this->iterators.insert(this->iterators.begin() + i, std::move(iterator));
     }
   } else {
@@ -842,7 +841,7 @@ static Point endPosition(TSRange range) {
   return PointToJS(range.end_point);
 }
 
-template <class T> static Range rangeForNode(T node) {
+template <typename T> static Range rangeForNode(T node) {
   return Range(startPosition(node), endPosition(node));
 }
 

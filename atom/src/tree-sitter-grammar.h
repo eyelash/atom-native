@@ -38,7 +38,7 @@ struct TreeSitterGrammar {
   ~TreeSitterGrammar();
 
   void addFileTypes(const char *);
-  template <class T0, class T1, class... T> void addFileTypes(T0&& t0, T1&& t1, T&&... t) {
+  template <typename T0, typename T1, typename... T> void addFileTypes(T0&& t0, T1&& t1, T&&... t) {
     addFileTypes(std::forward<T0>(t0));
     addFileTypes(std::forward<T1>(t1), std::forward<T>(t)...);
   }
@@ -49,7 +49,7 @@ struct TreeSitterGrammar {
   static SyntaxScopeMap::Result *preprocessScopes(Exact);
   static SyntaxScopeMap::Result *preprocessScopes(Match);
   static SyntaxScopeMap::Result *preprocessScopes(std::initializer_list<SyntaxScopeMap::Result *>);
-  template <class T0, class T1, class... T> static SyntaxScopeMap::Result *preprocessScopes(T0&& t0, T1&& t1, T&&... t) {
+  template <typename T0, typename T1, typename... T> static SyntaxScopeMap::Result *preprocessScopes(T0&& t0, T1&& t1, T&&... t) {
     return preprocessScopes({
       preprocessScopes(std::forward<T0>(t0)),
       preprocessScopes(std::forward<T1>(t1)),
@@ -57,10 +57,10 @@ struct TreeSitterGrammar {
     });
   }
   void addScopes(const char *, SyntaxScopeMap::Result *);
-  template <class... T> void addScopes(const char *selector, T&&... t) {
+  template <typename... T> void addScopes(const char *selector, T&&... t) {
     addScopes(selector, preprocessScopes(std::forward<T>(t)...));
   }
-  template <class... T> void addScopes(std::initializer_list<const char *> selectors, T&&... t) {
+  template <typename... T> void addScopes(std::initializer_list<const char *> selectors, T&&... t) {
     for (const char *selector : selectors) {
       addScopes(selector, std::forward<T>(t)...);
     }

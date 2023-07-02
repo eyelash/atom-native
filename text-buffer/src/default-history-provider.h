@@ -25,7 +25,7 @@ struct DefaultHistoryProvider {
     Transaction *groupWith(Transaction *);
   };
   struct StackEntry {
-    enum class Type {
+    enum struct Type {
       Checkpoint,
       Transaction,
       Patch

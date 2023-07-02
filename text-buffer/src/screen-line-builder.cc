@@ -381,8 +381,7 @@ void ScreenLineBuilder::emitCloseTag(int32_t scopeId) {
 
   int32_t containingScopeId;
   while (!this->containingScopeIds.empty()) {
-    containingScopeId = this->containingScopeIds.back();
-    this->containingScopeIds.pop_back();
+    containingScopeId = pop(this->containingScopeIds);
     this->currentScreenLineTags.push_back(this->displayLayer->closeTagForScopeId(containingScopeId));
     if (containingScopeId == scopeId) {
       return;

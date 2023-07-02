@@ -68,6 +68,8 @@ class Regex {
   MatchResult match(char16_t) const;
   bool match(const char16_t *, size_t, size_t &last_index) const;
   bool match(const std::u16string &, size_t &last_index) const;
+  double search(const char16_t *, size_t) const;
+  double search(const std::u16string &) const;
   std::u16string replace(const char16_t *, size_t, const char16_t *, size_t) const;
   std::u16string replace(const std::u16string &, const std::u16string &) const;
 };

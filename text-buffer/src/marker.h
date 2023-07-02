@@ -8,7 +8,7 @@
 struct MarkerLayer;
 
 struct Marker {
-  enum class InvalidationStrategy {
+  enum struct InvalidationStrategy {
     never,
     surround,
     overlap,
@@ -45,7 +45,7 @@ struct Marker {
   void onDidDestroy(std::function<void()>);
   void onDidChange(std::function<void()>);
   Range getRange() const;
-  bool setRange(const Range &, optional<bool> = optional<bool>());
+  bool setRange(const Range &, optional<bool> = {});
   Point getHeadPosition() const;
   bool setHeadPosition(const Point &);
   Point getTailPosition() const;

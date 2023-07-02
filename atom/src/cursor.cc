@@ -61,7 +61,7 @@ double Cursor::getBufferColumn() {
 }
 
 std::u16string Cursor::getCurrentBufferLine() {
-  return *this->editor->lineTextForBufferRow(this->getBufferRow());
+  return this->editor->lineTextForBufferRow(this->getBufferRow());
 }
 
 bool Cursor::isAtBeginningOfLine() {
@@ -86,8 +86,7 @@ bool Cursor::isSurroundedByWhitespace() {
   const Point bufferPosition = this->getBufferPosition();
   const double row = bufferPosition.row, column = bufferPosition.column;
   const Range range = {{row, column - 1}, {row, column + 1}};
-  static const Regex regex(u"^\\s+$", nullptr);
-  return regex.match(this->editor->getTextInBufferRange(range));
+  return Regex(u"^\\s+$").match(this->editor->getTextInBufferRange(range));
 }
 
 bool Cursor::isBetweenWordAndNonWord() {
@@ -97,8 +96,7 @@ bool Cursor::isBetweenWordAndNonWord() {
   const double row = bufferPosition.row, column = bufferPosition.column;
   const Range range = {{row, column - 1}, {row, column + 1}};
   const std::u16string text = this->editor->getTextInBufferRange(range);
-  static const Regex regex(u"\\s", nullptr);
-  if (regex.match(text[0]) || regex.match(text[1])) return false;
+  if (Regex(u"\\s").match(text[0]) || Regex(u"\\s").match(text[1])) return false;
 
   const std::u16string nonWordCharacters = this->getNonWordCharacters();
   return (
@@ -117,31 +115,10 @@ bool Cursor::isInsideWord(/* options */) {
   return match && match.start_offset == 0;
 }
 
-/*getIndentLevel() {
-  if (this.editor.getSoftTabs()) {
-    return this.getBufferColumn() / this.editor.getTabLength();
-  } else {
-    return this.getBufferColumn();
-  }
-}*/
-
-/*getScopeDescriptor() {
-  return this.editor.scopeDescriptorForBufferPosition(
-    this.getBufferPosition()
-  );
-}*/
-
-/*getSyntaxTreeScopeDescriptor() {
-  return this.editor.syntaxTreeScopeDescriptorForBufferPosition(
-    this.getBufferPosition()
-  );
-}*/
-
 bool Cursor::hasPrecedingCharactersOnLine() {
   const Point bufferPosition = this->getBufferPosition();
-  const auto line = this->editor->lineTextForBufferRow(bufferPosition.row);
-  const auto match = Regex(u"\\S").match(*line);
-  const double firstCharacterColumn = match ? match.start_offset : -1;
+  const std::u16string line = this->editor->lineTextForBufferRow(bufferPosition.row);
+  const double firstCharacterColumn = Regex(u"\\S").search(line);
 
   if (firstCharacterColumn == -1) {
     return false;
@@ -159,37 +136,43 @@ Section: Moving the Cursor
 */
 
 void Cursor::moveUp(double rowCount, bool moveToEndOfSelection) {
-  Point position;
+  double row, column;
   const Range range = this->marker->getScreenRange();
   if (moveToEndOfSelection && !range.isEmpty()) {
-    position = range.start;
+    row = range.start.row;
+    column = range.start.column;
   } else {
-    position = this->getScreenPosition();
+    const Point position = this->getScreenPosition();
+    row = position.row;
+    column = position.column;
   }
 
-  if (this->goalColumn) position.column = *this->goalColumn;
+  if (this->goalColumn) column = *this->goalColumn;
   this->setScreenPosition(
-    Point(position.row - rowCount, position.column) /* ,
+    {row - rowCount, column} /* ,
     { skipSoftWrapIndentation: true } */
   );
-  this->goalColumn = position.column;
+  this->goalColumn = column;
 }
 
 void Cursor::moveDown(double rowCount, bool moveToEndOfSelection) {
-  Point position;
+  double row, column;
   const Range range = this->marker->getScreenRange();
   if (moveToEndOfSelection && !range.isEmpty()) {
-    position = range.end;
+    row = range.end.row;
+    column = range.end.column;
   } else {
-    position = this->getScreenPosition();
+    const Point position = this->getScreenPosition();
+    row = position.row;
+    column = position.column;
   }
 
-  if (this->goalColumn) position.column = *this->goalColumn;
+  if (this->goalColumn) column = *this->goalColumn;
   this->setScreenPosition(
-    Point(position.row + rowCount, position.column) /* ,
+    {row + rowCount, column} /* ,
     { skipSoftWrapIndentation: true } */
   );
-  this->goalColumn = position.column;
+  this->goalColumn = column;
 }
 
 void Cursor::moveLeft(double columnCount, bool moveToEndOfSelection) {
@@ -467,7 +450,7 @@ Point Cursor::getBeginningOfNextWordBufferPosition(/* options = {} */) {
   const Point start = this->isInsideWord(/* options */)
     ? this->getEndOfCurrentWordBufferPosition(/* options */)
     : currentBufferPosition;
-  const Range scanRange = Range(start, this->editor->getEofBufferPosition());
+  const Range scanRange = {start, this->editor->getEofBufferPosition()};
 
   optional<Point> beginningOfNextWordPosition;
   this->editor->scanInBufferRange(
@@ -603,7 +586,7 @@ Point Cursor::getBeginningOfPreviousParagraphBufferPosition() {
   const Point start = this->getBufferPosition();
 
   const double row = start.row, column = start.column;
-  const Range scanRange = Range(Point(row - 1, column), Point(0, 0));
+  const Range scanRange = {{row - 1, column}, {0, 0}};
   Point position = Point(0, 0);
   this->editor->backwardsScanInBufferRange(
     EmptyLineRegExp,

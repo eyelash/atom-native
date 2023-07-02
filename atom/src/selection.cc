@@ -531,7 +531,7 @@ void Selection::outdentSelectedRows(/* options = {} */) {
     u"^( {1," + toString(this->editor->getTabLength()) + u"}|\t)"
   );
   for (double row = start; row <= end; row++) {
-    const auto match = leadingTabRegex.match(*buffer->lineForRow(row));
+    const auto match = leadingTabRegex.match(buffer->lineForRow(row));
     if (match && match.end_offset > match.start_offset) {
       buffer->delete_({{row, static_cast<double>(match.start_offset)}, {row, static_cast<double>(match.end_offset)}});
     }

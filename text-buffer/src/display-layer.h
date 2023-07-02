@@ -25,7 +25,7 @@ struct DisplayLayer {
     const char16_t *tab = u"\u00BB";
     const char16_t *cr = u"\u00A4";
   };
-  enum class ClipDirection {
+  enum struct ClipDirection {
     backward,
     forward,
     closest

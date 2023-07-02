@@ -28,8 +28,8 @@ struct DisplayMarker {
   bool isEqual(const DisplayMarker *) const;
   Range getBufferRange() const;
   Range getScreenRange();
-  bool setBufferRange(const Range &, optional<bool> = optional<bool>());
-  bool setScreenRange(const Range &, optional<bool> = optional<bool>());
+  bool setBufferRange(const Range &, optional<bool> = {});
+  bool setScreenRange(const Range &, optional<bool> = {});
   Point getHeadBufferPosition() const;
   bool setHeadBufferPosition(const Point &);
   Point getHeadScreenPosition();

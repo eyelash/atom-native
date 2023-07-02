@@ -5,7 +5,7 @@ struct DisplayMarker;
 struct DecorationManager;
 
 struct Decoration {
-  enum class Type {
+  enum struct Type {
     line,
     line_number,
     text,

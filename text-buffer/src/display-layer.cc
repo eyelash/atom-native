@@ -675,8 +675,8 @@ DisplayLayer::UpdateResult DisplayLayer::updateSpatialIndex(double startBufferRo
     if (bufferRow >= newEndBufferRow) break;
     if (screenRow >= endScreenRow && bufferColumn == 0) break;
     //if (deadline.timeRemaining() < 2) break;
+    if (bufferRow > this->buffer->getLastRow()) break;
     std::u16string bufferLine = this->buffer->lineForRow(bufferRow);
-    if (bufferLine.empty()) break;
     double bufferLineLength = bufferLine.size();
     currentScreenLineTabColumns.resize(0);
     double screenLineWidth = 0;

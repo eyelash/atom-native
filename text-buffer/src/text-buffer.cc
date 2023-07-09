@@ -472,6 +472,25 @@ std::vector<NativeRange> TextBuffer::findAllSync(const Regex &regex) { return th
 
 std::vector<NativeRange> TextBuffer::findAllInRangeSync(const Regex &regex, Range range) { return this->buffer->find_all(regex, range); }
 
+std::vector<Marker *> TextBuffer::findAndMarkAllInRangeSync(MarkerLayer *markerLayer, const Regex &regex, Range range /* , options = {} */) {
+  const unsigned startId = this->nextMarkerId;
+  const bool exclusive = true; // options.invalidate === 'inside' || !options.tailed;
+  this->nextMarkerId += this->buffer->find_and_mark_all(
+    *markerLayer->index,
+    startId,
+    exclusive,
+    regex,
+    range
+  );
+  std::vector<Marker *> markers;
+  for (unsigned id = startId; id < this->nextMarkerId; id++) {
+    Marker *marker = new Marker(id, markerLayer, {}, {}, true);
+    markerLayer->markersById[id] = marker;
+    markers.push_back(marker);
+  }
+  return markers;
+}
+
 /*
 Section: Buffer Range Details
 */

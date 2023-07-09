@@ -103,6 +103,7 @@ struct TextBuffer {
   optional<NativeRange> findInRangeSync(const Regex &, Range);
   std::vector<NativeRange> findAllSync(const Regex &);
   std::vector<NativeRange> findAllInRangeSync(const Regex &, Range);
+  std::vector<Marker *> findAndMarkAllInRangeSync(MarkerLayer *, const Regex &, Range);
   Range getRange() const;
   double getLineCount() const;
   double getLastRow() const;

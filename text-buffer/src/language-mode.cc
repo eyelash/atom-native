@@ -38,6 +38,10 @@ std::string LanguageMode::classNameForScopeId(int32_t scopeId) {
   return std::string();
 }
 
+bool LanguageMode::isRowCommented(double) {
+  return false;
+}
+
 std::u16string LanguageMode::getLanguageId() {
   return std::u16string();
 }

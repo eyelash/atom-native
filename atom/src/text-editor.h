@@ -209,6 +209,7 @@ struct TextEditor {
   void backwardsScanInBufferRange(const Regex &, Range, TextBuffer::ScanIterator);
   bool getSoftTabs();
   double getTabLength();
+  optional<bool> usesSoftTabs();
   std::u16string getTabText();
   double indentationForBufferRow(double bufferRow);
   Range setIndentationForBufferRow(double, double, bool = false);

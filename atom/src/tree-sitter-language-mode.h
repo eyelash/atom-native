@@ -78,7 +78,7 @@ struct TreeSitterLanguageMode : LanguageMode {
   std::unique_ptr<LanguageMode::HighlightIterator> buildHighlightIterator() override;
   void onDidChangeHighlighting(std::function<void(Range)>) override;
   std::string classNameForScopeId(int32_t) override;
-  bool isRowCommented(double);
+  bool isRowCommented(double) override;
   double suggestedIndentForLineAtBufferRow(double, const std::u16string &, double) override;
   double suggestedIndentForBufferRow(double, double, bool) override;
   optional<double> suggestedIndentForEditedBufferRow(double, double) override;

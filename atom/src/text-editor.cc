@@ -1400,6 +1400,21 @@ double TextEditor::getTabLength() {
   return this->displayLayer->tabLength;
 }
 
+optional<bool> TextEditor::usesSoftTabs() {
+  LanguageMode *languageMode = this->buffer->getLanguageMode();
+  for (
+    double bufferRow = 0, end = std::min(1000.0, this->buffer->getLastRow());
+    bufferRow <= end;
+    bufferRow++
+  ) {
+    if (languageMode->isRowCommented(bufferRow)) continue;
+    const std::u16string line = this->buffer->lineForRow(bufferRow);
+    if (line.size() > 0 && line[0] == u' ') return true;
+    if (line.size() > 0 && line[0] == u'\t') return false;
+  }
+  return optional<bool>();
+}
+
 std::u16string TextEditor::getTabText() {
   return this->buildIndentString(1);
 }

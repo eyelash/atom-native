@@ -20,6 +20,7 @@ struct TextBuffer {
   Emitter<> didChangeTextEmitter;
   Emitter<> didChangeModifiedEmitter;
   Emitter<> didChangePathEmitter;
+  Emitter<> didChangeLanguageModeEmitter;
   NativeTextBuffer *buffer;
   DefaultHistoryProvider *historyProvider;
   LanguageMode *languageMode;
@@ -123,6 +124,7 @@ struct TextBuffer {
   DisplayLayer *getDisplayLayer(unsigned);
   LanguageMode *getLanguageMode();
   void setLanguageMode(LanguageMode *);
+  void onDidChangeLanguageMode(std::function<void()>);
   TextBuffer *loadSync();
   MarkerSnapshot createMarkerSnapshot(DisplayMarkerLayer *);
   void restoreFromMarkerSnapshot(const MarkerSnapshot &, DisplayMarkerLayer *);

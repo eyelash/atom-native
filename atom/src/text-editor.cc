@@ -116,6 +116,10 @@ void TextEditor::onDidChangeModified(std::function<void()> callback) {
   return this->getBuffer()->onDidChangeModified(callback);
 }
 
+void TextEditor::onDidChangeGrammar(std::function<void()> callback) {
+  return this->buffer->onDidChangeLanguageMode(callback);
+}
+
 void TextEditor::onDidRequestAutoscroll(std::function<void(Range)> callback) {
   return this->didRequestAutoscrollEmitter.on(callback);
 }

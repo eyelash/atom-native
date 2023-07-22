@@ -628,9 +628,13 @@ void TextBuffer::setLanguageMode(LanguageMode *languageMode) {
     for (auto &displayLayer : this->displayLayers) {
       displayLayer.second->bufferDidChangeLanguageMode();
     }
-    //this.emitter.emit('did-change-language-mode', {newMode: this.languageMode, oldMode: oldLanguageMode})
+    this->didChangeLanguageModeEmitter.emit();
     delete oldLanguageMode;
   }
+}
+
+void TextBuffer::onDidChangeLanguageMode(std::function<void()> callback) {
+  return this->didChangeLanguageModeEmitter.on(callback);
 }
 
 /*

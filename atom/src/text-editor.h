@@ -47,6 +47,7 @@ struct TextEditor {
   void onDidChange(std::function<void()>);
   void onDidChangeSelectionRange(std::function<void()>);
   void onDidChangeModified(std::function<void()>);
+  void onDidChangeGrammar(std::function<void()>);
   void onDidRequestAutoscroll(std::function<void(Range)>);
   TextBuffer *getBuffer();
   std::string getTitle();

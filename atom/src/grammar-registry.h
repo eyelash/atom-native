@@ -18,6 +18,7 @@ struct GrammarRegistry {
   GrammarRegistry();
   ~GrammarRegistry();
 
+  void maintainLanguageMode(TextBuffer *);
   void autoAssignLanguageMode(TextBuffer *);
   LanguageMode *languageModeForGrammarAndBuffer(Grammar *, TextBuffer *);
   std::pair<Grammar *, double> selectGrammarWithScore(const optional<std::string> &, const std::u16string &);

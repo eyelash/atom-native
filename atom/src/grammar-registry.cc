@@ -17,6 +17,24 @@ GrammarRegistry::~GrammarRegistry() {
   }
 }
 
+void GrammarRegistry::maintainLanguageMode(TextBuffer *buffer) {
+  //this.grammarScoresByBuffer.set(buffer, null);
+
+  //const languageOverride = this.languageOverridesByBufferId.get(buffer.id);
+  //if (languageOverride) {
+  //  this.assignLanguageMode(buffer, languageOverride);
+  //} else {
+    this->autoAssignLanguageMode(buffer);
+  //}
+
+  buffer->onDidChangePath([this, buffer]() {
+    //this.grammarScoresByBuffer.delete(buffer);
+    //if (!this.languageOverridesByBufferId.has(buffer.id)) {
+      this->autoAssignLanguageMode(buffer);
+    //}
+  });
+}
+
 void GrammarRegistry::autoAssignLanguageMode(TextBuffer *buffer) {
   const auto result = this->selectGrammarWithScore(
     buffer->getPath(),
@@ -24,11 +42,11 @@ void GrammarRegistry::autoAssignLanguageMode(TextBuffer *buffer) {
   );
   //this.languageOverridesByBufferId.delete(buffer.id);
   //this.grammarScoresByBuffer.set(buffer, result.score);
-  //if (result.first != buffer->getLanguageMode()->grammar) {
+  if (result.first != buffer->getLanguageMode()->getGrammar()) {
     buffer->setLanguageMode(
       this->languageModeForGrammarAndBuffer(result.first, buffer)
     );
-  //}
+  }
 }
 
 LanguageMode *GrammarRegistry::languageModeForGrammarAndBuffer(Grammar *grammar, TextBuffer *buffer) {

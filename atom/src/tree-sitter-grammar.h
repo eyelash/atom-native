@@ -2,16 +2,15 @@
 #define TREE_SITTER_GRAMMAR_H_
 
 #include "syntax-scope-map.h"
+#include "grammar.h"
 #include <regex.h>
 #include <optional.h>
 #include <unordered_map>
-#include <vector>
-#include <string>
 
 struct SyntaxScopeMap;
 struct TSLanguage;
 
-struct TreeSitterGrammar {
+struct TreeSitterGrammar : Grammar {
   struct Exact {
     const char16_t *exact;
     const char *scopes;
@@ -21,10 +20,7 @@ struct TreeSitterGrammar {
     const char *scopes;
   };
 
-  const char *name;
-  const char *scopeName;
   SyntaxScopeMap *scopeMap;
-  std::vector<std::string> fileTypes;
   const TSLanguage *languageModule;
   std::unordered_map<int32_t, std::string> classNamesById;
   std::unordered_map<int32_t, std::string> scopeNamesById;
@@ -37,11 +33,6 @@ struct TreeSitterGrammar {
   TreeSitterGrammar(const char *, const char *, const TSLanguage *);
   ~TreeSitterGrammar();
 
-  void addFileTypes(const char *);
-  template <typename T0, typename T1, typename... T> void addFileTypes(T0&& t0, T1&& t1, T&&... t) {
-    addFileTypes(std::forward<T0>(t0));
-    addFileTypes(std::forward<T1>(t1), std::forward<T>(t)...);
-  }
   void setIncreaseIndentPattern(const char16_t *);
   void setDecreaseIndentPattern(const char16_t *);
   void setDecreaseNextIndentPattern(const char16_t *);

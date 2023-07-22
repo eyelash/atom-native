@@ -3,9 +3,7 @@
 #include <regex.h>
 #include <tree-cursor.h>
 
-TreeSitterGrammar::TreeSitterGrammar(const char *name, const char *scopeName, const TSLanguage *languageModule) {
-  this->name = name;
-  this->scopeName = scopeName;
+TreeSitterGrammar::TreeSitterGrammar(const char *name, const char *scopeName, const TSLanguage *languageModule) : Grammar(name, scopeName) {
   this->scopeMap = new SyntaxScopeMap();
   this->languageModule = languageModule;
   this->nextScopeId = 256 + 1;
@@ -13,10 +11,6 @@ TreeSitterGrammar::TreeSitterGrammar(const char *name, const char *scopeName, co
 
 TreeSitterGrammar::~TreeSitterGrammar() {
   delete this->scopeMap;
-}
-
-void TreeSitterGrammar::addFileTypes(const char *fileType) {
-  this->fileTypes.push_back(fileType);
 }
 
 void TreeSitterGrammar::setIncreaseIndentPattern(const char16_t *pattern) {

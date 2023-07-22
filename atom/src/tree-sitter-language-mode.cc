@@ -267,6 +267,10 @@ optional<Range> TreeSitterLanguageMode::getRangeForSyntaxNodeContainingRange(Ran
   return !ts_node_is_null(node) ? rangeForNode(node) : optional<Range>();
 }
 
+Grammar *TreeSitterLanguageMode::getGrammar() {
+  return this->grammar;
+}
+
 /*
 Section - Private
 */

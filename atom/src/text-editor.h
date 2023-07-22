@@ -16,6 +16,7 @@ struct DisplayMarker;
 struct DecorationManager;
 struct LayerDecoration;
 struct Clipboard;
+struct Grammar;
 
 struct TextEditor {
   static Clipboard *clipboard;
@@ -218,6 +219,7 @@ struct TextEditor {
   double indentLevelForLine(const std::u16string &);
   void indent();
   std::u16string buildIndentString(double, double = 0);
+  Grammar *getGrammar();
   void copySelectedText();
   void cutSelectedText();
   void pasteText();

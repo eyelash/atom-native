@@ -8,6 +8,7 @@ atom = declare_dependency(
       'src/decoration-manager.cc',
       'src/decoration.cc',
       'src/grammar-registry.cc',
+      'src/grammar.cc',
       'src/layer-decoration.cc',
       'src/select-next.cc',
       'src/selection.cc',

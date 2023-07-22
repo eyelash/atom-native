@@ -6,6 +6,8 @@
 #include <memory>
 #include <functional>
 
+struct Grammar;
+
 struct LanguageMode {
   struct HighlightIterator {
     virtual ~HighlightIterator();
@@ -27,6 +29,7 @@ struct LanguageMode {
   virtual double suggestedIndentForBufferRow(double, double, bool);
   virtual optional<double> suggestedIndentForEditedBufferRow(double, double);
   virtual optional<Range> getRangeForSyntaxNodeContainingRange(Range);
+  virtual Grammar *getGrammar();
 };
 
 #endif // LANGUAGE_MODE_H_

@@ -88,6 +88,7 @@ struct TreeSitterLanguageMode : LanguageMode {
   TSNode getSyntaxNodeContainingRange(Range, std::function<bool(TSNode, TreeSitterGrammar *)> = [](TSNode, TreeSitterGrammar *) { return true; });
   std::pair<TSNode, TreeSitterGrammar *> getSyntaxNodeAndGrammarContainingRange(Range, std::function<bool(TSNode, TreeSitterGrammar *)> = [](TSNode, TreeSitterGrammar *) { return true; });
   optional<Range> getRangeForSyntaxNodeContainingRange(Range) override;
+  Grammar *getGrammar() override;
   optional<NativeRange> firstNonWhitespaceRange(double);
   void emitRangeUpdate(Range);
 };

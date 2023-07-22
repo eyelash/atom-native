@@ -1513,6 +1513,12 @@ std::u16string TextEditor::buildIndentString(double level, double column) {
 Section: Grammars
 */
 
+Grammar *TextEditor::getGrammar() {
+  LanguageMode *languageMode = this->buffer->getLanguageMode();
+  Grammar *grammar = languageMode->getGrammar();
+  return grammar;
+}
+
 /*
 Section: Managing Syntax Scopes
 */

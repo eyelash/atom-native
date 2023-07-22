@@ -1,5 +1,6 @@
 #include "tree-sitter-grammar.h"
 #include "syntax-scope-map.h"
+#include "tree-sitter-language-mode.h"
 #include <regex.h>
 #include <tree-cursor.h>
 
@@ -111,4 +112,8 @@ optional<int32_t> TreeSitterGrammar::idForScope(const optional<std::string> &sco
 
 std::string TreeSitterGrammar::classNameForScopeId(int32_t id) {
   return this->classNamesById[id];
+}
+
+LanguageMode *TreeSitterGrammar::getLanguageMode(TextBuffer *buffer) {
+  return new TreeSitterLanguageMode(buffer, this);
 }

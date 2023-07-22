@@ -1,13 +1,17 @@
 #include "grammar-registry.h"
+#include "null-grammar.h"
 #include "tree-sitter-grammar.h"
 #include "tree-sitter-language-mode.h"
 #include <text-buffer.h>
 
 static std::u16string getGrammarSelectionContent(TextBuffer *);
 
-GrammarRegistry::GrammarRegistry() {}
+GrammarRegistry::GrammarRegistry() {
+  this->nullGrammar = new NullGrammar();
+}
 
 GrammarRegistry::~GrammarRegistry() {
+  delete this->nullGrammar;
   for (auto &grammar : this->treeSitterGrammarsById) {
     delete grammar.second;
   }
@@ -27,23 +31,18 @@ void GrammarRegistry::autoAssignLanguageMode(TextBuffer *buffer) {
   //}
 }
 
-LanguageMode *GrammarRegistry::languageModeForGrammarAndBuffer(TreeSitterGrammar *grammar, TextBuffer *buffer) {
-  return new TreeSitterLanguageMode(
-    buffer,
-    grammar
-    //config: this.config,
-    //grammars: this
-  );
+LanguageMode *GrammarRegistry::languageModeForGrammarAndBuffer(Grammar *grammar, TextBuffer *buffer) {
+  return grammar->getLanguageMode(buffer);
 }
 
 /*selectGrammar(filePath, fileContents) {
   return this.selectGrammarWithScore(filePath, fileContents).grammar;
 }*/
 
-std::pair<TreeSitterGrammar *, double> GrammarRegistry::selectGrammarWithScore(const optional<std::string> &filePath, const std::u16string &fileContents) {
-  TreeSitterGrammar *bestMatch = nullptr;
+std::pair<Grammar *, double> GrammarRegistry::selectGrammarWithScore(const optional<std::string> &filePath, const std::u16string &fileContents) {
+  Grammar *bestMatch = nullptr;
   double highestScore = -INFINITY;
-  for (TreeSitterGrammar *grammar : this->getGrammars()) {
+  for (Grammar *grammar : this->getGrammars()) {
     const double score = this->getGrammarScore(grammar, filePath, fileContents);
     if (score > highestScore || bestMatch == nullptr) {
       bestMatch = grammar;
@@ -53,7 +52,7 @@ std::pair<TreeSitterGrammar *, double> GrammarRegistry::selectGrammarWithScore(c
   return { bestMatch, highestScore };
 }
 
-double GrammarRegistry::getGrammarScore(TreeSitterGrammar *grammar, const optional<std::string> &filePath, const std::u16string &contents) {
+double GrammarRegistry::getGrammarScore(Grammar *grammar, const optional<std::string> &filePath, const std::u16string &contents) {
   /*if (contents == null && fs.isFileSync(filePath)) {
     contents = fs.readFileSync(filePath, 'utf8');
   }*/
@@ -113,7 +112,7 @@ static std::vector<std::string> splitPath(const std::string &path) {
   return result;
 }
 
-double GrammarRegistry::getGrammarPathScore(TreeSitterGrammar *grammar, const optional<std::string> &filePath) {
+double GrammarRegistry::getGrammarPathScore(Grammar *grammar, const optional<std::string> &filePath) {
   if (!filePath) return -1;
   /*if (process.platform === 'win32') {
     filePath = filePath.replace(/\\/g, '/');
@@ -171,14 +170,15 @@ void GrammarRegistry::addGrammar(TreeSitterGrammar *grammar) {
   return new Disposable(() => this.removeGrammar(grammar));*/
 }
 
-std::vector<TreeSitterGrammar *> GrammarRegistry::getGrammars() {
-  std::vector<TreeSitterGrammar *> tsGrammars;
+std::vector<Grammar *> GrammarRegistry::getGrammars() {
+  std::vector<Grammar *> grammars;
+  grammars.push_back(this->nullGrammar);
   for (auto &grammar : this->treeSitterGrammarsById) {
     if (grammar.second->scopeName) {
-      tsGrammars.push_back(grammar.second);
+      grammars.push_back(grammar.second);
     }
   }
-  return tsGrammars;
+  return grammars;
 }
 
 static std::u16string getGrammarSelectionContent(TextBuffer *buffer) {

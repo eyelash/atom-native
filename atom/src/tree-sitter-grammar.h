@@ -58,6 +58,7 @@ struct TreeSitterGrammar : Grammar {
   }
   optional<int32_t> idForScope(const optional<std::string> &);
   std::string classNameForScopeId(int32_t);
+  LanguageMode *getLanguageMode(TextBuffer *) override;
 };
 
 #endif // TREE_SITTER_GRAMMAR_H_

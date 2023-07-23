@@ -302,12 +302,15 @@ void ScreenLineBuilder::emitLineEnding() {
 void ScreenLineBuilder::emitNewline(double softWrapIndent) {
   const DisplayLayer::ScreenLine screenLine = {
     nextScreenLineId++,
-    this->currentScreenLineText,
-    this->currentScreenLineTags,
+    std::move(this->currentScreenLineText),
+    std::move(this->currentScreenLineTags),
     softWrapIndent
   };
   this->pushScreenLine(screenLine);
-  this->displayLayer->cachedScreenLines[this->screenRow] = screenLine;
+  if (this->screenRow >= this->displayLayer->cachedScreenLines.size()) {
+    this->displayLayer->cachedScreenLines.resize(this->screenRow + 1);
+  }
+  this->displayLayer->cachedScreenLines[this->screenRow] = std::move(screenLine);
   this->screenRow++;
   this->beginLine();
 }

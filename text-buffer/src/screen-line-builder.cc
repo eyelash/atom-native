@@ -362,6 +362,7 @@ void ScreenLineBuilder::emitTokenBoundary() {
 }
 
 void ScreenLineBuilder::emitEmptyTokenIfNeeded() {
+  if (this->currentScreenLineTags.empty()) return;
   const int32_t lastTag = this->currentScreenLineTags[this->currentScreenLineTags.size() - 1];
   if (this->displayLayer->isOpenTag(lastTag)) {
     this->currentScreenLineTags.push_back(0);

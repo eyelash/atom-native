@@ -112,12 +112,16 @@ void TextEditor::onDidChangeSelectionRange(std::function<void()> callback) {
   return this->didChangeSelectionRangeEmitter.on(callback);
 }
 
+void TextEditor::onDidChangeGrammar(std::function<void()> callback) {
+  return this->buffer->onDidChangeLanguageMode(callback);
+}
+
 void TextEditor::onDidChangeModified(std::function<void()> callback) {
   return this->getBuffer()->onDidChangeModified(callback);
 }
 
-void TextEditor::onDidChangeGrammar(std::function<void()> callback) {
-  return this->buffer->onDidChangeLanguageMode(callback);
+void TextEditor::onDidInsertText(std::function<void(const std::u16string &, const Range &)> callback) {
+  return this->didInsertTextEmitter.on(callback);
 }
 
 void TextEditor::onDidRequestAutoscroll(std::function<void(Range)> callback) {
@@ -294,7 +298,8 @@ Range TextEditor::setTextInBufferRange(Range range, std::u16string &&text) {
 void TextEditor::insertText(const std::u16string &text, bool groupUndo) {
   const double groupingInterval = groupUndo ? this->undoGroupingInterval : 0;
   this->mutateSelectedText([&](Selection *selection) {
-    selection->insertText(text);
+    const Range range = selection->insertText(text);
+    this->didInsertTextEmitter.emit(text, range);
   }, groupingInterval);
 }
 
@@ -1614,7 +1619,7 @@ void TextEditor::pasteText(/* options = {} */) {
       range = selection->insertText(text, options_indentBasis);
     }
 
-    //this.emitter.emit('did-insert-text', { text, range });
+    this->didInsertTextEmitter.emit(text, range);
     index++;
   });
 }

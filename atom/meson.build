@@ -18,6 +18,7 @@ atom = declare_dependency(
       'src/text-mate-language-mode.cc',
       'src/tree-sitter-grammar.cc',
       'src/tree-sitter-language-mode.cc',
+      'src/whitespace.cc',
     ),
     dependencies: [text_buffer, tree_sitter],
   ),

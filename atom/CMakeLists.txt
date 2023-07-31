@@ -20,6 +20,7 @@ target_sources(atom PRIVATE
   src/text-mate-language-mode.cc
   src/tree-sitter-grammar.cc
   src/tree-sitter-language-mode.cc
+  src/whitespace.cc
 )
 target_include_directories(atom INTERFACE
   src

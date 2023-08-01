@@ -556,8 +556,8 @@ void Selection::copy(bool maintainClipboard, bool fullLine) {
     //auto [
     //  clipboardText,
     //  metadata
-    //] = this->editor->clipboard->readWithMetadata();
-    auto pair = this->editor->clipboard->readWithMetadata();
+    //] = this->editor->clipboard.readWithMetadata();
+    auto pair = this->editor->clipboard.readWithMetadata();
     std::u16string clipboardText = std::move(pair.first);
     Clipboard::Metadata *metadata = pair.second;
     if (!metadata) metadata = new Clipboard::Metadata{};
@@ -575,12 +575,12 @@ void Selection::copy(bool maintainClipboard, bool fullLine) {
       startLevel,
       fullLine
     });
-    this->editor->clipboard->write(
+    this->editor->clipboard.write(
       clipboardText + u"\n" + selectionText,
       metadata
     );
   } else {
-    this->editor->clipboard->write(selectionText, new Clipboard::Metadata{
+    this->editor->clipboard.write(selectionText, new Clipboard::Metadata{
       startLevel,
       fullLine
     });

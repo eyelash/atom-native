@@ -19,7 +19,8 @@ struct Clipboard;
 struct Grammar;
 
 struct TextEditor {
-  static Clipboard *clipboard;
+  static Clipboard clipboard;
+
   bool softTabs;
   double undoGroupingInterval;
   bool suppressSelectionMerging;

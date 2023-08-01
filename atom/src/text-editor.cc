@@ -13,7 +13,7 @@
 
 static const std::u16string DEFAULT_NON_WORD_CHARACTERS = u"/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…";
 
-Clipboard *TextEditor::clipboard = nullptr;
+Clipboard TextEditor::clipboard;
 
 TextEditor::TextEditor(TextBuffer *buffer) {
   this->softTabs = true;
@@ -1568,8 +1568,8 @@ void TextEditor::pasteText(/* options = {} */) {
   //auto [
   //  clipboardText,
   //  metadata
-  //] = this->clipboard->readWithMetadata();
-  auto pair = this->clipboard->readWithMetadata();
+  //] = this->clipboard.readWithMetadata();
+  auto pair = this->clipboard.readWithMetadata();
   std::u16string clipboardText = std::move(pair.first);
   Clipboard::Metadata *metadata = pair.second;
   //if (!this.emitWillInsertTextEvent(clipboardText)) return false;

@@ -66,6 +66,10 @@ void TextBuffer::onDidChangePath(std::function<void()> callback) {
   return this->didChangePathEmitter.on(callback);
 }
 
+void TextBuffer::onWillSave(std::function<void()> callback) {
+  return this->willSaveEmitter.on(callback);
+}
+
 /*
 Section: File Details
 */
@@ -584,6 +588,7 @@ TextBuffer *TextBuffer::saveTo(const File &file) {
   //this.outstandingSaveCount++
 
   //mkdirp(path.dirname(filePath))
+  this->willSaveEmitter.emit();
   this->buffer->save(filePath, *this->getEncoding());
 
   //this.outstandingSaveCount--

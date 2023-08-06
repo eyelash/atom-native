@@ -8,6 +8,8 @@ struct Whitespace {
   ~Whitespace();
 
   void handleEvents(TextEditor *);
+  void removeTrailingWhitespace(TextEditor *);
+  void ensureSingleTrailingNewline(TextEditor *);
 };
 
 #endif // WHITESPACE_H_

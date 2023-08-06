@@ -20,6 +20,7 @@ struct TextBuffer {
   Emitter<> didChangeTextEmitter;
   Emitter<> didChangeModifiedEmitter;
   Emitter<> didChangePathEmitter;
+  Emitter<> willSaveEmitter;
   Emitter<> didChangeLanguageModeEmitter;
   NativeTextBuffer *buffer;
   DefaultHistoryProvider *historyProvider;
@@ -56,6 +57,7 @@ struct TextBuffer {
   void onDidChange(std::function<void()>);
   void onDidChangeModified(std::function<void()>);
   void onDidChangePath(std::function<void()>);
+  void onWillSave(std::function<void()>);
   bool isModified();
   optional<std::string> getPath();
   void setPath(const std::string &filePath);

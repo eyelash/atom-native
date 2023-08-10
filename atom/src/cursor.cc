@@ -115,6 +115,14 @@ bool Cursor::isInsideWord(/* options */) {
   return match && match.start_offset == 0;
 }
 
+double Cursor::getIndentLevel() {
+  if (this->editor->getSoftTabs()) {
+    return this->getBufferColumn() / this->editor->getTabLength();
+  } else {
+    return this->getBufferColumn();
+  }
+}
+
 bool Cursor::hasPrecedingCharactersOnLine() {
   const Point bufferPosition = this->getBufferPosition();
   const std::u16string line = this->editor->lineTextForBufferRow(bufferPosition.row);

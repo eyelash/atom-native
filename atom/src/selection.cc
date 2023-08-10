@@ -538,6 +538,12 @@ void Selection::outdentSelectedRows(/* options = {} */) {
   }
 }
 
+void Selection::autoIndentSelectedRows() {
+  const auto bufferRowRange = this->getBufferRowRange();
+  const double start = bufferRowRange.first, end = bufferRowRange.second;
+  return this->editor->autoIndentBufferRows(start, end);
+}
+
 void Selection::cut(bool maintainClipboard, bool fullLine) {
   this->copy(maintainClipboard, fullLine);
   this->delete_();
@@ -610,15 +616,13 @@ void Selection::indent(bool autoIndent) {
 
   if (this->isEmpty()) {
     this->cursor->skipLeadingWhitespace();
-    /*const desiredIndent = this->editor->suggestedIndentForBufferRow(row);
-    let delta = desiredIndent - this->cursor->getIndentLevel();
+    const double desiredIndent = this->editor->suggestedIndentForBufferRow(row);
+    double delta = desiredIndent - this->cursor->getIndentLevel();
 
     if (autoIndent && delta > 0) {
-      if (!this->editor->getSoftTabs()) delta = Math.max(delta, 1);
-      this->insertText(this->editor->buildIndentString(delta), {
-        bypassReadOnly
-      });
-    } else */ {
+      if (!this->editor->getSoftTabs()) delta = std::max(delta, 1.0);
+      this->insertText(this->editor->buildIndentString(delta));
+    } else {
       this->insertText(
         this->editor->buildIndentString(1, this->cursor->getBufferColumn())
       );

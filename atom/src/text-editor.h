@@ -221,6 +221,7 @@ struct TextEditor {
   void indentSelectedRows();
   void outdentSelectedRows();
   double indentLevelForLine(const std::u16string &);
+  void autoIndentSelectedRows();
   void indent();
   std::u16string buildIndentString(double, double = 0);
   Grammar *getGrammar();
@@ -234,7 +235,7 @@ struct TextEditor {
   bool shouldAutoIndent();
   double getUndoGroupingInterval();
   std::u16string getNonWordCharacters(Point);
-  double suggestedIndentForBufferRow(double bufferRow, bool);
+  double suggestedIndentForBufferRow(double bufferRow, bool = true);
   Range autoIndentBufferRow(double bufferRow, bool = false, bool = true);
   void autoIndentBufferRows(double startRow, double endRow);
   void autoDecreaseIndentForBufferRow(double bufferRow);

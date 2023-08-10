@@ -405,7 +405,7 @@ void TextEditor::moveLineUp(/* options = {} */) {
       false
       //preserveFolds: true
     );
-    //if (this->shouldAutoIndent()) this->autoIndentSelectedRows();
+    if (this->shouldAutoIndent()) this->autoIndentSelectedRows();
     this->scrollToBufferPosition({newSelectionRanges[0].start.row, 0});
   });
 }
@@ -490,7 +490,7 @@ void TextEditor::moveLineDown(/* options = {} */) {
       false
       //preserveFolds: true
     );
-    //if (this.shouldAutoIndent()) this.autoIndentSelectedRows();
+    if (this->shouldAutoIndent()) this->autoIndentSelectedRows();
     this->scrollToBufferPosition({newSelectionRanges[0].start.row - 1, 0});
   });
 }
@@ -1486,10 +1486,17 @@ double TextEditor::indentLevelForLine(const std::u16string &line) {
   return indentLength / tabLength;
 }
 
+void TextEditor::autoIndentSelectedRows() {
+  return this->mutateSelectedText([](Selection *selection) {
+    selection->autoIndentSelectedRows();
+  });
+}
+
 void TextEditor::indent(/* options = {} */) {
   //if (options.autoIndent == null)
   //  options.autoIndent = this->shouldAutoIndent();
-  this->mutateSelectedText([](Selection *selection) { selection->indent(/* options */); });
+  bool autoIndent = this->shouldAutoIndent();
+  this->mutateSelectedText([&](Selection *selection) { selection->indent(autoIndent); });
 }
 
 static std::u16string multiplyString(const char16_t *string, double n) {

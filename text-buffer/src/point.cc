@@ -94,23 +94,23 @@ bool Point::isGreaterThanOrEqual(const Point &other) const {
   return this->compare(other) >= 0;
 }
 
-bool Point::operator ==(const Point &other) const {
+bool Point::operator==(const Point &other) const {
   return this->row == other.row && this->column == other.column;
 }
 
-bool Point::operator <(const Point &other) const {
+bool Point::operator<(const Point &other) const {
   return this->compare(other) < 0;
 }
 
-bool Point::operator <=(const Point &other) const {
+bool Point::operator<=(const Point &other) const {
   return this->compare(other) <= 0;
 }
 
-bool Point::operator >(const Point &other) const {
+bool Point::operator>(const Point &other) const {
   return this->compare(other) > 0;
 }
 
-bool Point::operator >=(const Point &other) const {
+bool Point::operator>=(const Point &other) const {
   return this->compare(other) >= 0;
 }
 
@@ -138,6 +138,10 @@ bool Point::isNegative() const {
   }
 }
 
-Point Point::ZERO = Point(0, 0);
+std::ostream &operator<<(std::ostream &stream, const Point &point) {
+  return stream << "(" << point.row << ", " << point.column << ")";
+}
 
-Point Point::INFINITY_ = Point(INFINITY, INFINITY);
+const Point Point::ZERO = Point(0, 0);
+
+const Point Point::INFINITY_ = Point(INFINITY, INFINITY);

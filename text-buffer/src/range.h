@@ -34,4 +34,6 @@ struct Range {
   Point toDelta() const;
 };
 
+std::ostream &operator<<(std::ostream &, const Range &);
+
 #endif // RANGE_H_

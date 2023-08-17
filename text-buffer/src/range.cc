@@ -122,3 +122,7 @@ Point Range::toDelta() const {
   }
   return Point(rows, columns);
 }
+
+std::ostream &operator<<(std::ostream &stream, const Range &range) {
+  return stream << "[" << range.start << " - " << range.end << "]";
+}

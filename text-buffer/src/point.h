@@ -22,17 +22,19 @@ struct Point {
   bool isLessThanOrEqual(const Point &) const;
   bool isGreaterThan(const Point &) const;
   bool isGreaterThanOrEqual(const Point &) const;
-  bool operator ==(const Point &) const;
-  bool operator <(const Point &) const;
-  bool operator <=(const Point &) const;
-  bool operator >(const Point &) const;
-  bool operator >=(const Point &) const;
+  bool operator==(const Point &) const;
+  bool operator<(const Point &) const;
+  bool operator<=(const Point &) const;
+  bool operator>(const Point &) const;
+  bool operator>=(const Point &) const;
   bool isZero() const;
   bool isPositive() const;
   bool isNegative() const;
 
-  static Point ZERO;
-  static Point INFINITY_;
+  static const Point ZERO;
+  static const Point INFINITY_;
 };
+
+std::ostream &operator<<(std::ostream &, const Point &);
 
 #endif // POINT_H_

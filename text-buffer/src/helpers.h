@@ -2,6 +2,7 @@
 #define HELPERS_H_
 
 #include "point.h"
+#include <sstream>
 #include <vector>
 #include <algorithm>
 #include <iterator>
@@ -28,6 +29,12 @@ template <typename T> void spliceArray(std::vector<T> &array, double start, doub
   for (double i = 0; i < insertedCount; i++) {
     array[start + i] = insertedItems[i];
   }
+}
+
+template <typename T> std::string toString(const T &t) {
+  std::ostringstream stream;
+  stream << t;
+  return stream.str();
 }
 
 template <typename T, typename C> std::vector<T> sort(std::vector<T> &&v, C comp) {

@@ -9,7 +9,6 @@
 #include <language-mode.h>
 #include <helpers.h>
 #include <path.h>
-#include <set>
 
 static const std::u16string DEFAULT_NON_WORD_CHARACTERS = u"/\\()\"':,.;<>~!@#$%^&*|+=[]{}`?-…";
 
@@ -967,9 +966,9 @@ void TextEditor::moveCursors(std::function<void(Cursor *)> fn) {
 }
 
 void TextEditor::mergeCursors() {
-  std::set<Point> positions;
+  std::unordered_set<std::string> positions;
   for (Cursor *cursor: getCursors()) {
-    const Point position = cursor->getBufferPosition();
+    const std::string position = toString(cursor->getBufferPosition());
     if (positions.count(position)) {
       cursor->destroy();
     } else {

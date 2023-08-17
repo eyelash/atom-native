@@ -523,7 +523,7 @@ static std::u16string toString(double n) {
   }
 }
 
-void Selection::outdentSelectedRows(/* options = {} */) {
+void Selection::outdentSelectedRows() {
   const auto bufferRowRange = this->getBufferRowRange();
   const double start = bufferRowRange.first, end = bufferRowRange.second;
   TextBuffer *buffer = this->editor->buffer;

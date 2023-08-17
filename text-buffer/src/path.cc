@@ -14,7 +14,7 @@ static bool isPathSeparator(char c) {
 
 #endif
 
-static std::string normalizeString(const std::string &path, bool allowAboveRoot, const std::string &separator, bool (*isPathSeparator)(char)) {
+static std::string normalizeString(const std::string &path, bool allowAboveRoot, char separator, bool (*isPathSeparator)(char)) {
   std::string res;
   double lastSegmentLength = 0;
   double lastSlash = -1;
@@ -57,14 +57,19 @@ static std::string normalizeString(const std::string &path, bool allowAboveRoot,
           }
         }
         if (allowAboveRoot) {
-          res += res.size() > 0 ? separator + ".." : "..";
+          if (res.size() > 0) {
+            res += separator;
+          }
+          res += "..";
           lastSegmentLength = 2;
         }
       } else {
-        if (res.size() > 0)
-          res += separator + path.substr(lastSlash + 1, i - lastSlash - 1);
-        else
+        if (res.size() > 0) {
+          res += separator;
+          res += path.substr(lastSlash + 1, i - lastSlash - 1);
+        } else {
           res = path.substr(lastSlash + 1, i - lastSlash - 1);
+        }
         lastSegmentLength = i - lastSlash - 1;
       }
       lastSlash = i;
@@ -86,7 +91,7 @@ std::string path::normalize(std::string path) {
   const bool trailingSeparator = path[path.size() - 1] == '/';
 
   // Normalize the path
-  path = normalizeString(path, !isAbsolute, "/", isPathSeparator);
+  path = normalizeString(path, !isAbsolute, '/', isPathSeparator);
 
   if (path.size() == 0) {
     if (isAbsolute)

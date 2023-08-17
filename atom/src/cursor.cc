@@ -296,34 +296,34 @@ void Cursor::moveToBeginningOfWord() {
 
 void Cursor::moveToEndOfWord() {
   const Point position = this->getEndOfCurrentWordBufferPosition();
-  /* if (position) */ this->setBufferPosition(position);
+  this->setBufferPosition(position);
 }
 
 void Cursor::moveToBeginningOfNextWord() {
   const Point position = this->getBeginningOfNextWordBufferPosition();
-  /* if (position) */ this->setBufferPosition(position);
+  this->setBufferPosition(position);
 }
 
 void Cursor::moveToPreviousWordBoundary() {
   const Point position = this->getPreviousWordBoundaryBufferPosition();
-  /* if (position) */ this->setBufferPosition(position);
+  this->setBufferPosition(position);
 }
 
 void Cursor::moveToNextWordBoundary() {
   const Point position = this->getNextWordBoundaryBufferPosition();
-  /* if (position) */ this->setBufferPosition(position);
+  this->setBufferPosition(position);
 }
 
 void Cursor::moveToPreviousSubwordBoundary() {
   const Regex wordRegex = this->subwordRegExp(true);
   const Point position = this->getPreviousWordBoundaryBufferPosition(&wordRegex);
-  /* if (position) */ this->setBufferPosition(position);
+  this->setBufferPosition(position);
 }
 
 void Cursor::moveToNextSubwordBoundary() {
   const Regex wordRegex = this->subwordRegExp();
   const Point position = this->getNextWordBoundaryBufferPosition(&wordRegex);
-  /* if (position) */ this->setBufferPosition(position);
+  this->setBufferPosition(position);
 }
 
 void Cursor::skipLeadingWhitespace() {
@@ -340,12 +340,12 @@ void Cursor::skipLeadingWhitespace() {
 
 void Cursor::moveToBeginningOfNextParagraph() {
   const Point position = this->getBeginningOfNextParagraphBufferPosition();
-  /* if (position) */ this->setBufferPosition(position);
+  this->setBufferPosition(position);
 }
 
 void Cursor::moveToBeginningOfPreviousParagraph() {
   const Point position = this->getBeginningOfPreviousParagraphBufferPosition();
-  /* if (position) */ this->setBufferPosition(position);
+  this->setBufferPosition(position);
 }
 
 /*

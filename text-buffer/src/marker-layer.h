@@ -19,13 +19,14 @@ struct MarkerLayer {
 
   TextBuffer *delegate;
   unsigned id;
+  bool maintainHistory;
   Emitter<> didUpdateEmitter;
   Emitter<Marker *> didCreateMarkerEmitter;
   MarkerIndex *index;
   std::unordered_map<unsigned, Marker *> markersById;
   std::unordered_set<DisplayMarkerLayer *> displayMarkerLayers;
 
-  MarkerLayer(TextBuffer *, unsigned);
+  MarkerLayer(TextBuffer *, unsigned, bool = false);
   ~MarkerLayer();
 
   void clear();

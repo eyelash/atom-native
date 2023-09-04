@@ -122,7 +122,7 @@ struct TextEditor {
   Range clipScreenRange(Range);
   Decoration *decorateMarker(DisplayMarker *, Decoration::Properties);
   LayerDecoration *decorateMarkerLayer(DisplayMarkerLayer *, Decoration::Properties);
-  DisplayMarkerLayer *addMarkerLayer();
+  DisplayMarkerLayer *addMarkerLayer(bool = false);
   Point getCursorBufferPosition();
   void setCursorBufferPosition(Point);
   Point getCursorScreenPosition();

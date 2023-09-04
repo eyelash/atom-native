@@ -85,7 +85,7 @@ struct TextBuffer {
   Range deleteRow(double row);
   Range deleteRows(double startRow, double endRow);
   void emitDidChangeEvent(Range, Range, const std::u16string &, const std::u16string &);
-  MarkerLayer *addMarkerLayer();
+  MarkerLayer *addMarkerLayer(bool = false);
   MarkerLayer *getMarkerLayer(unsigned);
   MarkerLayer *getDefaultMarkerLayer();
   unsigned markRange(Range);

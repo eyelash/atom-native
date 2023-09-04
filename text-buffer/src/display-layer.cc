@@ -75,8 +75,8 @@ void DisplayLayer::bufferDidChangeLanguageMode() {
   });
 }
 
-DisplayMarkerLayer *DisplayLayer::addMarkerLayer() {
-  DisplayMarkerLayer *markerLayer = new DisplayMarkerLayer(this, this->buffer->addMarkerLayer(), true);
+DisplayMarkerLayer *DisplayLayer::addMarkerLayer(bool maintainHistory) {
+  DisplayMarkerLayer *markerLayer = new DisplayMarkerLayer(this, this->buffer->addMarkerLayer(maintainHistory), true);
   this->displayMarkerLayersById[markerLayer->id] = markerLayer;
   return markerLayer;
 }

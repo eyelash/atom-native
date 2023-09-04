@@ -302,8 +302,8 @@ Range TextBuffer::deleteRows(double startRow, double endRow) {
 Section: Markers
 */
 
-MarkerLayer *TextBuffer::addMarkerLayer() {
-  MarkerLayer *layer = new MarkerLayer(this, this->nextMarkerLayerId++);
+MarkerLayer *TextBuffer::addMarkerLayer(bool maintainHistory) {
+  MarkerLayer *layer = new MarkerLayer(this, this->nextMarkerLayerId++, maintainHistory);
   this->markerLayers[layer->id] = layer;
   return layer;
 }
@@ -670,8 +670,8 @@ TextBuffer::MarkerSnapshot TextBuffer::createMarkerSnapshot(DisplayMarkerLayer *
   MarkerSnapshot snapshot;
   for (auto &markerLayer : this->markerLayers) {
     const unsigned markerLayerId = markerLayer.first;
-    /*if (!markerLayer.maintainHistory) continue;
-    if (
+    if (!markerLayer.second->maintainHistory) continue;
+    /*if (
       selectionsMarkerLayer &&
       markerLayer.getRole() === 'selections' &&
       markerLayerId !== selectionsMarkerLayer->id

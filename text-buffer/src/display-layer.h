@@ -67,7 +67,7 @@ struct DisplayLayer {
 
   void clearSpatialIndex();
   void bufferDidChangeLanguageMode();
-  DisplayMarkerLayer *addMarkerLayer();
+  DisplayMarkerLayer *addMarkerLayer(bool = false);
   DisplayMarkerLayer *getMarkerLayer(unsigned);
   void onDidChange(std::function<void()>);
   Range bufferRangeForFold(unsigned);

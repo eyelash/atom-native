@@ -25,7 +25,7 @@ TextEditor::TextEditor(TextBuffer *buffer) {
   }
   this->displayLayer = this->buffer->addDisplayLayer();
   //this->defaultMarkerLayer = this->displayLayer->addMarkerLayer();
-  this->selectionsMarkerLayer = this->addMarkerLayer();
+  this->selectionsMarkerLayer = this->addMarkerLayer(true);
   this->decorationManager = new DecorationManager(this);
   this->decorateMarkerLayer(this->selectionsMarkerLayer, { Decoration::Type::cursor });
   this->decorateCursorLine();
@@ -791,8 +791,8 @@ LayerDecoration *TextEditor::decorateMarkerLayer(DisplayMarkerLayer *markerLayer
 Section: Markers
 */
 
-DisplayMarkerLayer *TextEditor::addMarkerLayer() {
-  return this->displayLayer->addMarkerLayer();
+DisplayMarkerLayer *TextEditor::addMarkerLayer(bool maintainHistory) {
+  return this->displayLayer->addMarkerLayer(maintainHistory);
 }
 
 /*

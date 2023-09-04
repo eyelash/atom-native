@@ -7,9 +7,10 @@
 Section: Lifecycle
 */
 
-MarkerLayer::MarkerLayer(TextBuffer *delegate, unsigned id) {
+MarkerLayer::MarkerLayer(TextBuffer *delegate, unsigned id, bool maintainHistory) {
   this->delegate = delegate;
   this->id = id;
+  this->maintainHistory = maintainHistory;
   this->index = new MarkerIndex();
 }
 

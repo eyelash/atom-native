@@ -24,7 +24,7 @@ TextEditor::TextEditor(TextBuffer *buffer) {
     this->buffer = new TextBuffer();
   }
   this->displayLayer = this->buffer->addDisplayLayer();
-  //this->defaultMarkerLayer = this->displayLayer->addMarkerLayer();
+  this->defaultMarkerLayer = this->displayLayer->addMarkerLayer();
   this->selectionsMarkerLayer = this->addMarkerLayer(true);
   this->decorationManager = new DecorationManager(this);
   this->decorateMarkerLayer(this->selectionsMarkerLayer, { Decoration::Type::cursor });
@@ -791,8 +791,45 @@ LayerDecoration *TextEditor::decorateMarkerLayer(DisplayMarkerLayer *markerLayer
 Section: Markers
 */
 
+DisplayMarker *TextEditor::markBufferRange(Range bufferRange) {
+  return this->defaultMarkerLayer->markBufferRange(bufferRange);
+}
+
+DisplayMarker *TextEditor::markScreenRange(Range screenRange) {
+  return this->defaultMarkerLayer->markScreenRange(screenRange);
+}
+
+DisplayMarker *TextEditor::markBufferPosition(Point bufferPosition) {
+  return this->defaultMarkerLayer->markBufferPosition(bufferPosition);
+}
+
+DisplayMarker *TextEditor::markScreenPosition(Point screenPosition) {
+  return this->defaultMarkerLayer->markScreenPosition(screenPosition);
+}
+
+DisplayMarker *TextEditor::getMarker(unsigned id) {
+  return this->defaultMarkerLayer->getMarker(id);
+}
+
+size_t TextEditor::getMarkerCount() {
+  return this->defaultMarkerLayer->getMarkerCount();
+}
+
+void TextEditor::destroyMarker(unsigned id) {
+  DisplayMarker *marker = this->getMarker(id);
+  if (marker) marker->destroy();
+}
+
 DisplayMarkerLayer *TextEditor::addMarkerLayer(bool maintainHistory) {
   return this->displayLayer->addMarkerLayer(maintainHistory);
+}
+
+DisplayMarkerLayer *TextEditor::getMarkerLayer(unsigned id) {
+  return this->displayLayer->getMarkerLayer(id);
+}
+
+DisplayMarkerLayer *TextEditor::getDefaultMarkerLayer() {
+  return this->defaultMarkerLayer;
 }
 
 /*

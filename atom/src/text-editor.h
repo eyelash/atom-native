@@ -35,6 +35,7 @@ struct TextEditor {
   std::vector<Selection *> selections;
   TextBuffer *buffer;
   DisplayLayer *displayLayer;
+  DisplayMarkerLayer *defaultMarkerLayer;
   DisplayMarkerLayer *selectionsMarkerLayer;
   DecorationManager *decorationManager;
 
@@ -122,7 +123,16 @@ struct TextEditor {
   Range clipScreenRange(Range);
   Decoration *decorateMarker(DisplayMarker *, Decoration::Properties);
   LayerDecoration *decorateMarkerLayer(DisplayMarkerLayer *, Decoration::Properties);
+  DisplayMarker *markBufferRange(Range);
+  DisplayMarker *markScreenRange(Range);
+  DisplayMarker *markBufferPosition(Point);
+  DisplayMarker *markScreenPosition(Point);
+  DisplayMarker *getMarker(unsigned id);
+  size_t getMarkerCount();
+  void destroyMarker(unsigned id);
   DisplayMarkerLayer *addMarkerLayer(bool = false);
+  DisplayMarkerLayer *getMarkerLayer(unsigned);
+  DisplayMarkerLayer *getDefaultMarkerLayer();
   Point getCursorBufferPosition();
   void setCursorBufferPosition(Point);
   Point getCursorScreenPosition();

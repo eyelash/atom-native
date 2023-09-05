@@ -58,6 +58,10 @@ void TextBuffer::onDidChange(std::function<void()> callback) {
   return this->didChangeTextEmitter.on(callback);
 }
 
+void TextBuffer::onDidChangeText(std::function<void()> callback) {
+  return this->onDidChange(callback);
+}
+
 void TextBuffer::onDidChangeModified(std::function<void()> callback) {
   return this->didChangeModifiedEmitter.on(callback);
 }

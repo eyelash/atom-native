@@ -123,6 +123,14 @@ void TextEditor::onDidInsertText(std::function<void(const std::u16string &, cons
   return this->didInsertTextEmitter.on(callback);
 }
 
+void TextEditor::onDidAddCursor(std::function<void()> callback) {
+  return this->didAddCursorEmitter.on(callback);
+}
+
+void TextEditor::onDidRemoveCursor(std::function<void()> callback) {
+  return this->didRemoveCursorEmitter.on(callback);
+}
+
 void TextEditor::onDidRequestAutoscroll(std::function<void(Range)> callback) {
   return this->didRequestAutoscrollEmitter.on(callback);
 }
@@ -1370,22 +1378,15 @@ void TextEditor::addSelection(DisplayMarker *marker) {
   const Range selectionBufferRange = selection->getBufferRange();
   this->mergeIntersectingSelections( /* { preserveFolds: options.preserveFolds } */ );
 
-  /*if (selection.destroyed) {
-    for (selection of this.getSelections()) {
-      if (selection.intersectsBufferRange(selectionBufferRange))
-        return selection;
-    }
-  } else {
-    this.emitter.emit('did-add-cursor', cursor);
-    this.emitter.emit('did-add-selection', selection);
-    return selection;
-  }*/
+  this->didAddCursorEmitter.emit();
+  //return selection;
 }
 
 void TextEditor::removeSelection(Selection *selection) {
   this->cursors.erase(std::find(this->cursors.begin(), this->cursors.end(), selection->cursor));
   this->selections.erase(std::find(this->selections.begin(), this->selections.end(), selection));
   this->cursorsByMarkerId.erase(this->cursorsByMarkerId.find(selection->cursor->getMarker()->id));
+  this->didRemoveCursorEmitter.emit();
   delete selection->cursor;
   delete selection;
 }

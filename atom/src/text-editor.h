@@ -29,6 +29,8 @@ struct TextEditor {
   Emitter<> didChangeEmitter;
   Emitter<> didChangeSelectionRangeEmitter;
   Emitter<const std::u16string &, const Range &> didInsertTextEmitter;
+  Emitter<> didAddCursorEmitter;
+  Emitter<> didRemoveCursorEmitter;
   Emitter<Range> didRequestAutoscrollEmitter;
   std::vector<Cursor *> cursors;
   std::unordered_map<unsigned, Cursor *> cursorsByMarkerId;
@@ -52,6 +54,8 @@ struct TextEditor {
   void onDidChangeGrammar(std::function<void()>);
   void onDidChangeModified(std::function<void()>);
   void onDidInsertText(std::function<void(const std::u16string &, const Range &)>);
+  void onDidAddCursor(std::function<void()>);
+  void onDidRemoveCursor(std::function<void()>);
   void onDidRequestAutoscroll(std::function<void(Range)>);
   TextBuffer *getBuffer();
   std::string getTitle();

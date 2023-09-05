@@ -2,6 +2,7 @@ atom = declare_dependency(
   link_with: static_library(
     'atom',
     files(
+      'src/bracket-matcher-view.cc',
       'src/bracket-matcher.cc',
       'src/clipboard.cc',
       'src/cursor.cc',
@@ -10,6 +11,7 @@ atom = declare_dependency(
       'src/grammar-registry.cc',
       'src/grammar.cc',
       'src/layer-decoration.cc',
+      'src/match-manager.cc',
       'src/null-grammar.cc',
       'src/select-next.cc',
       'src/selection.cc',

@@ -55,6 +55,7 @@ struct TextBuffer {
   using MarkerSnapshot = std::unordered_map<unsigned, MarkerLayer::Snapshot>;
 
   void onDidChange(std::function<void()>);
+  void onDidChangeText(std::function<void()>);
   void onDidChangeModified(std::function<void()>);
   void onDidChangePath(std::function<void()>);
   void onWillSave(std::function<void()>);

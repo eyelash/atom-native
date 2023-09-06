@@ -267,6 +267,13 @@ optional<Range> TreeSitterLanguageMode::getRangeForSyntaxNodeContainingRange(Ran
   return !ts_node_is_null(node) ? rangeForNode(node) : optional<Range>();
 }
 
+TSNode TreeSitterLanguageMode::getSyntaxNodeAtPosition(Point position, std::function<bool(TSNode, TreeSitterGrammar *)> where) {
+  return this->getSyntaxNodeContainingRange(
+    Range(position, position),
+    where
+  );
+}
+
 Grammar *TreeSitterLanguageMode::getGrammar() {
   return this->grammar;
 }

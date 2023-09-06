@@ -4,6 +4,7 @@
 #include "selection.h"
 #include "tree-sitter-language-mode.h"
 #include <display-marker.h>
+#include <cstring>
 
 static const double MAX_ROWS_TO_SCAN = 10000;
 static const Point ONE_CHAR_FORWARD_TRAVERSAL = Point(0, 1);
@@ -47,33 +48,33 @@ void BracketMatcherView::updateMatch() {
   const auto &position = std::get<0>(pair);
   const auto &matchPosition = std::get<1>(pair);
 
-  Range startRange;
-  Range endRange;
+  optional<Range> startRange;
+  optional<Range> endRange;
   bool highlightTag = false;
   bool highlightPair = false;
   if (position && matchPosition) {
-    Range bracket1Range = (startRange = Range(*position, position->traverse(ONE_CHAR_FORWARD_TRAVERSAL)));
-    Range bracket2Range = (endRange = Range(*matchPosition, matchPosition->traverse(ONE_CHAR_FORWARD_TRAVERSAL)));
+    optional<Range> bracket1Range = (startRange = Range(*position, position->traverse(ONE_CHAR_FORWARD_TRAVERSAL)));
+    optional<Range> bracket2Range = (endRange = Range(*matchPosition, matchPosition->traverse(ONE_CHAR_FORWARD_TRAVERSAL)));
     highlightPair = true;
   } else {
-    /*this.bracket1Range = null;
-    this.bracket2Range = null;
-    if (this.hasSyntaxTree()) {
-      ({startRange, endRange} = this.findMatchingTagNameRangesWithSyntaxTree());
+    //this.bracket1Range = null;
+    //this.bracket2Range = null;
+    if (TreeSitterLanguageMode *languageMode = this->hasSyntaxTree()) {
+      std::tie(startRange, endRange) = this->findMatchingTagNameRangesWithSyntaxTree(languageMode);
     } else {
-      ({startRange, endRange} = this.tagFinder.findMatchingTags());
-      if (this.isCursorOnCommentOrString()) return;
+      //({startRange, endRange} = this.tagFinder.findMatchingTags());
+      //if (this.isCursorOnCommentOrString()) return;
     }
     if (startRange) {
       highlightTag = true;
       highlightPair = true;
-    }*/
+    }
   }
 
   if (!highlightTag && !highlightPair) return;
 
-  this->startMarker = this->createMarker(startRange);
-  this->endMarker = this->createMarker(endRange);
+  this->startMarker = this->createMarker(*startRange);
+  this->endMarker = this->createMarker(*endRange);
   this->pairHighlighted = highlightPair;
   this->tagHighlighted = highlightTag;
 }
@@ -107,12 +108,6 @@ static Point startPosition(TSNode node) {
 static Point endPosition(TSNode node) {
   return PointToJS(ts_node_end_point(node));
 }
-/*static Point startPosition(TSRange range) {
-  return PointToJS(range.start_point);
-}
-static Point endPosition(TSRange range) {
-  return PointToJS(range.end_point);
-}*/
 static std::vector<TSNode> children(TSNode node) {
   static TSTreeCursor scratch_cursor = {nullptr, nullptr, {0, 0}};
   std::vector<TSNode> result;
@@ -124,6 +119,16 @@ static std::vector<TSNode> children(TSNode node) {
     } while (ts_tree_cursor_goto_next_sibling(&scratch_cursor));
   }
   return result;
+}
+static TSNode ts_node_first_child(TSNode node) {
+  return ts_node_child(node, 0);
+}
+static TSNode ts_node_last_child(TSNode node) {
+  return ts_node_child(node, ts_node_child_count(node) - 1);
+}
+
+template <typename T> static Range rangeForNode(T node) {
+  return Range(startPosition(node), endPosition(node));
 }
 
 optional<Point> BracketMatcherView::findMatchingEndBracketWithSyntaxTree(Point bracketPosition, char16_t startBracket, char16_t endBracket, TreeSitterLanguageMode *languageMode) {
@@ -164,6 +169,61 @@ optional<Point> BracketMatcherView::findMatchingStartBracketWithSyntaxTree(Point
     }
   );
   return result;
+}
+
+std::pair<optional<Range>, optional<Range>> BracketMatcherView::findMatchingTagNameRangesWithSyntaxTree(TreeSitterLanguageMode *languageMode) {
+  const Point position = this->editor->getCursorBufferPosition();
+  const auto tags = this->findContainingTagsWithSyntaxTree(position, languageMode);
+  const auto &startTag = std::get<0>(tags);
+  const auto &endTag = std::get<1>(tags);
+  if (startTag && (rangeForNode(*startTag).containsPoint(position) || rangeForNode(*endTag).containsPoint(position))) {
+    if (ts_node_eq(*startTag, *endTag)) {
+      const Range range = rangeForNode(ts_node_child(*startTag, 1));
+      return {range, range};
+    } else if (strcmp(ts_node_type(ts_node_first_child(*endTag)), "</") == 0) {
+      return {
+        rangeForNode(ts_node_child(*startTag, 1)),
+        rangeForNode(ts_node_child(*endTag, 1))
+      };
+    } else {
+      return {
+        rangeForNode(ts_node_child(*startTag, 1)),
+        rangeForNode(ts_node_child(*endTag, 2))
+      };
+    }
+  } else {
+    return {};
+  }
+}
+
+std::pair<optional<TSNode>, optional<TSNode>> BracketMatcherView::findContainingTagsWithSyntaxTree(Point position, TreeSitterLanguageMode *languageMode) {
+  optional<TSNode> startTag, endTag;
+  if (position.column == this->editor->buffer->lineLengthForRow(position.row)) position.column--;
+  languageMode->getSyntaxNodeAtPosition(position, [&](TSNode node, TreeSitterGrammar *) {
+    if (strstr(ts_node_type(node), "element") && ts_node_child_count(node) > 0) {
+      TSNode firstChild = ts_node_first_child(node);
+      TSNode lastChild = ts_node_last_child(node);
+      if (
+        ts_node_child_count(firstChild) > 2 &&
+        strcmp(ts_node_type(ts_node_first_child(firstChild)), "<") == 0
+      ) {
+        if (ts_node_eq(lastChild, firstChild) && strcmp(ts_node_type(ts_node_last_child(firstChild)), "/>") == 0) {
+          startTag = firstChild;
+          endTag = firstChild;
+        } else if (
+          ts_node_child_count(lastChild) > 2 &&
+          (strcmp(ts_node_type(ts_node_first_child(lastChild)), "</") == 0 ||
+           strcmp(ts_node_type(ts_node_first_child(lastChild)), "<") == 0 && strcmp(ts_node_type(ts_node_child(lastChild, 1)), "/") == 0)
+        ) {
+          startTag = firstChild;
+          endTag = lastChild;
+        }
+      }
+      return true;
+    }
+    return false;
+  });
+  return {startTag, endTag};
 }
 
 DisplayMarker *BracketMatcherView::createMarker(Range bufferRange) {

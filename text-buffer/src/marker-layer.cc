@@ -46,7 +46,7 @@ std::vector<Marker *> MarkerLayer::getMarkers() {
   return results;
 }
 
-std::size_t MarkerLayer::getMarkerCount() const {
+size_t MarkerLayer::getMarkerCount() {
   return this->markersById.size();
 }
 
@@ -162,13 +162,13 @@ std::vector<Marker *> MarkerLayer::findMarkers(Slice<FindParam> params) {
 Section: Marker creation
 */
 
-unsigned MarkerLayer::markRange(Range range) {
+unsigned MarkerLayer::markRange(const Range &range) {
   return this->createMarker(this->delegate->clipRange(range));
 }
 
 unsigned MarkerLayer::markPosition(Point position) {
   position = this->delegate->clipPosition(position);
-  return this->createMarker(Range{position, position});
+  return this->createMarker(Range(position, position));
 }
 
 /*
@@ -188,7 +188,7 @@ void MarkerLayer::onDidCreateMarker(std::function<void(Marker *)> callback) {
 Section: Private - TextBuffer interface
 */
 
-void MarkerLayer::splice(Point start, Point oldExtent, Point newExtent) {
+void MarkerLayer::splice(const Point &start, const Point &oldExtent, const Point &newExtent) {
   auto invalidated = this->index->splice(start, oldExtent, newExtent);
   // TODO: destroy invalidated markers
 }
@@ -281,15 +281,15 @@ bool MarkerLayer::hasMarker(unsigned id) {
   return /* !this->destroyed && */ this->index->has(id);
 }
 
-Range MarkerLayer::getMarkerRange(unsigned id) const {
+Range MarkerLayer::getMarkerRange(unsigned id) {
   return this->index->get_range(id);
 }
 
-Point MarkerLayer::getMarkerStartPosition(unsigned id) const {
+Point MarkerLayer::getMarkerStartPosition(unsigned id) {
   return this->index->get_start(id);
 }
 
-Point MarkerLayer::getMarkerEndPosition(unsigned id) const {
+Point MarkerLayer::getMarkerEndPosition(unsigned id) {
   return this->index->get_end(id);
 }
 

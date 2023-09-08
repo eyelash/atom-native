@@ -52,7 +52,7 @@ void DisplayMarker::onDidDestroy(std::function<void()> callback) {
 Section: TextEditorMarker Details
 */
 
-bool DisplayMarker::isReversed() const {
+bool DisplayMarker::isReversed() {
   return this->bufferMarker->isReversed();
 }
 
@@ -60,11 +60,11 @@ bool DisplayMarker::isReversed() const {
 Section: Comparing to other markers
 */
 
-int DisplayMarker::compare(const DisplayMarker *otherMarker) const {
+int DisplayMarker::compare(DisplayMarker *otherMarker) {
   return this->bufferMarker->compare(otherMarker->bufferMarker);
 }
 
-bool DisplayMarker::isEqual(const DisplayMarker *other) const {
+bool DisplayMarker::isEqual(DisplayMarker *other) {
   return this->bufferMarker->isEqual(other->bufferMarker);
 }
 
@@ -72,7 +72,7 @@ bool DisplayMarker::isEqual(const DisplayMarker *other) const {
 Section: Managing the marker's range
 */
 
-Range DisplayMarker::getBufferRange() const {
+Range DisplayMarker::getBufferRange() {
   return this->bufferMarker->getRange();
 }
 
@@ -88,7 +88,7 @@ bool DisplayMarker::setScreenRange(const Range &screenRange, optional<bool> reve
   return this->setBufferRange(this->layer->translateScreenRange(screenRange), reversed);
 }
 
-Point DisplayMarker::getHeadBufferPosition() const {
+Point DisplayMarker::getHeadBufferPosition() {
   return this->bufferMarker->getHeadPosition();
 }
 
@@ -104,7 +104,7 @@ bool DisplayMarker::setHeadScreenPosition(const Point &screenPosition, DisplayLa
   return this->setHeadBufferPosition(this->layer->translateScreenPosition(screenPosition, clipDirection));
 }
 
-Point DisplayMarker::getTailBufferPosition() const {
+Point DisplayMarker::getTailBufferPosition() {
   return this->bufferMarker->getTailPosition();
 }
 
@@ -120,7 +120,7 @@ bool DisplayMarker::setTailScreenPosition(const Point &screenPosition) {
   return this->bufferMarker->setTailPosition(this->layer->translateScreenPosition(screenPosition));
 }
 
-Point DisplayMarker::getStartBufferPosition() const {
+Point DisplayMarker::getStartBufferPosition() {
   return this->bufferMarker->getStartPosition();
 }
 
@@ -128,7 +128,7 @@ Point DisplayMarker::getStartScreenPosition() {
   return this->layer->translateBufferPosition(this->getStartBufferPosition());
 }
 
-Point DisplayMarker::getEndBufferPosition() const {
+Point DisplayMarker::getEndBufferPosition() {
   return this->bufferMarker->getEndPosition();
 }
 
@@ -136,7 +136,7 @@ Point DisplayMarker::getEndScreenPosition() {
   return this->layer->translateBufferPosition(this->getEndBufferPosition());
 }
 
-bool DisplayMarker::hasTail() const {
+bool DisplayMarker::hasTail() {
   return this->bufferMarker->hasTail();
 }
 

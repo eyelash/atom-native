@@ -125,11 +125,11 @@ std::u16string TextBuffer::getText() {
   return buffer->text();
 }
 
-uint16_t TextBuffer::getCharacterAtPosition(Point position) {
+uint16_t TextBuffer::getCharacterAtPosition(const Point &position) {
   return this->buffer->character_at(position);
 }
 
-std::u16string TextBuffer::getTextInRange(Range range) {
+std::u16string TextBuffer::getTextInRange(const Range &range) {
   return this->buffer->text_in_range(range);
 }
 
@@ -191,7 +191,7 @@ Range TextBuffer::setText(std::u16string text) {
   return this->setTextInRange(this->getRange(), std::move(text));
 }
 
-Range TextBuffer::setTextInRange(Range range, std::u16string newText) {
+Range TextBuffer::setTextInRange(const Range &range, std::u16string newText) {
   if (this->transactCallDepth == 0) {
     //const Range newRange = this->transact([&]() { this->setTextInRange(range, newText /* , {normalizeLineEndings} */); });
     //if (undo === 'skip') this.groupLastChanges()
@@ -213,7 +213,7 @@ Range TextBuffer::setTextInRange(Range range, std::u16string newText) {
   return newRange;
 }
 
-Range TextBuffer::insert(Point position, std::u16string text) {
+Range TextBuffer::insert(const Point &position, std::u16string text) {
   return this->setTextInRange(Range(position, position), std::move(text));
 }
 
@@ -221,7 +221,7 @@ Range TextBuffer::append(std::u16string text) {
   return this->insert(this->getEndPosition(), std::move(text));
 }
 
-Range TextBuffer::applyChange(Point oldStart, Point oldEnd, Point newStart, Point newEnd, const std::u16string &oldText, const std::u16string &newText, bool pushToHistory) {
+Range TextBuffer::applyChange(const Point &oldStart, const Point &oldEnd, const Point &newStart, const Point &newEnd, const std::u16string &oldText, const std::u16string &newText, bool pushToHistory) {
 
   const Point oldExtent = traversal(oldEnd, oldStart);
   const Range oldRange = Range(newStart, traverse(newStart, oldExtent));
@@ -253,7 +253,7 @@ Range TextBuffer::applyChange(Point oldStart, Point oldEnd, Point newStart, Poin
   return newRange;
 }
 
-void TextBuffer::emitDidChangeEvent(Range oldRange, Range newRange, const std::u16string &oldText, const std::u16string &newText) {
+void TextBuffer::emitDidChangeEvent(const Range &oldRange, const Range &newRange, const std::u16string &oldText, const std::u16string &newText) {
   if (!oldRange.isEmpty() || !newRange.isEmpty()) {
     this->languageMode->bufferDidChange(oldRange, newRange, oldText, newText);
     for (auto &displayLayer : this->displayLayers) {
@@ -262,7 +262,7 @@ void TextBuffer::emitDidChangeEvent(Range oldRange, Range newRange, const std::u
   }
 }
 
-Range TextBuffer::delete_(Range range) {
+Range TextBuffer::delete_(const Range &range) {
   return this->setTextInRange(range, u"");
 }
 
@@ -320,7 +320,7 @@ MarkerLayer *TextBuffer::getDefaultMarkerLayer() {
   return this->defaultMarkerLayer;
 }
 
-unsigned TextBuffer::markRange(Range range) {
+unsigned TextBuffer::markRange(const Range &range) {
   return this->defaultMarkerLayer->markRange(range);
 }
 
@@ -336,7 +336,7 @@ Marker *TextBuffer::getMarker(unsigned id) {
   return this->defaultMarkerLayer->getMarker(id);
 }
 
-std::size_t TextBuffer::getMarkerCount() {
+size_t TextBuffer::getMarkerCount() {
   return this->defaultMarkerLayer->getMarkerCount();
 }
 
@@ -463,7 +463,7 @@ void TextBuffer::scanInRange(const Regex &regex, Range range, /* options = {}, *
   }
 }
 
-void TextBuffer::backwardsScanInRange(const Regex &regex, Range range, /* options = {}, */ ScanIterator iterator) {
+void TextBuffer::backwardsScanInRange(const Regex &regex, const Range &range, /* options = {}, */ ScanIterator iterator) {
   /*if (_.isFunction(options)) {
     iterator = options
     options = {}
@@ -474,13 +474,13 @@ void TextBuffer::backwardsScanInRange(const Regex &regex, Range range, /* option
 
 optional<NativeRange> TextBuffer::findSync(const Regex &regex) { return this->buffer->find(regex); }
 
-optional<NativeRange> TextBuffer::findInRangeSync(const Regex &regex, Range range) { return this->buffer->find(regex, range); }
+optional<NativeRange> TextBuffer::findInRangeSync(const Regex &regex, const Range &range) { return this->buffer->find(regex, range); }
 
 std::vector<NativeRange> TextBuffer::findAllSync(const Regex &regex) { return this->buffer->find_all(regex); }
 
-std::vector<NativeRange> TextBuffer::findAllInRangeSync(const Regex &regex, Range range) { return this->buffer->find_all(regex, range); }
+std::vector<NativeRange> TextBuffer::findAllInRangeSync(const Regex &regex, const Range &range) { return this->buffer->find_all(regex, range); }
 
-std::vector<Marker *> TextBuffer::findAndMarkAllInRangeSync(MarkerLayer *markerLayer, const Regex &regex, Range range /* , options = {} */) {
+std::vector<Marker *> TextBuffer::findAndMarkAllInRangeSync(MarkerLayer *markerLayer, const Regex &regex, const Range &range /* , options = {} */) {
   const unsigned startId = this->nextMarkerId;
   const bool exclusive = true; // options.invalidate === 'inside' || !options.tailed;
   this->nextMarkerId += this->buffer->find_and_mark_all(
@@ -534,7 +534,7 @@ Range TextBuffer::rangeForRow(double row, bool includeNewline) {
   }
 }
 
-double TextBuffer::characterIndexForPosition(Point position) {
+double TextBuffer::characterIndexForPosition(const Point &position) {
   return this->buffer->clip_position(position).offset;
 }
 
@@ -542,7 +542,7 @@ Point TextBuffer::positionForCharacterIndex(double offset) {
   return this->buffer->position_for_offset(offset);
 }
 
-Range TextBuffer::clipRange(Range range) {
+Range TextBuffer::clipRange(const Range &range) {
   const Point start = this->clipPosition(range.start);
   const Point end = this->clipPosition(range.end);
   if (range.start == start && range.end == end) {
@@ -552,7 +552,7 @@ Range TextBuffer::clipRange(Range range) {
   }
 }
 
-Point TextBuffer::clipPosition(Point position) {
+Point TextBuffer::clipPosition(const Point &position) {
   const double row = position.row, column = position.column;
   if (row < 0) {
     return this->getFirstPosition();

@@ -43,21 +43,21 @@ void DisplayMarkerLayer::onDidCreateMarker(std::function<void(DisplayMarker *)> 
 Section: Marker creation
 */
 
-DisplayMarker *DisplayMarkerLayer::markScreenRange(Range screenRange) {
+DisplayMarker *DisplayMarkerLayer::markScreenRange(const Range &screenRange) {
   Range bufferRange = this->displayLayer->translateScreenRange(screenRange);
   return this->getMarker(this->bufferMarkerLayer->markRange(bufferRange));
 }
 
-DisplayMarker *DisplayMarkerLayer::markScreenPosition(Point screenPosition) {
+DisplayMarker *DisplayMarkerLayer::markScreenPosition(const Point &screenPosition) {
   Point bufferPosition = this->displayLayer->translateScreenPosition(screenPosition);
   return this->getMarker(this->bufferMarkerLayer->markPosition(bufferPosition));
 }
 
-DisplayMarker *DisplayMarkerLayer::markBufferRange(Range bufferRange) {
+DisplayMarker *DisplayMarkerLayer::markBufferRange(const Range &bufferRange) {
   return this->getMarker(this->bufferMarkerLayer->markRange(bufferRange));
 }
 
-DisplayMarker *DisplayMarkerLayer::markBufferPosition(Point bufferPosition) {
+DisplayMarker *DisplayMarkerLayer::markBufferPosition(const Point &bufferPosition) {
   return this->getMarker(this->bufferMarkerLayer->markPosition(bufferPosition));
 }
 
@@ -80,7 +80,7 @@ DisplayMarker *DisplayMarkerLayer::getMarker(unsigned id) {
   });
 }*/
 
-std::size_t DisplayMarkerLayer::getMarkerCount() const {
+size_t DisplayMarkerLayer::getMarkerCount() {
   return this->bufferMarkerLayer->getMarkerCount();
 }
 
@@ -239,19 +239,19 @@ std::vector<DisplayMarker *> DisplayMarkerLayer::findMarkers(Slice<FindParam> pa
 /*
 Section: Private
 */
-Point DisplayMarkerLayer::translateBufferPosition(Point bufferPosition, DisplayLayer::ClipDirection clipDirection) {
+Point DisplayMarkerLayer::translateBufferPosition(const Point &bufferPosition, DisplayLayer::ClipDirection clipDirection) {
   return this->displayLayer->translateBufferPosition(bufferPosition, clipDirection);
 }
 
-Range DisplayMarkerLayer::translateBufferRange(Range bufferRange, DisplayLayer::ClipDirection clipDirection) {
+Range DisplayMarkerLayer::translateBufferRange(const Range &bufferRange, DisplayLayer::ClipDirection clipDirection) {
   return this->displayLayer->translateBufferRange(bufferRange, clipDirection);
 }
 
-Point DisplayMarkerLayer::translateScreenPosition(Point screenPosition, DisplayLayer::ClipDirection clipDirection, bool skipSoftWrapIndentation) {
+Point DisplayMarkerLayer::translateScreenPosition(const Point &screenPosition, DisplayLayer::ClipDirection clipDirection, bool skipSoftWrapIndentation) {
   return this->displayLayer->translateScreenPosition(screenPosition, clipDirection, skipSoftWrapIndentation);
 }
 
-Range DisplayMarkerLayer::translateScreenRange(Range screenRange, DisplayLayer::ClipDirection clipDirection, bool skipSoftWrapIndentation) {
+Range DisplayMarkerLayer::translateScreenRange(const Range &screenRange, DisplayLayer::ClipDirection clipDirection, bool skipSoftWrapIndentation) {
   return this->displayLayer->translateScreenRange(screenRange, clipDirection, skipSoftWrapIndentation);
 }
 

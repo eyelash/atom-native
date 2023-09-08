@@ -27,7 +27,7 @@ void TreeSitterGrammar::setDecreaseNextIndentPattern(const char16_t *pattern) {
 }
 
 SyntaxScopeMap::Result *TreeSitterGrammar::preprocessScopes(const char *value) {
-  struct StringResult : SyntaxScopeMap::Result {
+  struct StringResult final : SyntaxScopeMap::Result {
     std::string rules;
     StringResult(const char *value) : rules(value) {}
     optional<std::string> applyLeafRules(const TreeCursor &) override {
@@ -38,7 +38,7 @@ SyntaxScopeMap::Result *TreeSitterGrammar::preprocessScopes(const char *value) {
 }
 
 SyntaxScopeMap::Result *TreeSitterGrammar::preprocessScopes(Exact value) {
-  struct ExactResult : SyntaxScopeMap::Result {
+  struct ExactResult final : SyntaxScopeMap::Result {
     std::u16string exact;
     std::string scopes;
     ExactResult(Exact value) : exact(value.exact), scopes(value.scopes) {}
@@ -52,7 +52,7 @@ SyntaxScopeMap::Result *TreeSitterGrammar::preprocessScopes(Exact value) {
 }
 
 SyntaxScopeMap::Result *TreeSitterGrammar::preprocessScopes(Match value) {
-  struct MatchResult : SyntaxScopeMap::Result {
+  struct MatchResult final : SyntaxScopeMap::Result {
     Regex match;
     std::string scopes;
     MatchResult(Match value) : match(value.match, nullptr), scopes(value.scopes) {}
@@ -66,7 +66,7 @@ SyntaxScopeMap::Result *TreeSitterGrammar::preprocessScopes(Match value) {
 }
 
 SyntaxScopeMap::Result *TreeSitterGrammar::preprocessScopes(std::initializer_list<SyntaxScopeMap::Result *> value) {
-  struct ArrayResult : SyntaxScopeMap::Result {
+  struct ArrayResult final : SyntaxScopeMap::Result {
     std::vector<SyntaxScopeMap::Result *> rules;
     ArrayResult(std::initializer_list<SyntaxScopeMap::Result *> value) : rules(value) {}
     ~ArrayResult() {

@@ -190,7 +190,7 @@ std::u16string TextEditor::getText() {
   return this->buffer->getText();
 }
 
-std::u16string TextEditor::getTextInBufferRange(Range range) {
+std::u16string TextEditor::getTextInBufferRange(const Range &range) {
   return this->buffer->getTextInRange(range);
 }
 
@@ -270,7 +270,7 @@ Range TextEditor::bufferRangeForBufferRow(double row, bool includeNewline) {
   return this->buffer->rangeForRow(row, includeNewline);
 }
 
-std::u16string TextEditor::getTextInRange(Range range) {
+std::u16string TextEditor::getTextInRange(const Range &range) {
   return this->buffer->getTextInRange(range);
 }
 
@@ -760,11 +760,11 @@ Range TextEditor::bufferRangeForScreenRange(Range screenRange) {
   return Range(start, end);
 }
 
-Point TextEditor::clipBufferPosition(Point bufferPosition) {
+Point TextEditor::clipBufferPosition(const Point &bufferPosition) {
   return this->buffer->clipPosition(bufferPosition);
 }
 
-Range TextEditor::clipBufferRange(Range range) {
+Range TextEditor::clipBufferRange(const Range &range) {
   return this->buffer->clipRange(range);
 }
 
@@ -799,19 +799,19 @@ LayerDecoration *TextEditor::decorateMarkerLayer(DisplayMarkerLayer *markerLayer
 Section: Markers
 */
 
-DisplayMarker *TextEditor::markBufferRange(Range bufferRange) {
+DisplayMarker *TextEditor::markBufferRange(const Range &bufferRange) {
   return this->defaultMarkerLayer->markBufferRange(bufferRange);
 }
 
-DisplayMarker *TextEditor::markScreenRange(Range screenRange) {
+DisplayMarker *TextEditor::markScreenRange(const Range &screenRange) {
   return this->defaultMarkerLayer->markScreenRange(screenRange);
 }
 
-DisplayMarker *TextEditor::markBufferPosition(Point bufferPosition) {
+DisplayMarker *TextEditor::markBufferPosition(const Point &bufferPosition) {
   return this->defaultMarkerLayer->markBufferPosition(bufferPosition);
 }
 
-DisplayMarker *TextEditor::markScreenPosition(Point screenPosition) {
+DisplayMarker *TextEditor::markScreenPosition(const Point &screenPosition) {
   return this->defaultMarkerLayer->markScreenPosition(screenPosition);
 }
 
@@ -1426,11 +1426,11 @@ void TextEditor::scan(const Regex &regex, /* options = {}, */ TextBuffer::ScanIt
   return this->buffer->scan(regex, /* options, */ iterator);
 }
 
-void TextEditor::scanInBufferRange(const Regex &regex, Range range, TextBuffer::ScanIterator iterator) {
+void TextEditor::scanInBufferRange(const Regex &regex, const Range &range, TextBuffer::ScanIterator iterator) {
   return this->buffer->scanInRange(regex, range, iterator);
 }
 
-void TextEditor::backwardsScanInBufferRange(const Regex &regex, Range range, TextBuffer::ScanIterator iterator) {
+void TextEditor::backwardsScanInBufferRange(const Regex &regex, const Range &range, TextBuffer::ScanIterator iterator) {
   return this->buffer->backwardsScanInRange(regex, range, iterator);
 }
 

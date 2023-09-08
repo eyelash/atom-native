@@ -3,7 +3,7 @@
 
 #include "grammar.h"
 
-struct NullGrammar : Grammar {
+struct NullGrammar final : Grammar {
   NullGrammar();
   ~NullGrammar();
 

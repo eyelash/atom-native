@@ -160,7 +160,7 @@ void DefaultHistoryProvider::applyGroupingInterval(double groupingInterval) {
   }
 }
 
-void DefaultHistoryProvider::pushChange(Point newStart, Point oldExtent, Point newExtent, const std::u16string &oldText, const std::u16string &newText) {
+void DefaultHistoryProvider::pushChange(const Point &newStart, const Point &oldExtent, const Point &newExtent, const std::u16string &oldText, const std::u16string &newText) {
   Patch *patch = new Patch();
   patch->splice(newStart, oldExtent, newExtent, Text(oldText), Text(newText));
   this->pushPatch(patch);

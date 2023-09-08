@@ -60,7 +60,7 @@ struct DefaultHistoryProvider {
   void groupChangesSinceCheckpoint(unsigned, const TextBuffer::MarkerSnapshot &, bool);
   void enforceUndoStackSizeLimit();
   void applyGroupingInterval(double);
-  void pushChange(Point, Point, Point, const std::u16string &, const std::u16string &);
+  void pushChange(const Point &, const Point &, const Point &, const std::u16string &, const std::u16string &);
   void pushPatch(Patch *patch);
   Result undo();
   Result redo();

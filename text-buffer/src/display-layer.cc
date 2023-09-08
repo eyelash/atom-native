@@ -122,7 +122,7 @@ Point DisplayLayer::translateBufferPosition(Point bufferPosition, ClipDirection 
   return screenPosition;
 }
 
-Point DisplayLayer::translateBufferPositionWithSpatialIndex(Point bufferPosition, ClipDirection clipDirection) {
+Point DisplayLayer::translateBufferPositionWithSpatialIndex(const Point &bufferPosition, ClipDirection clipDirection) {
   auto hunk = this->spatialIndex->grab_change_starting_before_old_position(bufferPosition);
   if (hunk) {
     if (compare(bufferPosition, hunk->old_end) < 0) {
@@ -151,7 +151,7 @@ Point DisplayLayer::translateBufferPositionWithSpatialIndex(Point bufferPosition
   }
 }
 
-Range DisplayLayer::translateBufferRange(Range bufferRange, ClipDirection clipDirection) {
+Range DisplayLayer::translateBufferRange(const Range &bufferRange, ClipDirection clipDirection) {
   return Range(
     this->translateBufferPosition(bufferRange.start, clipDirection),
     this->translateBufferPosition(bufferRange.end, clipDirection)
@@ -182,7 +182,7 @@ Point DisplayLayer::translateScreenPosition(Point screenPosition, ClipDirection 
   }
 }
 
-Point DisplayLayer::translateScreenPositionWithSpatialIndex(Point screenPosition, ClipDirection clipDirection, bool skipSoftWrapIndentation) {
+Point DisplayLayer::translateScreenPositionWithSpatialIndex(const Point &screenPosition, ClipDirection clipDirection, bool skipSoftWrapIndentation) {
   auto hunk = this->spatialIndex->grab_change_starting_before_new_position(screenPosition);
   if (hunk) {
     if (compare(screenPosition, hunk->new_end) < 0) {
@@ -204,20 +204,20 @@ Point DisplayLayer::translateScreenPositionWithSpatialIndex(Point screenPosition
   }
 }
 
-Range DisplayLayer::translateScreenRange(Range screenRange, ClipDirection clipDirection, bool skipSoftWrapIndentation) {
+Range DisplayLayer::translateScreenRange(const Range &screenRange, ClipDirection clipDirection, bool skipSoftWrapIndentation) {
   return Range(
     this->translateScreenPosition(screenRange.start, clipDirection, skipSoftWrapIndentation),
     this->translateScreenPosition(screenRange.end, clipDirection, skipSoftWrapIndentation)
   );
 }
 
-Point DisplayLayer::clipScreenPosition(Point screenPosition) {
+Point DisplayLayer::clipScreenPosition(const Point &screenPosition) {
   return this->translateBufferPosition(
     this->translateScreenPosition(screenPosition)
   );
 }
 
-Point DisplayLayer::constrainScreenPosition(Point screenPosition, ClipDirection clipDirection) {
+Point DisplayLayer::constrainScreenPosition(const Point &screenPosition, ClipDirection clipDirection) {
   double row = screenPosition.row, column = screenPosition.column;
 
   if (row < 0) {
@@ -245,7 +245,7 @@ Point DisplayLayer::constrainScreenPosition(Point screenPosition, ClipDirection 
   return screenPosition;
 }
 
-Point DisplayLayer::expandHardTabs(Point targetScreenPosition, Point targetBufferPosition, double tabCount) {
+Point DisplayLayer::expandHardTabs(const Point &targetScreenPosition, const Point &targetBufferPosition, double tabCount) {
   const Point screenRowStart = Point(targetScreenPosition.row, 0);
   auto hunks = this->spatialIndex->grab_changes_in_new_range(screenRowStart, targetScreenPosition);
   double hunkIndex = 0;
@@ -295,7 +295,7 @@ Point DisplayLayer::expandHardTabs(Point targetScreenPosition, Point targetBuffe
   }
 }
 
-Point DisplayLayer::collapseHardTabs(Point targetScreenPosition, double tabCount, ClipDirection clipDirection) {
+Point DisplayLayer::collapseHardTabs(const Point &targetScreenPosition, double tabCount, ClipDirection clipDirection) {
   const Point screenRowStart = Point(targetScreenPosition.row, 0);
   const Point screenRowEnd = Point(targetScreenPosition.row, this->screenLineLengths[targetScreenPosition.row]);
 
@@ -360,7 +360,7 @@ Point DisplayLayer::collapseHardTabs(Point targetScreenPosition, double tabCount
   }
 }
 
-double DisplayLayer::getClipColumnDelta(Point bufferPosition, ClipDirection clipDirection) {
+double DisplayLayer::getClipColumnDelta(const Point &bufferPosition, ClipDirection clipDirection) {
   double row = bufferPosition.row, column = bufferPosition.column;
 
   // Treat paired unicode characters as atomic...
@@ -570,7 +570,7 @@ std::string DisplayLayer::classNameForScopeId(int32_t scopeId) {
   }
 }
 
-int32_t DisplayLayer::scopeIdForTag(int32_t tag) const {
+int32_t DisplayLayer::scopeIdForTag(int32_t tag) {
   if (this->isCloseTag(tag)) tag++;
   return -tag;
 }
@@ -587,15 +587,15 @@ int32_t DisplayLayer::closeTagForScopeId(int32_t scopeId) {
   return -scopeId - 1;
 }
 
-bool DisplayLayer::isOpenTag(int32_t tag) const {
+bool DisplayLayer::isOpenTag(int32_t tag) {
   return tag < 0 && (tag & 1) == 1;
 }
 
-bool DisplayLayer::isCloseTag(int32_t tag) const {
+bool DisplayLayer::isCloseTag(int32_t tag) {
   return tag < 0 && (tag & 1) == 0;
 }
 
-void DisplayLayer::bufferWillChange(Range oldRange) {
+void DisplayLayer::bufferWillChange(const Range &oldRange) {
   const double lineCount = this->buffer->getLineCount();
   double endRow = oldRange.end.row;
   while (endRow + 1 < lineCount && this->buffer->lineLengthForRow(endRow + 1) == 0) {
@@ -604,7 +604,7 @@ void DisplayLayer::bufferWillChange(Range oldRange) {
   this->populateSpatialIndexIfNeeded(endRow + 1, INFINITY);
 }
 
-void DisplayLayer::bufferDidChange(Range oldRange, Range newRange) {
+void DisplayLayer::bufferDidChange(const Range &oldRange, const Range &newRange) {
   double startRow = oldRange.start.row;
   double oldEndRow = oldRange.end.row;
   double newEndRow = newRange.end.row;

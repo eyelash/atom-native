@@ -1,7 +1,7 @@
 #include "marker.h"
 #include "marker-layer.h"
 
-Marker::Marker(unsigned id, MarkerLayer *layer, Range range, const Params &params, bool exclusivitySet) {
+Marker::Marker(unsigned id, MarkerLayer *layer, const Range &range, const Params &params, bool exclusivitySet) {
   this->id = id;
   this->layer = layer;
   this->tailed = params.tailed ? *params.tailed : true;
@@ -33,7 +33,7 @@ void Marker::onDidChange(std::function<void()> callback) {
   return this->didChangeEmitter.on(callback);
 }
 
-Range Marker::getRange() const {
+Range Marker::getRange() {
   return this->layer->getMarkerRange(this->id);
 }
 
@@ -45,7 +45,7 @@ bool Marker::setRange(const Range &range, optional<bool> reversed) {
   });
 }
 
-Point Marker::getHeadPosition() const {
+Point Marker::getHeadPosition() {
   if (this->reversed) {
     return this->getStartPosition();
   } else {
@@ -78,7 +78,7 @@ bool Marker::setHeadPosition(const Point &position) {
   return this->update(oldRange, params);
 }
 
-Point Marker::getTailPosition() const {
+Point Marker::getTailPosition() {
   if (this->reversed) {
     return this->getEndPosition();
   } else {
@@ -108,11 +108,11 @@ bool Marker::setTailPosition(const Point &position) {
   return this->update(oldRange, params);
 }
 
-Point Marker::getStartPosition() const {
+Point Marker::getStartPosition() {
   return this->layer->getMarkerStartPosition(this->id);
 }
 
-Point Marker::getEndPosition() const {
+Point Marker::getEndPosition() {
   return this->layer->getMarkerEndPosition(this->id);
 }
 
@@ -136,11 +136,11 @@ bool Marker::plantTail() {
   return false;
 }
 
-bool Marker::isReversed() const {
+bool Marker::isReversed() {
   return this->tailed && this->reversed;
 }
 
-bool Marker::hasTail() const {
+bool Marker::hasTail() {
   return this->tailed;
 }
 
@@ -152,11 +152,11 @@ bool Marker::isExclusive() {
   }
 }
 
-bool Marker::isEqual(const Marker *other) const {
+bool Marker::isEqual(Marker *other) {
   return this->invalidate == other->invalidate && this->tailed == other->tailed && this->reversed == other->reversed && this->exclusive == other->exclusive && this->getRange().isEqual(other->getRange());
 }
 
-Marker::InvalidationStrategy Marker::getInvalidationStrategy() const {
+Marker::InvalidationStrategy Marker::getInvalidationStrategy() {
   return this->invalidate;
 }
 
@@ -174,7 +174,7 @@ void Marker::destroy(bool suppressMarkerLayerUpdateEvents) {
   //return this.emitter.clear();
 }
 
-int Marker::compare(const Marker *other) const {
+int Marker::compare(Marker *other) {
   return this->layer->compareMarkers(this->id, other->id);
 }
 

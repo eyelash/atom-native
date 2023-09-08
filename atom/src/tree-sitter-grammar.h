@@ -10,7 +10,7 @@
 struct SyntaxScopeMap;
 struct TSLanguage;
 
-struct TreeSitterGrammar : Grammar {
+struct TreeSitterGrammar final : Grammar {
   struct Exact {
     const char16_t *exact;
     const char *scopes;

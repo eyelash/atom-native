@@ -3,7 +3,7 @@
 
 #include <language-mode.h>
 
-struct TextMateLanguageMode : LanguageMode {
+struct TextMateLanguageMode final : LanguageMode {
   Grammar *grammar;
 
   TextMateLanguageMode(Grammar *grammar);

@@ -553,8 +553,8 @@ void TreeSitterLanguageMode::HighlightIterator::moveToSuccessor() {
 void TreeSitterLanguageMode::HighlightIterator::detectCoveredScope() {
   const size_t layerCount = this->iterators.size();
   if (layerCount > 1) {
-    /*LayerHighlightIterator *first = this->iterators[layerCount - 1];
-    LayerHighlightIterator *next = this->iterators[layerCount - 2];
+    LayerHighlightIterator *first = this->iterators[layerCount - 1].get();
+    LayerHighlightIterator *next = this->iterators[layerCount - 2].get();
     if (
       next->offset == first->offset &&
       next->atEnd == first->atEnd &&
@@ -563,7 +563,7 @@ void TreeSitterLanguageMode::HighlightIterator::detectCoveredScope() {
     ) {
       this->currentScopeIsCovered = true;
       return;
-    }*/
+    }
   }
   this->currentScopeIsCovered = false;
 }
@@ -737,6 +737,10 @@ std::vector<int32_t> TreeSitterLanguageMode::LayerHighlightIterator::getCloseSco
 
 std::vector<int32_t> TreeSitterLanguageMode::LayerHighlightIterator::getOpenScopeIds() {
   return openTags;
+}
+
+bool TreeSitterLanguageMode::LayerHighlightIterator::isAtInjectionBoundary() {
+  return this->containingNodeTypes.size() == 1;
 }
 
 bool TreeSitterLanguageMode::LayerHighlightIterator::moveUp_(bool atLastChild) {

@@ -9,7 +9,7 @@
 struct TreeSitterGrammar;
 struct TextBuffer;
 
-struct TreeSitterLanguageMode : LanguageMode {
+struct TreeSitterLanguageMode final : LanguageMode {
   struct LayerHighlightIterator;
   struct LanguageLayer {
     TreeSitterLanguageMode *languageMode;
@@ -44,13 +44,14 @@ struct TreeSitterLanguageMode : LanguageMode {
     double compare(const LayerHighlightIterator *);
     std::vector<int32_t> getCloseScopeIds();
     std::vector<int32_t> getOpenScopeIds();
+    bool isAtInjectionBoundary();
     bool moveUp_(bool);
     bool moveDown_();
     bool moveRight_();
     optional<int32_t> currentScopeId_();
   };
 
-  struct HighlightIterator : LanguageMode::HighlightIterator {
+  struct HighlightIterator final : LanguageMode::HighlightIterator {
     TreeSitterLanguageMode *languageMode;
     std::vector<std::unique_ptr<LayerHighlightIterator>> iterators;
     bool currentScopeIsCovered;

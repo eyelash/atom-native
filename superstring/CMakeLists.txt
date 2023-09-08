@@ -5,7 +5,6 @@ add_library(superstring STATIC)
 target_compile_features(superstring PUBLIC cxx_std_11)
 target_link_libraries(superstring
   pcre2
-  $<$<PLATFORM_ID:Darwin>:iconv>
 )
 target_sources(superstring PRIVATE
   src/encoding-conversion.cc
@@ -19,16 +18,27 @@ target_sources(superstring PRIVATE
   src/text-diff.cc
   src/text-slice.cc
   src/text.cc
-  $<$<PLATFORM_ID:Windows>:vendor/win-iconv/win_iconv.c>
 )
 target_include_directories(superstring PRIVATE
   vendor/libcxx
-  $<$<PLATFORM_ID:Windows>:${CMAKE_CURRENT_SOURCE_DIR}/vendor/win-iconv>
 )
-target_compile_definitions(superstring PRIVATE
-  $<$<PLATFORM_ID:Windows>:WINICONV_CONST=>
-  $<$<PLATFORM_ID:Windows>:PCRE2_STATIC>
-)
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+  target_link_libraries(superstring
+    iconv
+  )
+endif()
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  target_sources(superstring PRIVATE
+    vendor/win-iconv/win_iconv.c
+  )
+  target_include_directories(superstring PRIVATE
+    vendor/win-iconv
+  )
+  target_compile_definitions(superstring PRIVATE
+    WINICONV_CONST=
+    PCRE2_STATIC
+  )
+endif()
 target_include_directories(superstring INTERFACE
   src
 )
@@ -43,11 +53,14 @@ target_sources(tests PRIVATE
   test/native/text-test.cc
   test/native/text-diff-test.cc
 )
-find_package(Threads REQUIRED)
-target_link_libraries(tests superstring Threads::Threads)
 target_include_directories(tests PRIVATE
   vendor
   src
+)
+find_package(Threads REQUIRED)
+target_link_libraries(tests
+  superstring
+  Threads::Threads
 )
 
 add_subdirectory(vendor/pcre2)

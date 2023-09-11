@@ -54,13 +54,17 @@ target_sources(tests PRIVATE
   test/native/text-diff-test.cc
 )
 target_include_directories(tests PRIVATE
-  vendor
   src
 )
 find_package(Threads REQUIRED)
 target_link_libraries(tests
   superstring
+  catch
   Threads::Threads
+)
+add_library(catch INTERFACE)
+target_include_directories(catch INTERFACE
+  vendor
 )
 
 add_subdirectory(vendor/pcre2)

@@ -24,6 +24,7 @@ struct Range {
   Range traverse(const Point &) const;
   int compare(const Range &) const;
   bool isEqual(const Range &) const;
+  bool operator==(const Range &) const;
   bool coversSameRows(const Range &) const;
   bool intersectsWith(const Range &, bool = false) const;
   bool containsRange(const Range &, bool = false) const;

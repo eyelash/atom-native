@@ -71,6 +71,10 @@ bool Range::isEqual(const Range &other) const {
   return other.start.isEqual(this->start) && other.end.isEqual(this->end);
 }
 
+bool Range::operator==(const Range &other) const {
+  return other.start.isEqual(this->start) && other.end.isEqual(this->end);
+}
+
 bool Range::coversSameRows(const Range &other) const {
   return this->start.row == other.start.row && this->end.row == other.end.row;
 }

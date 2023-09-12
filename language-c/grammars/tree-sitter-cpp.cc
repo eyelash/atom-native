@@ -2,6 +2,8 @@
 
 extern "C" const TSLanguage *tree_sitter_cpp();
 
+using namespace TreeSitterGrammarDSL;
+
 extern "C" TreeSitterGrammar *atom_language_cpp() {
   TreeSitterGrammar *grammar = new TreeSitterGrammar(
     "C++",
@@ -9,7 +11,7 @@ extern "C" TreeSitterGrammar *atom_language_cpp() {
     tree_sitter_cpp()
   );
 
-  grammar->addFileTypes(
+  grammar->setFileTypes(
     "cc",
     "cpp",
     "cp",
@@ -43,181 +45,183 @@ extern "C" TreeSitterGrammar *atom_language_cpp() {
     |^ \s* @(public|private|protected) \s* $
   )""");
 
-  grammar->addScopes("translation_unit", "source.cpp");
-  grammar->addScopes("comment", "comment.block");
+  grammar->setScopes(
+    scope("translation_unit", "source.cpp"),
+    scope("comment", "comment.block"),
 
-  grammar->addScopes("identifier",
-    match(u"^[A-Z\\d_]+$", "constant.other")
+    scope("identifier",
+      match(u"^[A-Z\\d_]+$", "constant.other")
+    ),
+
+    scope("\"#if\"", "keyword.control.directive"),
+    scope("\"#ifdef\"", "keyword.control.directive"),
+    scope("\"#ifndef\"", "keyword.control.directive"),
+    scope("\"#elif\"", "keyword.control.directive"),
+    scope("\"#else\"", "keyword.control.directive"),
+    scope("\"#endif\"", "keyword.control.directive"),
+    scope("\"#define\"", "keyword.control.directive"),
+    scope("\"#include\"", "keyword.control.directive"),
+    scope("preproc_directive", "keyword.control.directive"),
+
+    scope("\"if\"", "keyword.control"),
+    scope("\"else\"", "keyword.control"),
+    scope("\"do\"", "keyword.control"),
+    scope("\"for\"", "keyword.control"),
+    scope("\"while\"", "keyword.control"),
+    scope("\"break\"", "keyword.control"),
+    scope("\"continue\"", "keyword.control"),
+    scope("\"return\"", "keyword.control"),
+    scope("\"switch\"", "keyword.control"),
+    scope("\"case\"", "keyword.control"),
+    scope("\"default\"", "keyword.control"),
+    scope("\"goto\"", "keyword.control"),
+
+    scope("\"struct\"", "keyword.control"),
+    scope("\"enum\"", "keyword.control"),
+    scope("\"union\"", "keyword.control"),
+    scope("\"typedef\"", "keyword.control"),
+    scope("\"class\"", "keyword.control"),
+    scope("\"using\"", "keyword.control"),
+    scope("\"namespace\"", "keyword.control"),
+    scope("\"template\"", "keyword.control"),
+    scope("\"typename\"", "keyword.control"),
+    scope("\"try\"", "keyword.control"),
+    scope("\"catch\"", "keyword.control"),
+    scope("\"throw\"", "keyword.control"),
+    scope("\"__attribute__\"", "keyword.attribute"),
+
+    scope("preproc_function_def > identifier:nth-child(1)", "entity.name.function.preprocessor"),
+    scope("preproc_arg", "meta.preprocessor.macro"),
+    scope("preproc_directive", "keyword.control.directive"),
+
+    scope("template_function > identifier",
+      match(
+        u"^(static|const|dynamic|reinterpret)_cast$",
+        "keyword.operator"
+      )
+    ),
+
+    scope(array(
+      "call_expression > identifier",
+      "call_expression > field_expression > field_identifier",
+      "call_expression > scoped_identifier > identifier",
+      "template_function > identifier",
+      "template_function > scoped_identifier > identifier",
+      "template_method > field_identifier",
+      "function_declarator > identifier",
+      "function_declarator > field_identifier",
+      "function_declarator > scoped_identifier > identifier",
+      "destructor_name > identifier"
+    ), "entity.name.function"),
+
+    scope("statement_identifier", "constant.variable"),
+
+    scope("field_identifier", "variable.other.member"),
+
+    scope("type_identifier", "support.storage.type"),
+    scope("primitive_type", "support.storage.type"),
+    scope("\"unsigned\"", "support.storage.type"),
+    scope("\"signed\"", "support.storage.type"),
+    scope("\"short\"", "support.storage.type"),
+    scope("\"long\"", "support.storage.type"),
+    scope("auto", "support.storage.type"),
+
+    scope("char_literal", "string.quoted.single"),
+    scope("string_literal", "string.quoted.double"),
+    scope("system_lib_string", "string.quoted.other"),
+    scope("raw_string_literal", "string.quoted.other"),
+    scope("escape_sequence", "constant.character.escape"),
+    scope("preproc_include > string_literal > escape_sequence", "string.quoted.double"),
+
+    scope("number_literal", "constant.numeric.decimal"),
+    scope("null", "constant.language.null"),
+    scope("nullptr", "constant.language.null"),
+    scope("true", "constant.language.boolean"),
+    scope("false", "constant.language.boolean"),
+
+    scope("\"extern\"", "storage.modifier"),
+    scope("\"static\"", "storage.modifier"),
+    scope("\"register\"", "storage.modifier"),
+    scope("\"friend\"", "storage.modifier"),
+    scope("\"inline\"", "storage.modifier"),
+    scope("\"explicit\"", "storage.modifier"),
+    scope("\"const\"", "storage.modifier"),
+    scope("\"constexpr\"", "storage.modifier"),
+    scope("\"volatile\"", "storage.modifier"),
+    scope("\"restrict\"", "storage.modifier"),
+    scope("function_specifier", "storage.modifier"),
+    scope("\"public\"", "storage.modifier"),
+    scope("\"private\"", "storage.modifier"),
+    scope("\"protected\"", "storage.modifier"),
+    scope("\"final\"", "storage.modifier"),
+    scope("\"override\"", "storage.modifier"),
+    scope("\"virtual\"", "storage.modifier"),
+    scope("\"noexcept\"", "storage.modifier"),
+    scope("\"mutable\"", "storage.modifier"),
+
+    scope("\";\"", "punctuation.terminator.statement"),
+    scope("\"[\"", "punctuation.definition.begin.bracket.square"),
+    scope("\"]\"", "punctuation.definition.end.bracket.square"),
+    scope("access_specifier > \":\"", "punctuation.definition.visibility.colon"),
+    scope("base_class_clause > \":\"", "punctuation.definition.inheritance.colon"),
+    scope("base_class_clause > \",\"", "punctuation.definition.separator.class.comma"),
+    scope("field_declaration > \",\"", "punctuation.separator.delimiter"),
+    scope("parameter_list > \",\"", "punctuation.separator.delimiter"),
+    scope("field_initializer_list > \":\"", "punctuation.definition.initialization.colon"),
+    scope("field_initializer_list > \",\"", "punctuation.separator.delimiter"),
+    scope("\"::\"", "punctuation.separator.method.double-colon"),
+    scope("template_parameter_list > \"<\"", "punctuation.definition.template.bracket.angle"),
+    scope("template_parameter_list > \">\"", "punctuation.definition.template.bracket.angle"),
+    scope("template_argument_list > \">\"", "punctuation.definition.template.bracket.angle"),
+    scope("template_argument_list > \"<\"", "punctuation.definition.template.bracket.angle"),
+    scope("char_literal > \"\'\"", "punctuation.definition.string"),
+    scope("string_literal > \"\\\"\"", "punctuation.definition.string"),
+    scope("\"{\"", "punctuation.section.block.begin.bracket.curly"),
+    scope("\"}\"", "punctuation.section.block.end.bracket.curly"),
+    scope("\"(\"", "punctuation.section.parens.begin.bracket.round"),
+    scope("\")\"", "punctuation.section.parens.end.bracket.round"),
+
+    scope("\"sizeof\"", "keyword.operator.sizeof"),
+    scope("\"new\"", "keyword.operator"),
+    scope("\"delete\"", "keyword.operator"),
+    scope("\".\"", "keyword.operator.member"),
+    scope("\"->\"", "keyword.operator.member"),
+    scope("\"*\"", "keyword.operator"),
+    scope("\"-\"", "keyword.operator"),
+    scope("\"+\"", "keyword.operator"),
+    scope("\"/\"", "keyword.operator"),
+    scope("\"%\"", "keyword.operator"),
+    scope("\"++\"", "keyword.operator"),
+    scope("\"--\"", "keyword.operator"),
+    scope("\"==\"", "keyword.operator"),
+    scope("\"!\"", "keyword.operator"),
+    scope("\"!=\"", "keyword.operator"),
+    scope("relational_expression > \"<\"", "keyword.operator"),
+    scope("relational_expression > \">\"", "keyword.operator"),
+    scope("\">=\"", "keyword.operator"),
+    scope("\"<=\"", "keyword.operator"),
+    scope("\"&&\"", "keyword.operator"),
+    scope("\"||\"", "keyword.operator"),
+    scope("\"&\"", "keyword.operator"),
+    scope("\"|\"", "keyword.operator"),
+    scope("\"^\"", "keyword.operator"),
+    scope("\"~\"", "keyword.operator"),
+    scope("\"<<\"", "keyword.operator"),
+    scope("\">>\"", "keyword.operator"),
+    scope("\"=\"", "keyword.operator"),
+    scope("\"+=\"", "keyword.operator"),
+    scope("\"-=\"", "keyword.operator"),
+    scope("\"*=\"", "keyword.operator"),
+    scope("\"/=\"", "keyword.operator"),
+    scope("\"%=\"", "keyword.operator"),
+    scope("\"<<=\"", "keyword.operator"),
+    scope("\">>=\"", "keyword.operator"),
+    scope("\"&=\"", "keyword.operator"),
+    scope("\"^=\"", "keyword.operator"),
+    scope("\"|=\"", "keyword.operator"),
+    scope("\"?\"", "keyword.operator"),
+    scope("conditional_expression > \":\"", "keyword.operator")
   );
 
-  grammar->addScopes("\"#if\"", "keyword.control.directive");
-  grammar->addScopes("\"#ifdef\"", "keyword.control.directive");
-  grammar->addScopes("\"#ifndef\"", "keyword.control.directive");
-  grammar->addScopes("\"#elif\"", "keyword.control.directive");
-  grammar->addScopes("\"#else\"", "keyword.control.directive");
-  grammar->addScopes("\"#endif\"", "keyword.control.directive");
-  grammar->addScopes("\"#define\"", "keyword.control.directive");
-  grammar->addScopes("\"#include\"", "keyword.control.directive");
-  grammar->addScopes("preproc_directive", "keyword.control.directive");
-
-  grammar->addScopes("\"if\"", "keyword.control");
-  grammar->addScopes("\"else\"", "keyword.control");
-  grammar->addScopes("\"do\"", "keyword.control");
-  grammar->addScopes("\"for\"", "keyword.control");
-  grammar->addScopes("\"while\"", "keyword.control");
-  grammar->addScopes("\"break\"", "keyword.control");
-  grammar->addScopes("\"continue\"", "keyword.control");
-  grammar->addScopes("\"return\"", "keyword.control");
-  grammar->addScopes("\"switch\"", "keyword.control");
-  grammar->addScopes("\"case\"", "keyword.control");
-  grammar->addScopes("\"default\"", "keyword.control");
-  grammar->addScopes("\"goto\"", "keyword.control");
-
-  grammar->addScopes("\"struct\"", "keyword.control");
-  grammar->addScopes("\"enum\"", "keyword.control");
-  grammar->addScopes("\"union\"", "keyword.control");
-  grammar->addScopes("\"typedef\"", "keyword.control");
-  grammar->addScopes("\"class\"", "keyword.control");
-  grammar->addScopes("\"using\"", "keyword.control");
-  grammar->addScopes("\"namespace\"", "keyword.control");
-  grammar->addScopes("\"template\"", "keyword.control");
-  grammar->addScopes("\"typename\"", "keyword.control");
-  grammar->addScopes("\"try\"", "keyword.control");
-  grammar->addScopes("\"catch\"", "keyword.control");
-  grammar->addScopes("\"throw\"", "keyword.control");
-  grammar->addScopes("\"__attribute__\"", "keyword.attribute");
-
-  grammar->addScopes("preproc_function_def > identifier:nth-child(1)", "entity.name.function.preprocessor");
-  grammar->addScopes("preproc_arg", "meta.preprocessor.macro");
-  grammar->addScopes("preproc_directive", "keyword.control.directive");
-
-  grammar->addScopes("template_function > identifier",
-    match(
-      u"^(static|const|dynamic|reinterpret)_cast$",
-      "keyword.operator"
-    )
-  );
-
-  grammar->addScopes({
-    "call_expression > identifier",
-    "call_expression > field_expression > field_identifier",
-    "call_expression > scoped_identifier > identifier",
-    "template_function > identifier",
-    "template_function > scoped_identifier > identifier",
-    "template_method > field_identifier",
-    "function_declarator > identifier",
-    "function_declarator > field_identifier",
-    "function_declarator > scoped_identifier > identifier",
-    "destructor_name > identifier"
-  }, "entity.name.function");
-
-  grammar->addScopes("statement_identifier", "constant.variable");
-
-  grammar->addScopes("field_identifier", "variable.other.member");
-
-  grammar->addScopes("type_identifier", "support.storage.type");
-  grammar->addScopes("primitive_type", "support.storage.type");
-  grammar->addScopes("\"unsigned\"", "support.storage.type");
-  grammar->addScopes("\"signed\"", "support.storage.type");
-  grammar->addScopes("\"short\"", "support.storage.type");
-  grammar->addScopes("\"long\"", "support.storage.type");
-  grammar->addScopes("auto", "support.storage.type");
-
-  grammar->addScopes("char_literal", "string.quoted.single");
-  grammar->addScopes("string_literal", "string.quoted.double");
-  grammar->addScopes("system_lib_string", "string.quoted.other");
-  grammar->addScopes("raw_string_literal", "string.quoted.other");
-  grammar->addScopes("escape_sequence", "constant.character.escape");
-  grammar->addScopes("preproc_include > string_literal > escape_sequence", "string.quoted.double");
-
-  grammar->addScopes("number_literal", "constant.numeric.decimal");
-  grammar->addScopes("null", "constant.language.null");
-  grammar->addScopes("nullptr", "constant.language.null");
-  grammar->addScopes("true", "constant.language.boolean");
-  grammar->addScopes("false", "constant.language.boolean");
-
-  grammar->addScopes("\"extern\"", "storage.modifier");
-  grammar->addScopes("\"static\"", "storage.modifier");
-  grammar->addScopes("\"register\"", "storage.modifier");
-  grammar->addScopes("\"friend\"", "storage.modifier");
-  grammar->addScopes("\"inline\"", "storage.modifier");
-  grammar->addScopes("\"explicit\"", "storage.modifier");
-  grammar->addScopes("\"const\"", "storage.modifier");
-  grammar->addScopes("\"constexpr\"", "storage.modifier");
-  grammar->addScopes("\"volatile\"", "storage.modifier");
-  grammar->addScopes("\"restrict\"", "storage.modifier");
-  grammar->addScopes("function_specifier", "storage.modifier");
-  grammar->addScopes("\"public\"", "storage.modifier");
-  grammar->addScopes("\"private\"", "storage.modifier");
-  grammar->addScopes("\"protected\"", "storage.modifier");
-  grammar->addScopes("\"final\"", "storage.modifier");
-  grammar->addScopes("\"override\"", "storage.modifier");
-  grammar->addScopes("\"virtual\"", "storage.modifier");
-  grammar->addScopes("\"noexcept\"", "storage.modifier");
-  grammar->addScopes("\"mutable\"", "storage.modifier");
-
-  grammar->addScopes("\";\"", "punctuation.terminator.statement");
-  grammar->addScopes("\"[\"", "punctuation.definition.begin.bracket.square");
-  grammar->addScopes("\"]\"", "punctuation.definition.end.bracket.square");
-  grammar->addScopes("access_specifier > \":\"", "punctuation.definition.visibility.colon");
-  grammar->addScopes("base_class_clause > \":\"", "punctuation.definition.inheritance.colon");
-  grammar->addScopes("base_class_clause > \",\"", "punctuation.definition.separator.class.comma");
-  grammar->addScopes("field_declaration > \",\"", "punctuation.separator.delimiter");
-  grammar->addScopes("parameter_list > \",\"", "punctuation.separator.delimiter");
-  grammar->addScopes("field_initializer_list > \":\"", "punctuation.definition.initialization.colon");
-  grammar->addScopes("field_initializer_list > \",\"", "punctuation.separator.delimiter");
-  grammar->addScopes("\"::\"", "punctuation.separator.method.double-colon");
-  grammar->addScopes("template_parameter_list > \"<\"", "punctuation.definition.template.bracket.angle");
-  grammar->addScopes("template_parameter_list > \">\"", "punctuation.definition.template.bracket.angle");
-  grammar->addScopes("template_argument_list > \">\"", "punctuation.definition.template.bracket.angle");
-  grammar->addScopes("template_argument_list > \"<\"", "punctuation.definition.template.bracket.angle");
-  grammar->addScopes("char_literal > \"\'\"", "punctuation.definition.string");
-  grammar->addScopes("string_literal > \"\\\"\"", "punctuation.definition.string");
-  grammar->addScopes("\"{\"", "punctuation.section.block.begin.bracket.curly");
-  grammar->addScopes("\"}\"", "punctuation.section.block.end.bracket.curly");
-  grammar->addScopes("\"(\"", "punctuation.section.parens.begin.bracket.round");
-  grammar->addScopes("\")\"", "punctuation.section.parens.end.bracket.round");
-
-  grammar->addScopes("\"sizeof\"", "keyword.operator.sizeof");
-  grammar->addScopes("\"new\"", "keyword.operator");
-  grammar->addScopes("\"delete\"", "keyword.operator");
-  grammar->addScopes("\".\"", "keyword.operator.member");
-  grammar->addScopes("\"->\"", "keyword.operator.member");
-  grammar->addScopes("\"*\"", "keyword.operator");
-  grammar->addScopes("\"-\"", "keyword.operator");
-  grammar->addScopes("\"+\"", "keyword.operator");
-  grammar->addScopes("\"/\"", "keyword.operator");
-  grammar->addScopes("\"%\"", "keyword.operator");
-  grammar->addScopes("\"++\"", "keyword.operator");
-  grammar->addScopes("\"--\"", "keyword.operator");
-  grammar->addScopes("\"==\"", "keyword.operator");
-  grammar->addScopes("\"!\"", "keyword.operator");
-  grammar->addScopes("\"!=\"", "keyword.operator");
-  grammar->addScopes("relational_expression > \"<\"", "keyword.operator");
-  grammar->addScopes("relational_expression > \">\"", "keyword.operator");
-  grammar->addScopes("\">=\"", "keyword.operator");
-  grammar->addScopes("\"<=\"", "keyword.operator");
-  grammar->addScopes("\"&&\"", "keyword.operator");
-  grammar->addScopes("\"||\"", "keyword.operator");
-  grammar->addScopes("\"&\"", "keyword.operator");
-  grammar->addScopes("\"|\"", "keyword.operator");
-  grammar->addScopes("\"^\"", "keyword.operator");
-  grammar->addScopes("\"~\"", "keyword.operator");
-  grammar->addScopes("\"<<\"", "keyword.operator");
-  grammar->addScopes("\">>\"", "keyword.operator");
-  grammar->addScopes("\"=\"", "keyword.operator");
-  grammar->addScopes("\"+=\"", "keyword.operator");
-  grammar->addScopes("\"-=\"", "keyword.operator");
-  grammar->addScopes("\"*=\"", "keyword.operator");
-  grammar->addScopes("\"/=\"", "keyword.operator");
-  grammar->addScopes("\"%=\"", "keyword.operator");
-  grammar->addScopes("\"<<=\"", "keyword.operator");
-  grammar->addScopes("\">>=\"", "keyword.operator");
-  grammar->addScopes("\"&=\"", "keyword.operator");
-  grammar->addScopes("\"^=\"", "keyword.operator");
-  grammar->addScopes("\"|=\"", "keyword.operator");
-  grammar->addScopes("\"?\"", "keyword.operator");
-  grammar->addScopes("conditional_expression > \":\"", "keyword.operator");
-
-  return grammar->finalize();
+  return grammar;
 }

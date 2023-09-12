@@ -2,6 +2,8 @@
 
 extern "C" const TSLanguage *tree_sitter_go();
 
+using namespace TreeSitterGrammarDSL;
+
 extern "C" TreeSitterGrammar *atom_language_go() {
   TreeSitterGrammar *grammar = new TreeSitterGrammar(
     "Go",
@@ -9,7 +11,7 @@ extern "C" TreeSitterGrammar *atom_language_go() {
     tree_sitter_go()
   );
 
-  grammar->addFileTypes(
+  grammar->setFileTypes(
     "go"
   );
 
@@ -17,93 +19,95 @@ extern "C" TreeSitterGrammar *atom_language_go() {
   grammar->setDecreaseIndentPattern(u"^\\s*(\\bcase\\b.*:|\\bdefault\\b:|}[),]?|\\)[,]?)$");
   grammar->setDecreaseNextIndentPattern(u"^\\s*[^\\s()}]+(?<m>[^()]*\\((?:\\g<m>[^()]*|[^()]*)\\))*[^()]*\\)[,]?$");
 
-  grammar->addScopes("source_file", "source.go");
+  grammar->setScopes(
+    scope("source_file", "source.go"),
 
-  grammar->addScopes("comment", "comment.block");
+    scope("comment", "comment.block"),
 
-  grammar->addScopes("\"var\"", "keyword.import");
-  grammar->addScopes("\"type\"", "keyword.type");
-  grammar->addScopes("\"func\"", "keyword.function");
-  grammar->addScopes("\"const\"", "keyword.const");
-  grammar->addScopes("\"struct\"", "keyword.struct");
-  grammar->addScopes("\"interface\"", "keyword.interface");
-  grammar->addScopes("\"import\"", "keyword.import");
-  grammar->addScopes("\"package\"", "keyword.package");
-  grammar->addScopes("\"map\"", "keyword.map");
-  grammar->addScopes("\"chan\"", "keyword.chan");
+    scope("\"var\"", "keyword.import"),
+    scope("\"type\"", "keyword.type"),
+    scope("\"func\"", "keyword.function"),
+    scope("\"const\"", "keyword.const"),
+    scope("\"struct\"", "keyword.struct"),
+    scope("\"interface\"", "keyword.interface"),
+    scope("\"import\"", "keyword.import"),
+    scope("\"package\"", "keyword.package"),
+    scope("\"map\"", "keyword.map"),
+    scope("\"chan\"", "keyword.chan"),
 
-  grammar->addScopes("type_identifier", "support.storage.type");
-  grammar->addScopes("field_identifier", "variable.other.object.property");
-  grammar->addScopes("package_identifier", "entity.name.package");
+    scope("type_identifier", "support.storage.type"),
+    scope("field_identifier", "variable.other.object.property"),
+    scope("package_identifier", "entity.name.package"),
 
-  grammar->addScopes("\"if\"", "keyword.control");
-  grammar->addScopes("\"for\"", "keyword.control");
-  grammar->addScopes("\"else\"", "keyword.control");
-  grammar->addScopes("\"case\"", "keyword.control");
-  grammar->addScopes("\"break\"", "keyword.control");
-  grammar->addScopes("\"switch\"", "keyword.control");
-  grammar->addScopes("\"select\"", "keyword.control");
-  grammar->addScopes("\"return\"", "keyword.control");
-  grammar->addScopes("\"default\"", "keyword.control");
-  grammar->addScopes("\"continue\"", "keyword.control");
-  grammar->addScopes("\"goto\"", "keyword.control");
-  grammar->addScopes("\"fallthrough\"", "keyword.control");
-  grammar->addScopes("\"defer\"", "keyword.control");
-  grammar->addScopes("\"range\"", "keyword.control");
-  grammar->addScopes("\"go\"", "keyword.control");
+    scope("\"if\"", "keyword.control"),
+    scope("\"for\"", "keyword.control"),
+    scope("\"else\"", "keyword.control"),
+    scope("\"case\"", "keyword.control"),
+    scope("\"break\"", "keyword.control"),
+    scope("\"switch\"", "keyword.control"),
+    scope("\"select\"", "keyword.control"),
+    scope("\"return\"", "keyword.control"),
+    scope("\"default\"", "keyword.control"),
+    scope("\"continue\"", "keyword.control"),
+    scope("\"goto\"", "keyword.control"),
+    scope("\"fallthrough\"", "keyword.control"),
+    scope("\"defer\"", "keyword.control"),
+    scope("\"range\"", "keyword.control"),
+    scope("\"go\"", "keyword.control"),
 
-  grammar->addScopes("interpreted_string_literal", "string.quoted.double");
-  grammar->addScopes("raw_string_literal", "string.quoted.double");
-  grammar->addScopes("escape_sequence", "constant.character.escape");
-  grammar->addScopes("rune_literal", "constant.other.rune");
-  grammar->addScopes("int_literal", "constant.numeric.integer");
-  grammar->addScopes("float_literal", "constant.numeric.float");
-  grammar->addScopes("imaginary_literal", "constant.numeric.integer");
-  grammar->addScopes("nil", "constant.language.nil");
-  grammar->addScopes("false", "constant.language.false");
-  grammar->addScopes("true", "constant.language.true");
+    scope("interpreted_string_literal", "string.quoted.double"),
+    scope("raw_string_literal", "string.quoted.double"),
+    scope("escape_sequence", "constant.character.escape"),
+    scope("rune_literal", "constant.other.rune"),
+    scope("int_literal", "constant.numeric.integer"),
+    scope("float_literal", "constant.numeric.float"),
+    scope("imaginary_literal", "constant.numeric.integer"),
+    scope("nil", "constant.language.nil"),
+    scope("false", "constant.language.false"),
+    scope("true", "constant.language.true"),
 
-  grammar->addScopes("call_expression > identifier", "entity.name.function");
-  grammar->addScopes("function_declaration > identifier", "entity.name.function");
-  grammar->addScopes("method_declaration > field_identifier", "entity.name.function");
-  grammar->addScopes("call_expression > selector_expression > field_identifier", "entity.name.function");
+    scope("call_expression > identifier", "entity.name.function"),
+    scope("function_declaration > identifier", "entity.name.function"),
+    scope("method_declaration > field_identifier", "entity.name.function"),
+    scope("call_expression > selector_expression > field_identifier", "entity.name.function"),
 
-  grammar->addScopes("\"+\"", "keyword.operator");
-  grammar->addScopes("\"-\"", "keyword.operator");
-  grammar->addScopes("\"*\"", "keyword.operator");
-  grammar->addScopes("\"/\"", "keyword.operator");
-  grammar->addScopes("\"%\"", "keyword.operator");
-  grammar->addScopes("\"++\"", "keyword.operator");
-  grammar->addScopes("\"--\"", "keyword.operator");
-  grammar->addScopes("\"==\"", "keyword.operator");
-  grammar->addScopes("\"!=\"", "keyword.operator");
-  grammar->addScopes("\">\"", "keyword.operator");
-  grammar->addScopes("\"<\"", "keyword.operator");
-  grammar->addScopes("\">=\"", "keyword.operator");
-  grammar->addScopes("\"<=\"", "keyword.operator");
-  grammar->addScopes("\"!\"", "keyword.operator");
-  grammar->addScopes("\"|\"", "keyword.operator");
-  grammar->addScopes("\"^\"", "keyword.operator");
-  grammar->addScopes("\"<<\"", "keyword.operator");
-  grammar->addScopes("\">>\"", "keyword.operator");
-  grammar->addScopes("\"=\"", "keyword.operator");
-  grammar->addScopes("\"+=\"", "keyword.operator");
-  grammar->addScopes("\"-=\"", "keyword.operator");
-  grammar->addScopes("\"*=\"", "keyword.operator");
-  grammar->addScopes("\"/=\"", "keyword.operator");
-  grammar->addScopes("\"%=\"", "keyword.operator");
-  grammar->addScopes("\"<<=\"", "keyword.operator");
-  grammar->addScopes("\">>=\"", "keyword.operator");
-  grammar->addScopes("\"&=\"", "keyword.operator");
-  grammar->addScopes("\"^=\"", "keyword.operator");
-  grammar->addScopes("\"|=\"", "keyword.operator");
-  grammar->addScopes("\":=\"", "keyword.operator");
-  grammar->addScopes("\"&\"", "keyword.operator");
-  grammar->addScopes("\"*\"", "keyword.operator");
-  grammar->addScopes("\"&&\"", "keyword.operator");
-  grammar->addScopes("\"||\"", "keyword.operator");
-  grammar->addScopes("\"...\"", "keyword.operator");
-  grammar->addScopes("\"<-\"", "keyword.operator");
+    scope("\"+\"", "keyword.operator"),
+    scope("\"-\"", "keyword.operator"),
+    scope("\"*\"", "keyword.operator"),
+    scope("\"/\"", "keyword.operator"),
+    scope("\"%\"", "keyword.operator"),
+    scope("\"++\"", "keyword.operator"),
+    scope("\"--\"", "keyword.operator"),
+    scope("\"==\"", "keyword.operator"),
+    scope("\"!=\"", "keyword.operator"),
+    scope("\">\"", "keyword.operator"),
+    scope("\"<\"", "keyword.operator"),
+    scope("\">=\"", "keyword.operator"),
+    scope("\"<=\"", "keyword.operator"),
+    scope("\"!\"", "keyword.operator"),
+    scope("\"|\"", "keyword.operator"),
+    scope("\"^\"", "keyword.operator"),
+    scope("\"<<\"", "keyword.operator"),
+    scope("\">>\"", "keyword.operator"),
+    scope("\"=\"", "keyword.operator"),
+    scope("\"+=\"", "keyword.operator"),
+    scope("\"-=\"", "keyword.operator"),
+    scope("\"*=\"", "keyword.operator"),
+    scope("\"/=\"", "keyword.operator"),
+    scope("\"%=\"", "keyword.operator"),
+    scope("\"<<=\"", "keyword.operator"),
+    scope("\">>=\"", "keyword.operator"),
+    scope("\"&=\"", "keyword.operator"),
+    scope("\"^=\"", "keyword.operator"),
+    scope("\"|=\"", "keyword.operator"),
+    scope("\":=\"", "keyword.operator"),
+    scope("\"&\"", "keyword.operator"),
+    scope("\"*\"", "keyword.operator"),
+    scope("\"&&\"", "keyword.operator"),
+    scope("\"||\"", "keyword.operator"),
+    scope("\"...\"", "keyword.operator"),
+    scope("\"<-\"", "keyword.operator")
+  );
 
-  return grammar->finalize();
+  return grammar;
 }

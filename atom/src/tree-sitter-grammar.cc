@@ -26,10 +26,6 @@ void TreeSitterGrammar::setDecreaseNextIndentPattern(const char16_t *pattern) {
   this->decreaseNextIndentRegex = Regex(pattern);
 }
 
-std::shared_ptr<SyntaxScopeMap::Result> TreeSitterGrammar::preprocessScopes(std::shared_ptr<SyntaxScopeMap::Result> &&value) {
-  return std::move(value);
-}
-
 std::shared_ptr<SyntaxScopeMap::Result> TreeSitterGrammar::preprocessScopes(const char *value) {
   struct StringResult final : SyntaxScopeMap::Result {
     std::string rules;
@@ -82,21 +78,6 @@ std::shared_ptr<SyntaxScopeMap::Result> TreeSitterGrammar::preprocessScopes(std:
     }
   };
   return std::make_shared<ArrayResult>(std::move(value));
-}
-
-void TreeSitterGrammar::addScopes(const char *selector, std::shared_ptr<SyntaxScopeMap::Result> result) {
-  this->scopeMap->addSelector(selector, result);
-}
-
-void TreeSitterGrammar::addScopes(std::initializer_list<const char *> selectors, std::shared_ptr<SyntaxScopeMap::Result> result) {
-  for (const char *selector : selectors) {
-    addScopes(selector, result);
-  }
-}
-
-TreeSitterGrammar *TreeSitterGrammar::finalize() {
-  this->scopeMap->finalize();
-  return this;
 }
 
 optional<int32_t> TreeSitterGrammar::idForScope(const optional<std::string> &scopeName) {

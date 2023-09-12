@@ -2,6 +2,8 @@
 
 extern "C" const TSLanguage *tree_sitter_python();
 
+using namespace TreeSitterGrammarDSL;
+
 extern "C" TreeSitterGrammar *atom_language_python() {
   TreeSitterGrammar *grammar = new TreeSitterGrammar(
     "Python",
@@ -9,7 +11,7 @@ extern "C" TreeSitterGrammar *atom_language_python() {
     tree_sitter_python()
   );
 
-  grammar->addFileTypes(
+  grammar->setFileTypes(
     "py",
     "pyi",
     "pyw",
@@ -25,139 +27,141 @@ extern "C" TreeSitterGrammar *atom_language_python() {
   grammar->setIncreaseIndentPattern(u"^\\s*(class|def|elif|else|except|finally|for|if|try|with|while|async\\s+(def|for|with))\\b.*:\\s*$");
   grammar->setDecreaseIndentPattern(u"^\\s*(elif|else|except|finally)\\b.*:\\s*$");
 
-  grammar->addScopes("module", "source.python");
+  grammar->setScopes(
+    scope("module", "source.python"),
 
-  grammar->addScopes("comment", "comment.line");
-  grammar->addScopes("string", "string.quoted");
-  grammar->addScopes("escape_sequence", "constant.character.escape");
-  grammar->addScopes("interpolation", "meta.embedded");
-  grammar->addScopes("interpolation > \"{\"", "punctuation.section.embedded");
-  grammar->addScopes("interpolation > \"}\"", "punctuation.section.embedded");
+    scope("comment", "comment.line"),
+    scope("string", "string.quoted"),
+    scope("escape_sequence", "constant.character.escape"),
+    scope("interpolation", "meta.embedded"),
+    scope("interpolation > \"{\"", "punctuation.section.embedded"),
+    scope("interpolation > \"}\"", "punctuation.section.embedded"),
 
-  grammar->addScopes("class_definition > identifier", "entity.name.type.class");
-  grammar->addScopes("function_definition > identifier", "entity.name.function.definition");
-  grammar->addScopes("call > identifier:nth-child(0)", array(
-    match(
-      u"^(abs|all|any|ascii|bin|bool|breakpoint|bytearray|bytes|callable|chr|classmethod|compile|complex|delattr|dict|dir|divmod|enumerate|eval|exec|filter|float|format|frozenset|getattr|globals|hasattr|hash|help|hex|id|input|int|isinstance|issubclass|iter|len|list|locals|map|max|memoryview|min|next|object|oct|open|ord|pow|print|property|range|repr|reversed|round|set|setattr|slice|sorted|staticmethod|str|sum|super|tuple|type|vars|zip|__import__)$",
-      "support.function.call"
-    ),
-    match(u"^[A-Z]", "support.type.contructor"),
-    "entity.name.function.call"
-  ));
-  grammar->addScopes("call > attribute > identifier:nth-child(2)", "entity.name.function");
+    scope("class_definition > identifier", "entity.name.type.class"),
+    scope("function_definition > identifier", "entity.name.function.definition"),
+    scope("call > identifier:nth-child(0)", array(
+      match(
+        u"^(abs|all|any|ascii|bin|bool|breakpoint|bytearray|bytes|callable|chr|classmethod|compile|complex|delattr|dict|dir|divmod|enumerate|eval|exec|filter|float|format|frozenset|getattr|globals|hasattr|hash|help|hex|id|input|int|isinstance|issubclass|iter|len|list|locals|map|max|memoryview|min|next|object|oct|open|ord|pow|print|property|range|repr|reversed|round|set|setattr|slice|sorted|staticmethod|str|sum|super|tuple|type|vars|zip|__import__)$",
+        "support.function.call"
+      ),
+      match(u"^[A-Z]", "support.type.contructor"),
+      "entity.name.function.call"
+    )),
+    scope("call > attribute > identifier:nth-child(2)", "entity.name.function"),
 
-  grammar->addScopes("identifier", array(
-    match(
-      u"^(BaseException|Exception|TypeError|StopAsyncIteration|StopIteration|ImportError|ModuleNotFoundError|OSError|ConnectionError|BrokenPipeError|ConnectionAbortedError|ConnectionRefusedError|ConnectionResetError|BlockingIOError|ChildProcessError|FileExistsError|FileNotFoundError|IsADirectoryError|NotADirectoryError|InterruptedError|PermissionError|ProcessLookupError|TimeoutError|EOFError|RuntimeError|RecursionError|NotImplementedError|NameError|UnboundLocalError|AttributeError|SyntaxError|IndentationError|TabError|LookupError|IndexError|KeyError|ValueError|UnicodeError|UnicodeEncodeError|UnicodeDecodeError|UnicodeTranslateError|AssertionError|ArithmeticError|FloatingPointError|OverflowError|ZeroDivisionError|SystemError|ReferenceError|BufferError|MemoryError|Warning|UserWarning|DeprecationWarning|PendingDeprecationWarning|SyntaxWarning|RuntimeWarning|FutureWarning|ImportWarning|UnicodeWarning|BytesWarning|ResourceWarning|GeneratorExit|SystemExit|KeyboardInterrupt)$",
-      "support.type.exception"
-    ),
-    match(u"^(self)", "entity.name.variable.self")
-  ));
+    scope("identifier", array(
+      match(
+        u"^(BaseException|Exception|TypeError|StopAsyncIteration|StopIteration|ImportError|ModuleNotFoundError|OSError|ConnectionError|BrokenPipeError|ConnectionAbortedError|ConnectionRefusedError|ConnectionResetError|BlockingIOError|ChildProcessError|FileExistsError|FileNotFoundError|IsADirectoryError|NotADirectoryError|InterruptedError|PermissionError|ProcessLookupError|TimeoutError|EOFError|RuntimeError|RecursionError|NotImplementedError|NameError|UnboundLocalError|AttributeError|SyntaxError|IndentationError|TabError|LookupError|IndexError|KeyError|ValueError|UnicodeError|UnicodeEncodeError|UnicodeDecodeError|UnicodeTranslateError|AssertionError|ArithmeticError|FloatingPointError|OverflowError|ZeroDivisionError|SystemError|ReferenceError|BufferError|MemoryError|Warning|UserWarning|DeprecationWarning|PendingDeprecationWarning|SyntaxWarning|RuntimeWarning|FutureWarning|ImportWarning|UnicodeWarning|BytesWarning|ResourceWarning|GeneratorExit|SystemExit|KeyboardInterrupt)$",
+        "support.type.exception"
+      ),
+      match(u"^(self)", "entity.name.variable.self")
+    )),
 
-  grammar->addScopes("attribute > identifier:nth-child(2)", "variable.other.object.property");
+    scope("attribute > identifier:nth-child(2)", "variable.other.object.property"),
 
-  grammar->addScopes("decorator", "entity.name.function.decorator");
+    scope("decorator", "entity.name.function.decorator"),
 
-  grammar->addScopes("none", "constant.language");
-  grammar->addScopes("true", "constant.language");
-  grammar->addScopes("false", "constant.language");
-  grammar->addScopes("integer", "constant.numeric");
-  grammar->addScopes("float", "constant.numeric");
+    scope("none", "constant.language"),
+    scope("true", "constant.language"),
+    scope("false", "constant.language"),
+    scope("integer", "constant.numeric"),
+    scope("float", "constant.numeric"),
 
-  grammar->addScopes("type > identifier", "support.storage.type");
+    scope("type > identifier", "support.storage.type"),
 
-  grammar->addScopes("class_definition > argument_list > attribute", "entity.other.inherited-class");
-  grammar->addScopes("class_definition > argument_list > identifier", "entity.other.inherited-class");
-  grammar->addScopes("class_definition > argument_list > keyword_argument > attribute", "entity.other.inherited-class");
-  grammar->addScopes("class_definition > argument_list > keyword_argument > identifier:nth-child(2)", "entity.other.inherited-class");
+    scope("class_definition > argument_list > attribute", "entity.other.inherited-class"),
+    scope("class_definition > argument_list > identifier", "entity.other.inherited-class"),
+    scope("class_definition > argument_list > keyword_argument > attribute", "entity.other.inherited-class"),
+    scope("class_definition > argument_list > keyword_argument > identifier:nth-child(2)", "entity.other.inherited-class"),
 
-  grammar->addScopes("\"class\"", "storage.type.class");
-  grammar->addScopes("\"def\"", "storage.type.function");
-  grammar->addScopes("\"lambda\"", "storage.type.function");
+    scope("\"class\"", "storage.type.class"),
+    scope("\"def\"", "storage.type.function"),
+    scope("\"lambda\"", "storage.type.function"),
 
-  grammar->addScopes("\"global\"", "storage.modifier.global");
-  grammar->addScopes("\"nonlocal\"", "storage.modifier.nonlocal");
+    scope("\"global\"", "storage.modifier.global"),
+    scope("\"nonlocal\"", "storage.modifier.nonlocal"),
 
-  grammar->addScopes("parameters > identifier", "variable.parameter.function");
-  grammar->addScopes("parameters > list_splat > identifier", "variable.parameter.function");
-  grammar->addScopes("parameters > dictionary_splat > identifier", "variable.parameter.function");
-  grammar->addScopes("default_parameter > identifier:nth-child(0)", "variable.parameter.function");
-  grammar->addScopes("keyword_argument > identifier:nth-child(0)", "variable.parameter.function");
-  grammar->addScopes("lambda_parameters > identifier", "variable.parameter.function");
-  grammar->addScopes("typed_parameter > identifier", "variable.parameter.function");
+    scope("parameters > identifier", "variable.parameter.function"),
+    scope("parameters > list_splat > identifier", "variable.parameter.function"),
+    scope("parameters > dictionary_splat > identifier", "variable.parameter.function"),
+    scope("default_parameter > identifier:nth-child(0)", "variable.parameter.function"),
+    scope("keyword_argument > identifier:nth-child(0)", "variable.parameter.function"),
+    scope("lambda_parameters > identifier", "variable.parameter.function"),
+    scope("typed_parameter > identifier", "variable.parameter.function"),
 
-  grammar->addScopes("argument_list", "meta.method-call.python");
+    scope("argument_list", "meta.method-call.python"),
 
-  grammar->addScopes("\"if\"", "keyword.control");
-  grammar->addScopes("\"else\"", "keyword.control");
-  grammar->addScopes("\"elif\"", "keyword.control");
-  grammar->addScopes("\"while\"", "keyword.control");
-  grammar->addScopes("\"for\"", "keyword.control");
-  grammar->addScopes("\"return\"", "keyword.control");
-  grammar->addScopes("\"break\"", "keyword.control");
-  grammar->addScopes("\"continue\"", "keyword.control");
-  grammar->addScopes("\"pass\"", "keyword.control");
-  grammar->addScopes("\"raise\"", "keyword.control");
-  grammar->addScopes("\"yield\"", "keyword.control");
-  grammar->addScopes("\"await\"", "keyword.control");
-  grammar->addScopes("\"async\"", "keyword.control");
-  grammar->addScopes("\"try\"", "keyword.control");
-  grammar->addScopes("\"except\"", "keyword.control");
-  grammar->addScopes("\"with\"", "keyword.control");
-  grammar->addScopes("\"as\"", "keyword.control");
-  grammar->addScopes("\"finally\"", "keyword.control");
-  grammar->addScopes("\"import\"", "keyword.control");
-  grammar->addScopes("\"from\"", "keyword.control");
+    scope("\"if\"", "keyword.control"),
+    scope("\"else\"", "keyword.control"),
+    scope("\"elif\"", "keyword.control"),
+    scope("\"while\"", "keyword.control"),
+    scope("\"for\"", "keyword.control"),
+    scope("\"return\"", "keyword.control"),
+    scope("\"break\"", "keyword.control"),
+    scope("\"continue\"", "keyword.control"),
+    scope("\"pass\"", "keyword.control"),
+    scope("\"raise\"", "keyword.control"),
+    scope("\"yield\"", "keyword.control"),
+    scope("\"await\"", "keyword.control"),
+    scope("\"async\"", "keyword.control"),
+    scope("\"try\"", "keyword.control"),
+    scope("\"except\"", "keyword.control"),
+    scope("\"with\"", "keyword.control"),
+    scope("\"as\"", "keyword.control"),
+    scope("\"finally\"", "keyword.control"),
+    scope("\"import\"", "keyword.control"),
+    scope("\"from\"", "keyword.control"),
 
-  grammar->addScopes("\"print\"", "keyword.other");
-  grammar->addScopes("\"assert\"", "keyword.other");
-  grammar->addScopes("\"exec\"", "keyword.other");
-  grammar->addScopes("\"del\"", "keyword.other");
+    scope("\"print\"", "keyword.other"),
+    scope("\"assert\"", "keyword.other"),
+    scope("\"exec\"", "keyword.other"),
+    scope("\"del\"", "keyword.other"),
 
-  grammar->addScopes("\"+\"", "keyword.operator");
-  grammar->addScopes("\"-\"", "keyword.operator");
-  grammar->addScopes("\"*\"", "keyword.operator");
-  grammar->addScopes("\"/\"", "keyword.operator");
-  grammar->addScopes("\"%\"", "keyword.operator");
-  grammar->addScopes("\"**\"", "keyword.operator");
-  grammar->addScopes("\"//\"", "keyword.operator");
-  grammar->addScopes("\"==\"", "keyword.operator");
-  grammar->addScopes("\"!=\"", "keyword.operator");
-  grammar->addScopes("\"<>\"", "keyword.operator");
-  grammar->addScopes("\">\"", "keyword.operator");
-  grammar->addScopes("\"<\"", "keyword.operator");
-  grammar->addScopes("\">=\"", "keyword.operator");
-  grammar->addScopes("\"<=\"", "keyword.operator");
-  grammar->addScopes("\"=\"", "keyword.operator");
-  grammar->addScopes("\"+=\"", "keyword.operator");
-  grammar->addScopes("\"-=\"", "keyword.operator");
-  grammar->addScopes("\"*=\"", "keyword.operator");
-  grammar->addScopes("\"/=\"", "keyword.operator");
-  grammar->addScopes("\"%=\"", "keyword.operator");
-  grammar->addScopes("\"**=\"", "keyword.operator");
-  grammar->addScopes("\"//=\"", "keyword.operator");
-  grammar->addScopes("\"&\"", "keyword.operator");
-  grammar->addScopes("\"|\"", "keyword.operator");
-  grammar->addScopes("\"^\"", "keyword.operator");
-  grammar->addScopes("\"~\"", "keyword.operator");
-  grammar->addScopes("\"<<\"", "keyword.operator");
-  grammar->addScopes("\">>\"", "keyword.operator");
-  grammar->addScopes("binary_operator > \"@\"", "keyword.operator");
-  grammar->addScopes("binary_operator > \"@=\"", "keyword.operator");
-  grammar->addScopes("\"in\"", "keyword.operator.logical.python");
-  grammar->addScopes("\"and\"", "keyword.operator.logical.python");
-  grammar->addScopes("\"or\"", "keyword.operator.logical.python");
-  grammar->addScopes("\"not\"", "keyword.operator.logical.python");
-  grammar->addScopes("\"is\"", "keyword.operator.logical.python");
-  grammar->addScopes("\"->\"", "keyword.control.return");
+    scope("\"+\"", "keyword.operator"),
+    scope("\"-\"", "keyword.operator"),
+    scope("\"*\"", "keyword.operator"),
+    scope("\"/\"", "keyword.operator"),
+    scope("\"%\"", "keyword.operator"),
+    scope("\"**\"", "keyword.operator"),
+    scope("\"//\"", "keyword.operator"),
+    scope("\"==\"", "keyword.operator"),
+    scope("\"!=\"", "keyword.operator"),
+    scope("\"<>\"", "keyword.operator"),
+    scope("\">\"", "keyword.operator"),
+    scope("\"<\"", "keyword.operator"),
+    scope("\">=\"", "keyword.operator"),
+    scope("\"<=\"", "keyword.operator"),
+    scope("\"=\"", "keyword.operator"),
+    scope("\"+=\"", "keyword.operator"),
+    scope("\"-=\"", "keyword.operator"),
+    scope("\"*=\"", "keyword.operator"),
+    scope("\"/=\"", "keyword.operator"),
+    scope("\"%=\"", "keyword.operator"),
+    scope("\"**=\"", "keyword.operator"),
+    scope("\"//=\"", "keyword.operator"),
+    scope("\"&\"", "keyword.operator"),
+    scope("\"|\"", "keyword.operator"),
+    scope("\"^\"", "keyword.operator"),
+    scope("\"~\"", "keyword.operator"),
+    scope("\"<<\"", "keyword.operator"),
+    scope("\">>\"", "keyword.operator"),
+    scope("binary_operator > \"@\"", "keyword.operator"),
+    scope("binary_operator > \"@=\"", "keyword.operator"),
+    scope("\"in\"", "keyword.operator.logical.python"),
+    scope("\"and\"", "keyword.operator.logical.python"),
+    scope("\"or\"", "keyword.operator.logical.python"),
+    scope("\"not\"", "keyword.operator.logical.python"),
+    scope("\"is\"", "keyword.operator.logical.python"),
+    scope("\"->\"", "keyword.control.return"),
 
-  grammar->addScopes("\"[\"", "punctuation.definition.begin.bracket.square");
-  grammar->addScopes("\"]\"", "punctuation.definition.end.bracket.square");
-  grammar->addScopes("\",\"", "punctuation.separator.delimiter");
-  grammar->addScopes("\"{\"", "punctuation.section.block.begin.bracket.curly");
-  grammar->addScopes("\"}\"", "punctuation.section.block.end.bracket.curly");
-  grammar->addScopes("\"(\"", "punctuation.section.parens.begin.bracket.round");
-  grammar->addScopes("\")\"", "punctuation.section.parens.end.bracket.round");
+    scope("\"[\"", "punctuation.definition.begin.bracket.square"),
+    scope("\"]\"", "punctuation.definition.end.bracket.square"),
+    scope("\",\"", "punctuation.separator.delimiter"),
+    scope("\"{\"", "punctuation.section.block.begin.bracket.curly"),
+    scope("\"}\"", "punctuation.section.block.end.bracket.curly"),
+    scope("\"(\"", "punctuation.section.parens.begin.bracket.round"),
+    scope("\")\"", "punctuation.section.parens.end.bracket.round")
+  );
 
-  return grammar->finalize();
+  return grammar;
 }

@@ -20,6 +20,9 @@ struct Grammar {
     addFileTypes(std::forward<T0>(t0));
     addFileTypes(std::forward<T1>(t1), std::forward<T>(t)...);
   }
+  template <typename... T> void setFileTypes(T&&... t) {
+    addFileTypes(std::forward<T>(t)...);
+  }
   virtual LanguageMode *getLanguageMode(TextBuffer *) = 0;
 };
 

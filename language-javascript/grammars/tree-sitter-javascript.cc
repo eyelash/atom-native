@@ -2,6 +2,8 @@
 
 extern "C" const TSLanguage *tree_sitter_javascript();
 
+using namespace TreeSitterGrammarDSL;
+
 extern "C" TreeSitterGrammar *atom_language_javascript() {
   TreeSitterGrammar *grammar = new TreeSitterGrammar(
     "JavaScript",
@@ -9,7 +11,7 @@ extern "C" TreeSitterGrammar *atom_language_javascript() {
     tree_sitter_javascript()
   );
 
-  grammar->addFileTypes(
+  grammar->setFileTypes(
     "js",
     "jsx"
   );
@@ -23,210 +25,212 @@ extern "C" TreeSitterGrammar *atom_language_javascript() {
       ^ \s* (\s* /[*] .* [*]/ \s*)* [}\])]
   )""");
 
-  grammar->addScopes("program", "source.js");
+  grammar->setScopes(
+    scope("program", "source.js"),
 
-  grammar->addScopes("property_identifier", array(
-    match(
-      u"^[$A-Z_]+$",
-      "constant.other.property.js"
+    scope("property_identifier", array(
+      match(
+        u"^[$A-Z_]+$",
+        "constant.other.property.js"
+      ),
+
+      "variable.other.object.property"
+    )),
+
+    scope("member_expression > property_identifier", "variable.other.object.property.unquoted"),
+
+    scope("formal_parameters > identifier", "variable.parameter.function"),
+    scope("formal_parameters > rest_parameter > identifier", "variable.parameter.rest.function"),
+
+    scope("shorthand_property_identifier",
+      match(
+        u"^[$A-Z_]{2,}$",
+        "constant.other"
+      )
     ),
 
-    "variable.other.object.property"
-  ));
+    scope(array(
+      "class > identifier",
+      "new_expression > identifier"
+    ), "meta.class"),
 
-  grammar->addScopes("member_expression > property_identifier", "variable.other.object.property.unquoted");
+    scope(array(
+      "jsx_opening_element > identifier",
+      "jsx_closing_element > identifier",
+      "jsx_self_closing_element > identifier"
+    ),
+      match(
+        u"^[A-Z]",
+        "meta.class.component.jsx"
+      )
+    ),
 
-  grammar->addScopes("formal_parameters > identifier", "variable.parameter.function");
-  grammar->addScopes("formal_parameters > rest_parameter > identifier", "variable.parameter.rest.function");
+    scope("call_expression > identifier", match(u"^[A-Z]", "meta.class")),
+    scope("arrow_function > identifier:nth-child(0)", "variable.parameter.function"),
 
-  grammar->addScopes("shorthand_property_identifier",
-    match(
-      u"^[$A-Z_]{2,}$",
-      "constant.other"
-    )
+    scope("function > identifier", "entity.name.function"),
+    scope("function_declaration > identifier", "entity.name.function"),
+    scope("generator_function > identifier", "entity.name.function"),
+
+    scope("call_expression > identifier", array(
+      match(u"^require$", "support.function"),
+      "entity.name.function"
+    )),
+
+    scope("call_expression > super", "support.function.super"),
+
+    scope("method_definition > property_identifier", "entity.name.function"),
+    scope("call_expression > member_expression > property_identifier", "entity.name.function"),
+
+    scope("identifier", array(
+      match(
+        u"^(global|globalThis|module|exports|__filename|__dirname)$",
+        "support.variable"
+      ),
+      match(
+        u"^(window|self|frames|event|document|performance|screen|navigator|console)$",
+        "support.variable.dom"
+      ),
+      exact(
+        u"require",
+        "support.function"
+      ),
+      match(
+        u"^[$A-Z_]{2,}$",
+        "constant.other"
+      ),
+      match(
+        u"^[A-Z]",
+        "meta.class"
+      )
+    )),
+
+    scope("number", "constant.numeric"),
+    scope("string", "string.quoted"),
+    scope("regex", "string.regexp"),
+    scope("escape_sequence", "constant.character.escape"),
+    scope("template_string", "string.quoted.template"),
+    scope("undefined", "constant.language"),
+    scope("null", "constant.language.null"),
+    scope("true", "constant.language.boolean.true"),
+    scope("false", "constant.language.boolean.false"),
+    scope("comment", array(
+      match(
+        u"^//",
+        "comment.line"
+      ),
+      "comment.block"
+    )),
+    scope("hash_bang_line", "comment.block"),
+
+    scope(array(
+      "jsx_expression > \"{\"",
+      "jsx_expression > \"}\"",
+      "template_substitution > \"${\"",
+      "template_substitution > \"}\""
+    ), "punctuation.section.embedded"),
+    scope("template_substitution", "embedded.source"),
+
+    scope("\"(\"", "punctuation.definition.parameters.begin.bracket.round"),
+    scope("\")\"", "punctuation.definition.parameters.end.bracket.round"),
+    scope("\"{\"", "punctuation.definition.function.body.begin.bracket.curly"),
+    scope("\"}\"", "punctuation.definition.function.body.end.bracket.curly"),
+    scope("\";\"", "punctuation.terminator.statement.semicolon"),
+    scope("\"[\"", "punctuation.definition.array.begin.bracket.square"),
+    scope("\"]\"", "punctuation.definition.array.end.bracket.square"),
+
+    scope("\"var\"", "storage.type"),
+    scope("\"let\"", "storage.type"),
+    scope("\"class\"", "storage.type"),
+    scope("\"extends\"", "storage.modifier"),
+    scope("\"const\"", "storage.modifier"),
+    scope("\"static\"", "storage.modifier"),
+    scope("\"function\"", "storage.type.function"),
+    scope("\"=>\"", "storage.type.function.arrow"),
+
+    scope("\"=\"", "keyword.operator.js"),
+    scope("\"+=\"", "keyword.operator.js"),
+    scope("\"-=\"", "keyword.operator.js"),
+    scope("\"*=\"", "keyword.operator.js"),
+    scope("\"/=\"", "keyword.operator.js"),
+    scope("\"%=\"", "keyword.operator.js"),
+    scope("\"<<=\"", "keyword.operator.js"),
+    scope("\">>=\"", "keyword.operator.js"),
+    scope("\">>>=\"", "keyword.operator.js"),
+    scope("\"&=\"", "keyword.operator.js"),
+    scope("\"^=\"", "keyword.operator.js"),
+    scope("\"|=\"", "keyword.operator.js"),
+    scope("\"!\"", "keyword.operator.js"),
+    scope("\"+\"", "keyword.operator.js"),
+    scope("\"-\"", "keyword.operator.js"),
+    scope("\"*\"", "keyword.operator.js"),
+    scope("\"/\"", "keyword.operator.js"),
+    scope("\"%\"", "keyword.operator.js"),
+    scope("\"==\"", "keyword.operator.js"),
+    scope("\"===\"", "keyword.operator.js"),
+    scope("\"!=\"", "keyword.operator.js"),
+    scope("\"!==\"", "keyword.operator.js"),
+    scope("\">=\"", "keyword.operator.js"),
+    scope("\"<=\"", "keyword.operator.js"),
+    scope("\">\"", "keyword.operator.js"),
+    scope("\"<\"", "keyword.operator.js"),
+    scope("\":\"", "keyword.operator.js"),
+    scope("\"?\"", "keyword.operator.js"),
+    scope("\"&&\"", "keyword.operator.js"),
+    scope("\"||\"", "keyword.operator.js"),
+    scope("\"&\"", "keyword.operator.js"),
+    scope("\"~\"", "keyword.operator.js"),
+    scope("\"^\"", "keyword.operator.js"),
+    scope("\">>\"", "keyword.operator.js"),
+    scope("\">>>\"", "keyword.operator.js"),
+    scope("\"<<\"", "keyword.operator.js"),
+    scope("\"|\"", "keyword.operator.js"),
+    scope("\"++\"", "keyword.operator.js"),
+    scope("\"--\"", "keyword.operator.js"),
+    scope("\"...\"", "keyword.operator.spread.js"),
+
+    scope("\"in\"", "keyword.operator.in"),
+    scope("\"instanceof\"", "keyword.operator.instanceof"),
+    scope("\"of\"", "keyword.operator.of"),
+    scope("\"new\"", "keyword.operator.new"),
+    scope("\"typeof\"", "keyword.operator.typeof"),
+
+    scope("\"get\"", "keyword.operator.setter"),
+    scope("\"set\"", "keyword.operator.setter"),
+
+    scope("\".\"", "meta.delimiter.period"),
+    scope("\",\"", "meta.delimiter.comma"),
+
+    scope("\"as\"", "keyword.control"),
+    scope("\"if\"", "keyword.control"),
+    scope("\"do\"", "keyword.control"),
+    scope("\"else\"", "keyword.control"),
+    scope("\"while\"", "keyword.control"),
+    scope("\"for\"", "keyword.control"),
+    scope("\"return\"", "keyword.control"),
+    scope("\"break\"", "keyword.control"),
+    scope("\"continue\"", "keyword.control"),
+    scope("\"throw\"", "keyword.control"),
+    scope("\"try\"", "keyword.control"),
+    scope("\"catch\"", "keyword.control"),
+    scope("\"finally\"", "keyword.control"),
+    scope("\"switch\"", "keyword.control"),
+    scope("\"case\"", "keyword.control"),
+    scope("\"default\"", "keyword.control"),
+    scope("\"export\"", "keyword.control"),
+    scope("\"import\"", "keyword.control"),
+    scope("\"from\"", "keyword.control"),
+    scope("\"yield\"", "keyword.control"),
+    scope("\"async\"", "keyword.control"),
+    scope("\"await\"", "keyword.control"),
+    scope("\"debugger\"", "keyword.control"),
+    scope("\"delete\"", "keyword.control"),
+
+    scope("jsx_attribute > property_identifier", "entity.other.attribute-name"),
+    scope("jsx_opening_element > identifier", "entity.name.tag"),
+    scope("jsx_closing_element > identifier", "entity.name.tag"),
+    scope("jsx_self_closing_element > identifier", "entity.name.tag")
   );
 
-  grammar->addScopes({
-    "class > identifier",
-    "new_expression > identifier"
-  }, "meta.class");
-
-  grammar->addScopes({
-    "jsx_opening_element > identifier",
-    "jsx_closing_element > identifier",
-    "jsx_self_closing_element > identifier"
-  },
-    match(
-      u"^[A-Z]",
-      "meta.class.component.jsx"
-    )
-  );
-
-  grammar->addScopes("call_expression > identifier", match(u"^[A-Z]", "meta.class"));
-  grammar->addScopes("arrow_function > identifier:nth-child(0)", "variable.parameter.function");
-
-  grammar->addScopes("function > identifier", "entity.name.function");
-  grammar->addScopes("function_declaration > identifier", "entity.name.function");
-  grammar->addScopes("generator_function > identifier", "entity.name.function");
-
-  grammar->addScopes("call_expression > identifier", array(
-    match(u"^require$", "support.function"),
-    "entity.name.function"
-  ));
-
-  grammar->addScopes("call_expression > super", "support.function.super");
-
-  grammar->addScopes("method_definition > property_identifier", "entity.name.function");
-  grammar->addScopes("call_expression > member_expression > property_identifier", "entity.name.function");
-
-  grammar->addScopes("identifier", array(
-    match(
-      u"^(global|globalThis|module|exports|__filename|__dirname)$",
-      "support.variable"
-    ),
-    match(
-      u"^(window|self|frames|event|document|performance|screen|navigator|console)$",
-      "support.variable.dom"
-    ),
-    exact(
-      u"require",
-      "support.function"
-    ),
-    match(
-      u"^[$A-Z_]{2,}$",
-      "constant.other"
-    ),
-    match(
-      u"^[A-Z]",
-      "meta.class"
-    )
-  ));
-
-  grammar->addScopes("number", "constant.numeric");
-  grammar->addScopes("string", "string.quoted");
-  grammar->addScopes("regex", "string.regexp");
-  grammar->addScopes("escape_sequence", "constant.character.escape");
-  grammar->addScopes("template_string", "string.quoted.template");
-  grammar->addScopes("undefined", "constant.language");
-  grammar->addScopes("null", "constant.language.null");
-  grammar->addScopes("true", "constant.language.boolean.true");
-  grammar->addScopes("false", "constant.language.boolean.false");
-  grammar->addScopes("comment", array(
-    match(
-      u"^//",
-      "comment.line"
-    ),
-    "comment.block"
-  ));
-  grammar->addScopes("hash_bang_line", "comment.block");
-
-  grammar->addScopes({
-    "jsx_expression > \"{\"",
-    "jsx_expression > \"}\"",
-    "template_substitution > \"${\"",
-    "template_substitution > \"}\""
-  }, "punctuation.section.embedded");
-  grammar->addScopes("template_substitution", "embedded.source");
-
-  grammar->addScopes("\"(\"", "punctuation.definition.parameters.begin.bracket.round");
-  grammar->addScopes("\")\"", "punctuation.definition.parameters.end.bracket.round");
-  grammar->addScopes("\"{\"", "punctuation.definition.function.body.begin.bracket.curly");
-  grammar->addScopes("\"}\"", "punctuation.definition.function.body.end.bracket.curly");
-  grammar->addScopes("\";\"", "punctuation.terminator.statement.semicolon");
-  grammar->addScopes("\"[\"", "punctuation.definition.array.begin.bracket.square");
-  grammar->addScopes("\"]\"", "punctuation.definition.array.end.bracket.square");
-
-  grammar->addScopes("\"var\"", "storage.type");
-  grammar->addScopes("\"let\"", "storage.type");
-  grammar->addScopes("\"class\"", "storage.type");
-  grammar->addScopes("\"extends\"", "storage.modifier");
-  grammar->addScopes("\"const\"", "storage.modifier");
-  grammar->addScopes("\"static\"", "storage.modifier");
-  grammar->addScopes("\"function\"", "storage.type.function");
-  grammar->addScopes("\"=>\"", "storage.type.function.arrow");
-
-  grammar->addScopes("\"=\"", "keyword.operator.js");
-  grammar->addScopes("\"+=\"", "keyword.operator.js");
-  grammar->addScopes("\"-=\"", "keyword.operator.js");
-  grammar->addScopes("\"*=\"", "keyword.operator.js");
-  grammar->addScopes("\"/=\"", "keyword.operator.js");
-  grammar->addScopes("\"%=\"", "keyword.operator.js");
-  grammar->addScopes("\"<<=\"", "keyword.operator.js");
-  grammar->addScopes("\">>=\"", "keyword.operator.js");
-  grammar->addScopes("\">>>=\"", "keyword.operator.js");
-  grammar->addScopes("\"&=\"", "keyword.operator.js");
-  grammar->addScopes("\"^=\"", "keyword.operator.js");
-  grammar->addScopes("\"|=\"", "keyword.operator.js");
-  grammar->addScopes("\"!\"", "keyword.operator.js");
-  grammar->addScopes("\"+\"", "keyword.operator.js");
-  grammar->addScopes("\"-\"", "keyword.operator.js");
-  grammar->addScopes("\"*\"", "keyword.operator.js");
-  grammar->addScopes("\"/\"", "keyword.operator.js");
-  grammar->addScopes("\"%\"", "keyword.operator.js");
-  grammar->addScopes("\"==\"", "keyword.operator.js");
-  grammar->addScopes("\"===\"", "keyword.operator.js");
-  grammar->addScopes("\"!=\"", "keyword.operator.js");
-  grammar->addScopes("\"!==\"", "keyword.operator.js");
-  grammar->addScopes("\">=\"", "keyword.operator.js");
-  grammar->addScopes("\"<=\"", "keyword.operator.js");
-  grammar->addScopes("\">\"", "keyword.operator.js");
-  grammar->addScopes("\"<\"", "keyword.operator.js");
-  grammar->addScopes("\":\"", "keyword.operator.js");
-  grammar->addScopes("\"?\"", "keyword.operator.js");
-  grammar->addScopes("\"&&\"", "keyword.operator.js");
-  grammar->addScopes("\"||\"", "keyword.operator.js");
-  grammar->addScopes("\"&\"", "keyword.operator.js");
-  grammar->addScopes("\"~\"", "keyword.operator.js");
-  grammar->addScopes("\"^\"", "keyword.operator.js");
-  grammar->addScopes("\">>\"", "keyword.operator.js");
-  grammar->addScopes("\">>>\"", "keyword.operator.js");
-  grammar->addScopes("\"<<\"", "keyword.operator.js");
-  grammar->addScopes("\"|\"", "keyword.operator.js");
-  grammar->addScopes("\"++\"", "keyword.operator.js");
-  grammar->addScopes("\"--\"", "keyword.operator.js");
-  grammar->addScopes("\"...\"", "keyword.operator.spread.js");
-
-  grammar->addScopes("\"in\"", "keyword.operator.in");
-  grammar->addScopes("\"instanceof\"", "keyword.operator.instanceof");
-  grammar->addScopes("\"of\"", "keyword.operator.of");
-  grammar->addScopes("\"new\"", "keyword.operator.new");
-  grammar->addScopes("\"typeof\"", "keyword.operator.typeof");
-
-  grammar->addScopes("\"get\"", "keyword.operator.setter");
-  grammar->addScopes("\"set\"", "keyword.operator.setter");
-
-  grammar->addScopes("\".\"", "meta.delimiter.period");
-  grammar->addScopes("\",\"", "meta.delimiter.comma");
-
-  grammar->addScopes("\"as\"", "keyword.control");
-  grammar->addScopes("\"if\"", "keyword.control");
-  grammar->addScopes("\"do\"", "keyword.control");
-  grammar->addScopes("\"else\"", "keyword.control");
-  grammar->addScopes("\"while\"", "keyword.control");
-  grammar->addScopes("\"for\"", "keyword.control");
-  grammar->addScopes("\"return\"", "keyword.control");
-  grammar->addScopes("\"break\"", "keyword.control");
-  grammar->addScopes("\"continue\"", "keyword.control");
-  grammar->addScopes("\"throw\"", "keyword.control");
-  grammar->addScopes("\"try\"", "keyword.control");
-  grammar->addScopes("\"catch\"", "keyword.control");
-  grammar->addScopes("\"finally\"", "keyword.control");
-  grammar->addScopes("\"switch\"", "keyword.control");
-  grammar->addScopes("\"case\"", "keyword.control");
-  grammar->addScopes("\"default\"", "keyword.control");
-  grammar->addScopes("\"export\"", "keyword.control");
-  grammar->addScopes("\"import\"", "keyword.control");
-  grammar->addScopes("\"from\"", "keyword.control");
-  grammar->addScopes("\"yield\"", "keyword.control");
-  grammar->addScopes("\"async\"", "keyword.control");
-  grammar->addScopes("\"await\"", "keyword.control");
-  grammar->addScopes("\"debugger\"", "keyword.control");
-  grammar->addScopes("\"delete\"", "keyword.control");
-
-  grammar->addScopes("jsx_attribute > property_identifier", "entity.other.attribute-name");
-  grammar->addScopes("jsx_opening_element > identifier", "entity.name.tag");
-  grammar->addScopes("jsx_closing_element > identifier", "entity.name.tag");
-  grammar->addScopes("jsx_self_closing_element > identifier", "entity.name.tag");
-
-  return grammar->finalize();
+  return grammar;
 }

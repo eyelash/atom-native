@@ -2,6 +2,8 @@
 
 extern "C" const TSLanguage *tree_sitter_html();
 
+using namespace TreeSitterGrammarDSL;
+
 extern "C" TreeSitterGrammar *atom_language_html() {
   TreeSitterGrammar *grammar = new TreeSitterGrammar(
     "HTML",
@@ -9,7 +11,7 @@ extern "C" TreeSitterGrammar *atom_language_html() {
     tree_sitter_html()
   );
 
-  grammar->addFileTypes(
+  grammar->setFileTypes(
     "html"
   );
 
@@ -30,33 +32,35 @@ extern "C" TreeSitterGrammar *atom_language_html() {
     )
   )""");
 
-  grammar->addScopes("fragment", "source.html");
-  grammar->addScopes("tag_name", "entity.name.tag");
-  grammar->addScopes("erroneous_end_tag_name", "invalid.illegal");
-  grammar->addScopes("doctype", "meta.tag.doctype.html");
-  grammar->addScopes("attribute_name", "entity.other.attribute-name");
-  grammar->addScopes("attribute_value", "string.html");
-  grammar->addScopes("comment", "comment.block.html");
+  grammar->setScopes(
+    scope("fragment", "source.html"),
+    scope("tag_name", "entity.name.tag"),
+    scope("erroneous_end_tag_name", "invalid.illegal"),
+    scope("doctype", "meta.tag.doctype.html"),
+    scope("attribute_name", "entity.other.attribute-name"),
+    scope("attribute_value", "string.html"),
+    scope("comment", "comment.block.html"),
 
-  grammar->addScopes({
-    "start_tag > \"<\"",
-    "end_tag > \"</\""
-  }, "punctuation.definition.tag.begin");
-  grammar->addScopes({
-    "start_tag > \">\"",
-    "end_tag > \">\""
-  }, "punctuation.definition.tag.end");
+    scope(array(
+      "start_tag > \"<\"",
+      "end_tag > \"</\""
+    ), "punctuation.definition.tag.begin"),
+    scope(array(
+      "start_tag > \">\"",
+      "end_tag > \">\""
+    ), "punctuation.definition.tag.end"),
 
-  grammar->addScopes("attribute > \"=\"", "punctuation.separator.key-value.html");
+    scope("attribute > \"=\"", "punctuation.separator.key-value.html"),
 
-  // quoted_attribute_value has three child nodes: ", attribute_value, and ".
-  // Target the first and last.
-  // Single quotes and double quotes are targeted in separate selectors because
-  // of quote-escaping difficulties.
-  grammar->addScopes("quoted_attribute_value > \"\"\":nth-child(0)", "punctuation.definition.string.begin");
-  grammar->addScopes("quoted_attribute_value > \"'\":nth-child(0)", "punctuation.definition.string.begin");
-  grammar->addScopes("quoted_attribute_value > \"\"\":nth-child(2)", "punctuation.definition.string.end");
-  grammar->addScopes("quoted_attribute_value > \"'\":nth-child(2)", "punctuation.definition.string.end");
+    // quoted_attribute_value has three child nodes: ", attribute_value, and ".
+    // Target the first and last.
+    // Single quotes and double quotes are targeted in separate selectors because
+    // of quote-escaping difficulties.
+    scope("quoted_attribute_value > \"\"\":nth-child(0)", "punctuation.definition.string.begin"),
+    scope("quoted_attribute_value > \"'\":nth-child(0)", "punctuation.definition.string.begin"),
+    scope("quoted_attribute_value > \"\"\":nth-child(2)", "punctuation.definition.string.end"),
+    scope("quoted_attribute_value > \"'\":nth-child(2)", "punctuation.definition.string.end")
+  );
 
-  return grammar->finalize();
+  return grammar;
 }

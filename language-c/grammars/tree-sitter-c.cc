@@ -33,7 +33,7 @@ extern "C" TreeSitterGrammar *atom_language_c() {
   grammar->addScopes("comment", "comment.block");
 
   grammar->addScopes("identifier",
-    TreeSitterGrammar::Match{u"^[A-Z\\d_]+$", "constant.other"}
+    match(u"^[A-Z\\d_]+$", "constant.other")
   );
 
   grammar->addScopes("\"#if\"", "keyword.control.directive");
@@ -155,5 +155,5 @@ extern "C" TreeSitterGrammar *atom_language_c() {
   grammar->addScopes("\"?\"", "keyword.operator");
   grammar->addScopes("\":\"", "keyword.operator");
 
-  return grammar;
+  return grammar->finalize();
 }

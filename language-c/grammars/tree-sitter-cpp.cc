@@ -47,7 +47,7 @@ extern "C" TreeSitterGrammar *atom_language_cpp() {
   grammar->addScopes("comment", "comment.block");
 
   grammar->addScopes("identifier",
-    TreeSitterGrammar::Match{u"^[A-Z\\d_]+$", "constant.other"}
+    match(u"^[A-Z\\d_]+$", "constant.other")
   );
 
   grammar->addScopes("\"#if\"", "keyword.control.directive");
@@ -92,10 +92,10 @@ extern "C" TreeSitterGrammar *atom_language_cpp() {
   grammar->addScopes("preproc_directive", "keyword.control.directive");
 
   grammar->addScopes("template_function > identifier",
-    TreeSitterGrammar::Match{
+    match(
       u"^(static|const|dynamic|reinterpret)_cast$",
       "keyword.operator"
-    }
+    )
   );
 
   grammar->addScopes({
@@ -219,5 +219,5 @@ extern "C" TreeSitterGrammar *atom_language_cpp() {
   grammar->addScopes("\"?\"", "keyword.operator");
   grammar->addScopes("conditional_expression > \":\"", "keyword.operator");
 
-  return grammar;
+  return grammar->finalize();
 }

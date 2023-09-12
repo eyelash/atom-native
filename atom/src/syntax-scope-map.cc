@@ -76,6 +76,8 @@ template <typename F> static void process(F f, const std::string &selector) {
 
 }
 
+static void setTableDefaults(std::unordered_map<std::string, std::unique_ptr<SyntaxScopeMap::Table>> &, bool);
+static void mergeTable(SyntaxScopeMap::Table *, SyntaxScopeMap::Table *, bool = true);
 static void rejectSelector(const std::string &);
 
 SyntaxScopeMap::Result::~Result() {}
@@ -84,32 +86,20 @@ SyntaxScopeMap::Table::Table() {
   this->result = nullptr;
 }
 
-SyntaxScopeMap::Table::~Table() {
-  for (auto &table : this->indices) {
-    delete table.second;
-  }
-  for (auto &table : this->parents) {
-    delete table.second;
-  }
-  if (this->result) {
-    delete this->result;
-  }
-}
+SyntaxScopeMap::Table::~Table() {}
 
 SyntaxScopeMap::SyntaxScopeMap() {}
 
-SyntaxScopeMap::~SyntaxScopeMap() {
-  for (auto &table : this->namedScopeTable) {
-    delete table.second;
-  }
-  for (auto &table : this->anonymousScopeTable) {
-    delete table.second;
-  }
+void SyntaxScopeMap::finalize() {
+  setTableDefaults(this->namedScopeTable, true);
+  setTableDefaults(this->anonymousScopeTable, false);
 }
 
-void SyntaxScopeMap::addSelector(const std::string &selector, Result *result) {
+SyntaxScopeMap::~SyntaxScopeMap() {}
+
+void SyntaxScopeMap::addSelector(const std::string &selector, std::shared_ptr<Result> result) {
   process([&](const std::vector<Node> &nodes) {
-    std::unordered_map<std::string, Table *> *currentMap = nullptr;
+    std::unordered_map<std::string, std::unique_ptr<Table>> *currentMap = nullptr;
     Table *currentTable = nullptr;
     optional<double> currentIndexValue;
 
@@ -120,12 +110,12 @@ void SyntaxScopeMap::addSelector(const std::string &selector, Result *result) {
         case NodeType::tag:
           if (!currentMap) currentMap = &this->namedScopeTable;
           if (!(*currentMap)[termNode.value])
-            (*currentMap)[termNode.value] = new Table();
-          currentTable = (*currentMap)[termNode.value];
+            (*currentMap)[termNode.value] = std::unique_ptr<Table>(new Table());
+          currentTable = (*currentMap)[termNode.value].get();
           if (currentIndexValue) {
             if (!currentTable->indices[*currentIndexValue])
-              currentTable->indices[*currentIndexValue] = new Table();
-            currentTable = currentTable->indices[*currentIndexValue];
+              currentTable->indices[*currentIndexValue] = std::unique_ptr<Table>(new Table());
+            currentTable = currentTable->indices[*currentIndexValue].get();
             currentIndexValue = optional<double>();
           }
           break;
@@ -134,32 +124,32 @@ void SyntaxScopeMap::addSelector(const std::string &selector, Result *result) {
           {
             if (!currentMap) currentMap = &this->anonymousScopeTable;
             const std::string value = termNode.value.substr(1, termNode.value.size() - 2); //.replace(/\\"/g, '"');
-            if (!(*currentMap)[value]) (*currentMap)[value] = new Table();
-            currentTable = (*currentMap)[value];
+            if (!(*currentMap)[value]) (*currentMap)[value] = std::unique_ptr<Table>(new Table());
+            currentTable = (*currentMap)[value].get();
           }
           if (currentIndexValue) {
             if (!currentTable->indices[*currentIndexValue])
-              currentTable->indices[*currentIndexValue] = new Table();
-            currentTable = currentTable->indices[*currentIndexValue];
+              currentTable->indices[*currentIndexValue] = std::unique_ptr<Table>(new Table());
+            currentTable = currentTable->indices[*currentIndexValue].get();
             currentIndexValue = optional<double>();
           }
           break;
 
         case NodeType::universal:
           if (currentMap) {
-            if (!(*currentMap)["*"]) (*currentMap)["*"] = new Table();
-            currentTable = (*currentMap)["*"];
+            if (!(*currentMap)["*"]) (*currentMap)["*"] = std::unique_ptr<Table>(new Table());
+            currentTable = (*currentMap)["*"].get();
           } else {
             if (!this->namedScopeTable["*"]) {
-              this->namedScopeTable["*"] = new Table();
-              //this->anonymousScopeTable["*"] = new Table();
+              this->namedScopeTable["*"] = std::unique_ptr<Table>(new Table());
+              //this->anonymousScopeTable["*"] = std::unique_ptr<Table>(new Table());
             }
-            currentTable = this->namedScopeTable["*"];
+            currentTable = this->namedScopeTable["*"].get();
           }
           if (currentIndexValue) {
             if (!currentTable->indices[*currentIndexValue])
-              currentTable->indices[*currentIndexValue] = new Table();
-            currentTable = currentTable->indices[*currentIndexValue];
+              currentTable->indices[*currentIndexValue] = std::unique_ptr<Table>(new Table());
+            currentTable = currentTable->indices[*currentIndexValue].get();
             currentIndexValue = optional<double>();
           }
           break;
@@ -189,23 +179,22 @@ void SyntaxScopeMap::addSelector(const std::string &selector, Result *result) {
       }
     }
 
-    if (currentTable->result) delete currentTable->result;
     currentTable->result = result;
   }, selector);
 }
 
-SyntaxScopeMap::Result *SyntaxScopeMap::get(const std::vector<std::string> &nodeTypes, const std::vector<double> &childIndices, bool leafIsNamed) {
-  Result *result = nullptr;
+std::shared_ptr<SyntaxScopeMap::Result> SyntaxScopeMap::get(const std::vector<std::string> &nodeTypes, const std::vector<double> &childIndices, bool leafIsNamed) {
+  std::shared_ptr<Result> result;
   size_t i = nodeTypes.size() - 1;
   Table *currentTable = leafIsNamed
-    ? this->namedScopeTable[nodeTypes[i]]
-    : this->anonymousScopeTable[nodeTypes[i]];
+    ? this->namedScopeTable[nodeTypes[i]].get()
+    : this->anonymousScopeTable[nodeTypes[i]].get();
 
-  if (!currentTable) currentTable = this->namedScopeTable["*"];
+  if (!currentTable) currentTable = this->namedScopeTable["*"].get();
 
   while (currentTable) {
     if (currentTable->indices.count(childIndices[i])) {
-      currentTable = currentTable->indices[childIndices[i]];
+      currentTable = currentTable->indices[childIndices[i]].get();
     }
 
     if (currentTable->result) {
@@ -215,15 +204,56 @@ SyntaxScopeMap::Result *SyntaxScopeMap::get(const std::vector<std::string> &node
     if (i == 0) break;
     i--;
     if (currentTable->parents.count(nodeTypes[i])) {
-      currentTable = currentTable->parents[nodeTypes[i]];
+      currentTable = currentTable->parents[nodeTypes[i]].get();
     } else if (currentTable->parents.count("*")) {
-      currentTable = currentTable->parents["*"];
+      currentTable = currentTable->parents["*"].get();
     } else {
       currentTable = nullptr;
     }
   }
 
   return result;
+}
+
+static void setTableDefaults(std::unordered_map<std::string, std::unique_ptr<SyntaxScopeMap::Table>> &table, bool allowWildcardSelector) {
+  SyntaxScopeMap::Table *defaultTypeTable = allowWildcardSelector && table.count("*") ? table["*"].get() : nullptr;
+
+  for (auto &entry : table) {
+    SyntaxScopeMap::Table *typeTable = entry.second.get();
+    if (typeTable == defaultTypeTable) continue;
+
+    if (defaultTypeTable) {
+      mergeTable(typeTable, defaultTypeTable);
+    }
+
+    setTableDefaults(typeTable->parents, true);
+
+    for (auto &key : typeTable->indices) {
+      SyntaxScopeMap::Table *indexTable = key.second.get();
+      mergeTable(indexTable, typeTable, false);
+      setTableDefaults(indexTable->parents, true);
+    }
+  }
+}
+
+static void mergeTable(SyntaxScopeMap::Table *table, SyntaxScopeMap::Table *defaultTable, bool mergeIndices) {
+  if (mergeIndices) {
+    for (auto &entry : defaultTable->indices) {
+      double key = entry.first;
+      if (!table->indices[key]) table->indices[key] = std::unique_ptr<SyntaxScopeMap::Table>(new SyntaxScopeMap::Table());
+      mergeTable(table->indices[key].get(), defaultTable->indices[key].get());
+    }
+  }
+
+  for (auto &entry : defaultTable->parents) {
+    const std::string &key = entry.first;
+    if (!table->parents[key]) table->parents[key] = std::unique_ptr<SyntaxScopeMap::Table>(new SyntaxScopeMap::Table());
+    mergeTable(table->parents[key].get(), defaultTable->parents[key].get());
+  }
+
+  if (defaultTable->result != nullptr && table->result == nullptr) {
+    table->result = defaultTable->result;
+  }
 }
 
 static void rejectSelector(const std::string &selector) {

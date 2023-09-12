@@ -36,23 +36,23 @@ extern "C" TreeSitterGrammar *atom_language_python() {
 
   grammar->addScopes("class_definition > identifier", "entity.name.type.class");
   grammar->addScopes("function_definition > identifier", "entity.name.function.definition");
-  grammar->addScopes("call > identifier:nth-child(0)",
-    TreeSitterGrammar::Match{
+  grammar->addScopes("call > identifier:nth-child(0)", array(
+    match(
       u"^(abs|all|any|ascii|bin|bool|breakpoint|bytearray|bytes|callable|chr|classmethod|compile|complex|delattr|dict|dir|divmod|enumerate|eval|exec|filter|float|format|frozenset|getattr|globals|hasattr|hash|help|hex|id|input|int|isinstance|issubclass|iter|len|list|locals|map|max|memoryview|min|next|object|oct|open|ord|pow|print|property|range|repr|reversed|round|set|setattr|slice|sorted|staticmethod|str|sum|super|tuple|type|vars|zip|__import__)$",
       "support.function.call"
-    },
-    TreeSitterGrammar::Match{u"^[A-Z]", "support.type.contructor"},
+    ),
+    match(u"^[A-Z]", "support.type.contructor"),
     "entity.name.function.call"
-  );
+  ));
   grammar->addScopes("call > attribute > identifier:nth-child(2)", "entity.name.function");
 
-  grammar->addScopes("identifier",
-    TreeSitterGrammar::Match{
+  grammar->addScopes("identifier", array(
+    match(
       u"^(BaseException|Exception|TypeError|StopAsyncIteration|StopIteration|ImportError|ModuleNotFoundError|OSError|ConnectionError|BrokenPipeError|ConnectionAbortedError|ConnectionRefusedError|ConnectionResetError|BlockingIOError|ChildProcessError|FileExistsError|FileNotFoundError|IsADirectoryError|NotADirectoryError|InterruptedError|PermissionError|ProcessLookupError|TimeoutError|EOFError|RuntimeError|RecursionError|NotImplementedError|NameError|UnboundLocalError|AttributeError|SyntaxError|IndentationError|TabError|LookupError|IndexError|KeyError|ValueError|UnicodeError|UnicodeEncodeError|UnicodeDecodeError|UnicodeTranslateError|AssertionError|ArithmeticError|FloatingPointError|OverflowError|ZeroDivisionError|SystemError|ReferenceError|BufferError|MemoryError|Warning|UserWarning|DeprecationWarning|PendingDeprecationWarning|SyntaxWarning|RuntimeWarning|FutureWarning|ImportWarning|UnicodeWarning|BytesWarning|ResourceWarning|GeneratorExit|SystemExit|KeyboardInterrupt)$",
       "support.type.exception"
-    },
-    TreeSitterGrammar::Match{u"^(self)", "entity.name.variable.self"}
-  );
+    ),
+    match(u"^(self)", "entity.name.variable.self")
+  ));
 
   grammar->addScopes("attribute > identifier:nth-child(2)", "variable.other.object.property");
 
@@ -159,5 +159,5 @@ extern "C" TreeSitterGrammar *atom_language_python() {
   grammar->addScopes("\"(\"", "punctuation.section.parens.begin.bracket.round");
   grammar->addScopes("\")\"", "punctuation.section.parens.end.bracket.round");
 
-  return grammar;
+  return grammar->finalize();
 }

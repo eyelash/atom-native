@@ -25,14 +25,14 @@ extern "C" TreeSitterGrammar *atom_language_javascript() {
 
   grammar->addScopes("program", "source.js");
 
-  grammar->addScopes("property_identifier",
-    TreeSitterGrammar::Match{
+  grammar->addScopes("property_identifier", array(
+    match(
       u"^[$A-Z_]+$",
       "constant.other.property.js"
-    },
+    ),
 
     "variable.other.object.property"
-  );
+  ));
 
   grammar->addScopes("member_expression > property_identifier", "variable.other.object.property.unquoted");
 
@@ -40,10 +40,10 @@ extern "C" TreeSitterGrammar *atom_language_javascript() {
   grammar->addScopes("formal_parameters > rest_parameter > identifier", "variable.parameter.rest.function");
 
   grammar->addScopes("shorthand_property_identifier",
-    TreeSitterGrammar::Match{
+    match(
       u"^[$A-Z_]{2,}$",
       "constant.other"
-    }
+    )
   );
 
   grammar->addScopes({
@@ -56,51 +56,51 @@ extern "C" TreeSitterGrammar *atom_language_javascript() {
     "jsx_closing_element > identifier",
     "jsx_self_closing_element > identifier"
   },
-    TreeSitterGrammar::Match{
+    match(
       u"^[A-Z]",
       "meta.class.component.jsx"
-    }
+    )
   );
 
-  grammar->addScopes("call_expression > identifier", TreeSitterGrammar::Match{u"^[A-Z]", "meta.class"});
+  grammar->addScopes("call_expression > identifier", match(u"^[A-Z]", "meta.class"));
   grammar->addScopes("arrow_function > identifier:nth-child(0)", "variable.parameter.function");
 
   grammar->addScopes("function > identifier", "entity.name.function");
   grammar->addScopes("function_declaration > identifier", "entity.name.function");
   grammar->addScopes("generator_function > identifier", "entity.name.function");
 
-  grammar->addScopes("call_expression > identifier",
-    TreeSitterGrammar::Match{u"^require$", "support.function"},
+  grammar->addScopes("call_expression > identifier", array(
+    match(u"^require$", "support.function"),
     "entity.name.function"
-  );
+  ));
 
   grammar->addScopes("call_expression > super", "support.function.super");
 
   grammar->addScopes("method_definition > property_identifier", "entity.name.function");
   grammar->addScopes("call_expression > member_expression > property_identifier", "entity.name.function");
 
-  grammar->addScopes("identifier",
-    TreeSitterGrammar::Match{
+  grammar->addScopes("identifier", array(
+    match(
       u"^(global|globalThis|module|exports|__filename|__dirname)$",
       "support.variable"
-    },
-    TreeSitterGrammar::Match{
+    ),
+    match(
       u"^(window|self|frames|event|document|performance|screen|navigator|console)$",
       "support.variable.dom"
-    },
-    TreeSitterGrammar::Exact{
+    ),
+    exact(
       u"require",
       "support.function"
-    },
-    TreeSitterGrammar::Match{
+    ),
+    match(
       u"^[$A-Z_]{2,}$",
       "constant.other"
-    },
-    TreeSitterGrammar::Match{
+    ),
+    match(
       u"^[A-Z]",
       "meta.class"
-    }
-  );
+    )
+  ));
 
   grammar->addScopes("number", "constant.numeric");
   grammar->addScopes("string", "string.quoted");
@@ -111,13 +111,13 @@ extern "C" TreeSitterGrammar *atom_language_javascript() {
   grammar->addScopes("null", "constant.language.null");
   grammar->addScopes("true", "constant.language.boolean.true");
   grammar->addScopes("false", "constant.language.boolean.false");
-  grammar->addScopes("comment",
-    TreeSitterGrammar::Match{
+  grammar->addScopes("comment", array(
+    match(
       u"^//",
       "comment.line"
-    },
+    ),
     "comment.block"
-  );
+  ));
   grammar->addScopes("hash_bang_line", "comment.block");
 
   grammar->addScopes({
@@ -228,5 +228,5 @@ extern "C" TreeSitterGrammar *atom_language_javascript() {
   grammar->addScopes("jsx_closing_element > identifier", "entity.name.tag");
   grammar->addScopes("jsx_self_closing_element > identifier", "entity.name.tag");
 
-  return grammar;
+  return grammar->finalize();
 }

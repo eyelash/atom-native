@@ -31,7 +31,7 @@ extern "C" TreeSitterGrammar *atom_language_rust() {
   grammar->addScopes("block_comment", "comment.block");
 
   grammar->addScopes("identifier",
-    TreeSitterGrammar::Match{u"^[A-Z\\d_]+$", "constant.other"}
+    match(u"^[A-Z\\d_]+$", "constant.other")
   );
 
   grammar->addScopes({
@@ -40,7 +40,7 @@ extern "C" TreeSitterGrammar *atom_language_rust() {
     "call_expression > field_expression > field_identifier",
     "call_expression > scoped_identifier > identifier:nth-child(2)"
   },
-    TreeSitterGrammar::Match{u"^[A-Z]", "entity.name.class"}
+    match(u"^[A-Z]", "entity.name.class")
   );
 
   grammar->addScopes({
@@ -80,7 +80,7 @@ extern "C" TreeSitterGrammar *atom_language_rust() {
     "use_list > scoped_identifier > identifier",
     "meta_item > identifier",
   },
-    TreeSitterGrammar::Match{u"^[A-Z]", "support.type"}
+    match(u"^[A-Z]", "support.type")
   );
 
   grammar->addScopes("lifetime > identifier", "constant.variable");
@@ -141,5 +141,5 @@ extern "C" TreeSitterGrammar *atom_language_rust() {
     "\"&\"",
   }, "keyword.operator");
 
-  return grammar;
+  return grammar->finalize();
 }

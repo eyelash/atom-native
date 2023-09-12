@@ -11,15 +11,6 @@ struct SyntaxScopeMap;
 struct TSLanguage;
 
 struct TreeSitterGrammar final : Grammar {
-  struct Exact {
-    const char16_t *exact;
-    const char *scopes;
-  };
-  struct Match {
-    const char16_t *match;
-    const char *scopes;
-  };
-
   SyntaxScopeMap *scopeMap;
   const TSLanguage *languageModule;
   std::unordered_map<int32_t, std::string> classNamesById;
@@ -36,29 +27,39 @@ struct TreeSitterGrammar final : Grammar {
   void setIncreaseIndentPattern(const char16_t *);
   void setDecreaseIndentPattern(const char16_t *);
   void setDecreaseNextIndentPattern(const char16_t *);
-  static SyntaxScopeMap::Result *preprocessScopes(const char *);
-  static SyntaxScopeMap::Result *preprocessScopes(Exact);
-  static SyntaxScopeMap::Result *preprocessScopes(Match);
-  static SyntaxScopeMap::Result *preprocessScopes(std::initializer_list<SyntaxScopeMap::Result *>);
-  template <typename T0, typename T1, typename... T> static SyntaxScopeMap::Result *preprocessScopes(T0&& t0, T1&& t1, T&&... t) {
+  static std::shared_ptr<SyntaxScopeMap::Result> preprocessScopes(std::shared_ptr<SyntaxScopeMap::Result> &&);
+  static std::shared_ptr<SyntaxScopeMap::Result> preprocessScopes(const char *);
+  static std::shared_ptr<SyntaxScopeMap::Result> preprocessScopesExact(const char16_t *, std::shared_ptr<SyntaxScopeMap::Result> &&);
+  static std::shared_ptr<SyntaxScopeMap::Result> preprocessScopesMatch(const char16_t *, std::shared_ptr<SyntaxScopeMap::Result> &&);
+  static std::shared_ptr<SyntaxScopeMap::Result> preprocessScopes(std::vector<std::shared_ptr<SyntaxScopeMap::Result>> &&);
+  template <typename T0, typename T1, typename... T> static std::shared_ptr<SyntaxScopeMap::Result> preprocessScopes(T0&& t0, T1&& t1, T&&... t) {
     return preprocessScopes({
       preprocessScopes(std::forward<T0>(t0)),
       preprocessScopes(std::forward<T1>(t1)),
       preprocessScopes(std::forward<T>(t))...
     });
   }
-  void addScopes(const char *, SyntaxScopeMap::Result *);
+  void addScopes(const char *, std::shared_ptr<SyntaxScopeMap::Result>);
+  void addScopes(std::initializer_list<const char *>, std::shared_ptr<SyntaxScopeMap::Result>);
   template <typename... T> void addScopes(const char *selector, T&&... t) {
     addScopes(selector, preprocessScopes(std::forward<T>(t)...));
   }
   template <typename... T> void addScopes(std::initializer_list<const char *> selectors, T&&... t) {
-    for (const char *selector : selectors) {
-      addScopes(selector, std::forward<T>(t)...);
-    }
+    addScopes(selectors, preprocessScopes(std::forward<T>(t)...));
   }
+  TreeSitterGrammar *finalize();
   optional<int32_t> idForScope(const optional<std::string> &);
   std::string classNameForScopeId(int32_t);
   LanguageMode *getLanguageMode(TextBuffer *) override;
 };
+template <typename T> std::shared_ptr<SyntaxScopeMap::Result> exact(const char16_t *exact, T&& t) {
+  return TreeSitterGrammar::preprocessScopesExact(exact, TreeSitterGrammar::preprocessScopes(std::forward<T>(t)));
+}
+template <typename T> std::shared_ptr<SyntaxScopeMap::Result> match(const char16_t *match, T&& t) {
+  return TreeSitterGrammar::preprocessScopesMatch(match, TreeSitterGrammar::preprocessScopes(std::forward<T>(t)));
+}
+template <typename... T> std::shared_ptr<SyntaxScopeMap::Result> array(T&&... t) {
+  return TreeSitterGrammar::preprocessScopes({ TreeSitterGrammar::preprocessScopes(std::forward<T>(t))... });
+}
 
 #endif // TREE_SITTER_GRAMMAR_H_

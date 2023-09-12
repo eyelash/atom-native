@@ -36,7 +36,7 @@ extern "C" TreeSitterGrammar *atom_language_css() {
   grammar->addScopes("function_name", "support.function");
 
   grammar->addScopes({"property_name", "plain_value"},
-    TreeSitterGrammar::Match{u"^--", "variable.css"}
+    match(u"^--", "variable.css")
   );
 
   grammar->addScopes("property_name", "support.property-name");
@@ -62,9 +62,9 @@ extern "C" TreeSitterGrammar *atom_language_css() {
   grammar->addScopes("integer_value > unit", "keyword.other.unit");
   grammar->addScopes("float_value", "numeric.constant");
   grammar->addScopes("float_value > unit", "keyword.other.unit");
-  grammar->addScopes("plain_value",
-    TreeSitterGrammar::Match{u"^(aqua|black|blue|fuchsia|gray|green|lime|maroon|navy|olive|orange|purple|red|silver|teal|white|yellow)$", "support.constant.color.w3c-standard"},
-    TreeSitterGrammar::Match{u"^(aliceblue|antiquewhite|aquamarine|azure|beige|bisque|blanchedalmond|blueviolet|brown|burlywood"
+  grammar->addScopes("plain_value", array(
+    match(u"^(aqua|black|blue|fuchsia|gray|green|lime|maroon|navy|olive|orange|purple|red|silver|teal|white|yellow)$", "support.constant.color.w3c-standard"),
+    match(u"^(aliceblue|antiquewhite|aquamarine|azure|beige|bisque|blanchedalmond|blueviolet|brown|burlywood"
     u"|cadetblue|chartreuse|chocolate|coral|cornflowerblue|cornsilk|crimson|cyan|darkblue|darkcyan"
     u"|darkgoldenrod|darkgray|darkgreen|darkgrey|darkkhaki|darkmagenta|darkolivegreen|darkorange"
     u"|darkorchid|darkred|darksalmon|darkseagreen|darkslateblue|darkslategray|darkslategrey|darkturquoise"
@@ -78,9 +78,9 @@ extern "C" TreeSitterGrammar *atom_language_css() {
     u"|orchid|palegoldenrod|palegreen|paleturquoise|palevioletred|papayawhip|peachpuff|peru|pink|plum"
     u"|powderblue|rebeccapurple|rosybrown|royalblue|saddlebrown|salmon|sandybrown|seagreen|seashell"
     u"|sienna|skyblue|slateblue|slategray|slategrey|snow|springgreen|steelblue|tan|thistle|tomato"
-    u"|transparent|turquoise|violet|wheat|whitesmoke|yellowgreen)$", "support.constant.color.w3c-extended"},
+    u"|transparent|turquoise|violet|wheat|whitesmoke|yellowgreen)$", "support.constant.color.w3c-extended"),
     "support.constant.property-value.css"
-  );
+  ));
 
   grammar->addScopes("feature_name", "support.type.property-name");
 
@@ -95,5 +95,5 @@ extern "C" TreeSitterGrammar *atom_language_css() {
   grammar->addScopes("binary_expression > \"/\"", "keyword.operator");
   grammar->addScopes("binary_expression > \"*\"", "keyword.operator");
 
-  return grammar;
+  return grammar->finalize();
 }

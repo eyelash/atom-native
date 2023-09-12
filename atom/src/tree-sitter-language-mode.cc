@@ -806,7 +806,7 @@ bool TreeSitterLanguageMode::LayerHighlightIterator::moveRight_() {
 }
 
 optional<int32_t> TreeSitterLanguageMode::LayerHighlightIterator::currentScopeId_() {
-  SyntaxScopeMap::Result *value = this->languageLayer->grammar->scopeMap->get(
+  std::shared_ptr<SyntaxScopeMap::Result> value = this->languageLayer->grammar->scopeMap->get(
     this->containingNodeTypes,
     this->containingNodeChildIndices,
     this->treeCursor.nodeIsNamed()

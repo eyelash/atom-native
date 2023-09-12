@@ -105,5 +105,5 @@ extern "C" TreeSitterGrammar *atom_language_go() {
   grammar->addScopes("\"...\"", "keyword.operator");
   grammar->addScopes("\"<-\"", "keyword.operator");
 
-  return grammar;
+  return grammar->finalize();
 }

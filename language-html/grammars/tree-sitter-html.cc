@@ -58,5 +58,5 @@ extern "C" TreeSitterGrammar *atom_language_html() {
   grammar->addScopes("quoted_attribute_value > \"\"\":nth-child(2)", "punctuation.definition.string.end");
   grammar->addScopes("quoted_attribute_value > \"'\":nth-child(2)", "punctuation.definition.string.end");
 
-  return grammar;
+  return grammar->finalize();
 }

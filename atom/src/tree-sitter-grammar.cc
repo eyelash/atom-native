@@ -26,7 +26,11 @@ void TreeSitterGrammar::setDecreaseNextIndentPattern(const char16_t *pattern) {
   this->decreaseNextIndentRegex = Regex(pattern);
 }
 
-SyntaxScopeMap::Result *TreeSitterGrammar::preprocessScopes(const char *value) {
+std::shared_ptr<SyntaxScopeMap::Result> TreeSitterGrammar::preprocessScopes(std::shared_ptr<SyntaxScopeMap::Result> &&value) {
+  return std::move(value);
+}
+
+std::shared_ptr<SyntaxScopeMap::Result> TreeSitterGrammar::preprocessScopes(const char *value) {
   struct StringResult final : SyntaxScopeMap::Result {
     std::string rules;
     StringResult(const char *value) : rules(value) {}
@@ -34,46 +38,41 @@ SyntaxScopeMap::Result *TreeSitterGrammar::preprocessScopes(const char *value) {
       return rules;
     }
   };
-  return new StringResult(value);
+  return std::make_shared<StringResult>(value);
 }
 
-SyntaxScopeMap::Result *TreeSitterGrammar::preprocessScopes(Exact value) {
+std::shared_ptr<SyntaxScopeMap::Result> TreeSitterGrammar::preprocessScopesExact(const char16_t *exact, std::shared_ptr<SyntaxScopeMap::Result> &&scopes) {
   struct ExactResult final : SyntaxScopeMap::Result {
     std::u16string exact;
-    std::string scopes;
-    ExactResult(Exact value) : exact(value.exact), scopes(value.scopes) {}
+    std::shared_ptr<SyntaxScopeMap::Result> scopes;
+    ExactResult(const char16_t *exact, std::shared_ptr<SyntaxScopeMap::Result> &&scopes) : exact(exact), scopes(std::move(scopes)) {}
     optional<std::string> applyLeafRules(const TreeCursor &cursor) override {
       return cursor.nodeText() == exact
-        ? scopes
+        ? scopes->applyLeafRules(cursor)
         : optional<std::string>();
     }
   };
-  return new ExactResult(value);
+  return std::make_shared<ExactResult>(exact, std::move(scopes));
 }
 
-SyntaxScopeMap::Result *TreeSitterGrammar::preprocessScopes(Match value) {
+std::shared_ptr<SyntaxScopeMap::Result> TreeSitterGrammar::preprocessScopesMatch(const char16_t *match, std::shared_ptr<SyntaxScopeMap::Result> &&scopes) {
   struct MatchResult final : SyntaxScopeMap::Result {
     Regex match;
-    std::string scopes;
-    MatchResult(Match value) : match(value.match, nullptr), scopes(value.scopes) {}
+    std::shared_ptr<SyntaxScopeMap::Result> scopes;
+    MatchResult(const char16_t *match, std::shared_ptr<SyntaxScopeMap::Result> &&scopes) : match(match), scopes(std::move(scopes)) {}
     optional<std::string> applyLeafRules(const TreeCursor &cursor) override {
       return match.match(cursor.nodeText())
-        ? scopes
+        ? scopes->applyLeafRules(cursor)
         : optional<std::string>();
     }
   };
-  return new MatchResult(value);
+  return std::make_shared<MatchResult>(match, std::move(scopes));
 }
 
-SyntaxScopeMap::Result *TreeSitterGrammar::preprocessScopes(std::initializer_list<SyntaxScopeMap::Result *> value) {
+std::shared_ptr<SyntaxScopeMap::Result> TreeSitterGrammar::preprocessScopes(std::vector<std::shared_ptr<SyntaxScopeMap::Result>> &&value) {
   struct ArrayResult final : SyntaxScopeMap::Result {
-    std::vector<SyntaxScopeMap::Result *> rules;
-    ArrayResult(std::initializer_list<SyntaxScopeMap::Result *> value) : rules(value) {}
-    ~ArrayResult() {
-      for (SyntaxScopeMap::Result *result : this->rules) {
-        delete result;
-      }
-    }
+    std::vector<std::shared_ptr<SyntaxScopeMap::Result>> rules;
+    ArrayResult(std::vector<std::shared_ptr<SyntaxScopeMap::Result>> &&value) : rules(std::move(value)) {}
     optional<std::string> applyLeafRules(const TreeCursor &cursor) override {
       for (size_t i = 0, length = rules.size(); i != length; ++i) {
         const auto result = rules[i]->applyLeafRules(cursor);
@@ -82,11 +81,22 @@ SyntaxScopeMap::Result *TreeSitterGrammar::preprocessScopes(std::initializer_lis
       return optional<std::string>();
     }
   };
-  return new ArrayResult(value);
+  return std::make_shared<ArrayResult>(std::move(value));
 }
 
-void TreeSitterGrammar::addScopes(const char *selector, SyntaxScopeMap::Result *result) {
+void TreeSitterGrammar::addScopes(const char *selector, std::shared_ptr<SyntaxScopeMap::Result> result) {
   this->scopeMap->addSelector(selector, result);
+}
+
+void TreeSitterGrammar::addScopes(std::initializer_list<const char *> selectors, std::shared_ptr<SyntaxScopeMap::Result> result) {
+  for (const char *selector : selectors) {
+    addScopes(selector, result);
+  }
+}
+
+TreeSitterGrammar *TreeSitterGrammar::finalize() {
+  this->scopeMap->finalize();
+  return this;
 }
 
 optional<int32_t> TreeSitterGrammar::idForScope(const optional<std::string> &scopeName) {

@@ -854,6 +854,14 @@ void TextEditor::setCursorBufferPosition(Point position) {
   });
 }
 
+Cursor *TextEditor::getCursorAtScreenPosition(Point position) {
+  Selection *selection = this->getSelectionAtScreenPosition(position);
+  if (selection && selection->getHeadScreenPosition().isEqual(position)) {
+    return selection->cursor;
+  }
+  return nullptr;
+}
+
 Point TextEditor::getCursorScreenPosition() {
   return this->getLastCursor()->getScreenPosition();
 }

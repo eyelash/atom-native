@@ -139,6 +139,7 @@ struct TextEditor {
   DisplayMarkerLayer *getDefaultMarkerLayer();
   Point getCursorBufferPosition();
   void setCursorBufferPosition(Point);
+  Cursor *getCursorAtScreenPosition(Point);
   Point getCursorScreenPosition();
   void setCursorScreenPosition(Point);
   Cursor *addCursorAtBufferPosition(Point, bool = true);

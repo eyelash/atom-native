@@ -295,7 +295,124 @@ TEST_CASE("TextEditor") {
     }
   }
 
-  SECTION("selection") {}
+  SECTION("selection") {
+    Selection *selection = editor->getLastSelection();
+
+    SECTION(".getLastSelection()") {
+      SECTION("creates a new selection at (0, 0) if the last selection has been destroyed") {
+        editor->getLastSelection()->destroy();
+        REQUIRE(editor->getLastSelection()->getBufferRange() == Range(
+          {0, 0},
+          {0, 0}
+        ));
+      }
+
+      SECTION("doesn't get stuck in a infinite loop when called from ::onDidAddCursor after the last selection has been destroyed (regression)") {
+        size_t callCount = 0;
+        editor->getLastSelection()->destroy();
+        editor->onDidAddCursor([&]() {
+          callCount++;
+          editor->getLastSelection();
+        });
+        REQUIRE(editor->getLastSelection()->getBufferRange() == Range(
+          {0, 0},
+          {0, 0}
+        ));
+        REQUIRE(callCount == 1);
+      }
+    }
+
+    SECTION(".getSelections()") {
+      SECTION("creates a new selection at (0, 0) if the last selection has been destroyed") {
+        editor->getLastSelection()->destroy();
+        REQUIRE(editor->getSelections()[0]->getBufferRange() == Range(
+          {0, 0},
+          {0, 0}
+        ));
+      }
+    }
+
+    SECTION(".selectUp/Down/Left/Right()") {
+      SECTION("expands each selection to its cursor's new location") {
+        editor->setSelectedBufferRanges({{{0, 9}, {0, 13}}, {{3, 16}, {3, 21}}});
+        const auto selections = editor->getSelections();
+        REQUIRE(selections.size() >= 2);
+        Selection *selection1 = selections[0], *selection2 = selections[1];
+
+        editor->selectRight();
+        REQUIRE(selection1->getBufferRange() == Range({0, 9}, {0, 14}));
+        REQUIRE(selection2->getBufferRange() == Range({3, 16}, {3, 22}));
+
+        editor->selectLeft();
+        editor->selectLeft();
+        REQUIRE(selection1->getBufferRange() == Range({0, 9}, {0, 12}));
+        REQUIRE(selection2->getBufferRange() == Range({3, 16}, {3, 20}));
+
+        editor->selectDown();
+        REQUIRE(selection1->getBufferRange() == Range({0, 9}, {1, 12}));
+        REQUIRE(selection2->getBufferRange() == Range({3, 16}, {4, 20}));
+
+        editor->selectUp();
+        REQUIRE(selection1->getBufferRange() == Range({0, 9}, {0, 12}));
+        REQUIRE(selection2->getBufferRange() == Range({3, 16}, {3, 20}));
+      }
+
+      SECTION("merges selections when they intersect when moving down") {
+        editor->setSelectedBufferRanges({
+          {{0, 9}, {0, 13}},
+          {{1, 10}, {1, 20}},
+          {{2, 15}, {3, 25}}
+        });
+        const auto selections = editor->getSelections();
+        REQUIRE(selections.size() >= 1);
+        Selection *selection1 = selections[0];
+
+        editor->selectDown();
+        //REQUIRE(editor->getSelections() == [selection1]);
+        REQUIRE(selection1->getScreenRange() == Range({0, 9}, {4, 25}));
+        REQUIRE_FALSE(selection1->isReversed());
+      }
+    }
+
+    SECTION(".selectToBufferPosition(bufferPosition)") {
+      SECTION("expands the last selection to the given position") {
+        editor->setSelectedBufferRange({{3, 0}, {4, 5}});
+        editor->addCursorAtBufferPosition({5, 6});
+        editor->selectToBufferPosition({6, 2});
+
+        const auto selections = editor->getSelections();
+        REQUIRE(selections.size() == 2);
+        Selection *selection1 = selections[0], *selection2 = selections[1];
+        REQUIRE(selection1->getBufferRange() == Range({3, 0}, {4, 5}));
+        REQUIRE(selection2->getBufferRange() == Range({5, 6}, {6, 2}));
+      }
+    }
+
+    SECTION(".selectToScreenPosition(screenPosition)") {
+      SECTION("expands the last selection to the given position") {
+        editor->setSelectedBufferRange({{3, 0}, {4, 5}});
+        editor->addCursorAtScreenPosition({5, 6});
+        editor->selectToScreenPosition({6, 2});
+
+        const auto selections = editor->getSelections();
+        REQUIRE(selections.size() == 2);
+        Selection *selection1 = selections[0], *selection2 = selections[1];
+        REQUIRE(selection1->getScreenRange() == Range({3, 0}, {4, 5}));
+        REQUIRE(selection2->getScreenRange() == Range({5, 6}, {6, 2}));
+      }
+
+      SECTION("when selecting with an initial screen range") {
+        SECTION("switches the direction of the selection when selecting to positions before/after the start of the initial range") {
+          editor->setCursorScreenPosition({5, 10});
+          editor->selectWordsContainingCursors();
+          editor->selectToScreenPosition({3, 0});
+          REQUIRE(editor->getLastSelection()->isReversed() == true);
+          editor->selectToScreenPosition({9, 0});
+          REQUIRE(editor->getLastSelection()->isReversed() == false);
+        }
+      }
+    }
+  }
 
   SECTION("buffer manipulation") {
     SECTION(".insertText(text)") {
@@ -304,7 +421,7 @@ TEST_CASE("TextEditor") {
 
         SECTION("replaces the selection with the given text") {
           //const Range range = editor->insertText(u"xxx");
-          //REQUIRE(range == Range(Point(1, 0), Point(1, 3)));
+          //REQUIRE(range == Range({1, 0}, {1, 3}));
           //REQUIRE(buffer->lineForRow(1) == u"xxxvar sort = function(items) {");
         }
       }
@@ -321,10 +438,11 @@ TEST_CASE("TextEditor") {
               u"  xxxvarxxx sort = function(items) {"
             );
             const auto cursors = editor->getCursors();
+            REQUIRE(cursors.size() >= 2);
+            Cursor *cursor1 = cursors[0], *cursor2 = cursors[1];
 
-            REQUIRE(cursors.size() == 2);
-            REQUIRE(cursors[0]->getBufferPosition() == Point(1, 5));
-            REQUIRE(cursors[1]->getBufferPosition() == Point(1, 11));
+            REQUIRE(cursor1->getBufferPosition() == Point(1, 5));
+            REQUIRE(cursor2->getBufferPosition() == Point(1, 11));
           }
         }
 
@@ -342,10 +460,11 @@ TEST_CASE("TextEditor") {
               u"    xxxif (items.length <= 1) return items;"
             );
             const auto cursors = editor->getCursors();
+            REQUIRE(cursors.size() >= 2);
+            Cursor *cursor1 = cursors[0], *cursor2 = cursors[1];
 
-            REQUIRE(cursors.size() == 2);
-            REQUIRE(cursors[0]->getBufferPosition() == Point(1, 5));
-            REQUIRE(cursors[1]->getBufferPosition() == Point(2, 7));
+            REQUIRE(cursor1->getBufferPosition() == Point(1, 5));
+            REQUIRE(cursor2->getBufferPosition() == Point(2, 7));
           }
         }
       }
@@ -360,14 +479,16 @@ TEST_CASE("TextEditor") {
             editor->insertText(u"x");
 
             const auto cursors = editor->getCursors();
+            REQUIRE(cursors.size() >= 2);
+            Cursor *cursor1 = cursors[0], *cursor2 = cursors[1];
             const auto selections = editor->getSelections();
+            REQUIRE(selections.size() >= 2);
+            Selection *selection1 = selections[0], *selection2 = selections[1];
 
-            REQUIRE(cursors.size() == 2);
-            REQUIRE(selections.size() == 2);
-            REQUIRE(cursors[0]->getScreenPosition() == Point(0, 5));
-            REQUIRE(cursors[1]->getScreenPosition() == Point(0, 15));
-            REQUIRE(selections[0]->isEmpty());
-            REQUIRE(selections[1]->isEmpty());
+            REQUIRE(cursor1->getScreenPosition() == Point(0, 5));
+            REQUIRE(cursor2->getScreenPosition() == Point(0, 15));
+            REQUIRE(selection1->isEmpty());
+            REQUIRE(selection2->isEmpty());
 
             REQUIRE(editor->lineTextForBufferRow(0) == u"var x = functix () {");
           }
@@ -389,12 +510,13 @@ TEST_CASE("TextEditor") {
               u"xxxif (items.length <= 1) return items;"
             );
             const auto selections = editor->getSelections();
+            REQUIRE(selections.size() >= 2);
+            Selection *selection1 = selections[0], *selection2 = selections[1];
 
-            REQUIRE(selections.size() == 2);
-            REQUIRE(selections[0]->isEmpty());
-            REQUIRE(selections[0]->cursor->getBufferPosition() == Point(1, 3));
-            REQUIRE(selections[1]->isEmpty());
-            REQUIRE(selections[1]->cursor->getBufferPosition() == Point(2, 3));
+            REQUIRE(selection1->isEmpty());
+            REQUIRE(selection1->cursor->getBufferPosition() == Point(1, 3));
+            REQUIRE(selection2->isEmpty());
+            REQUIRE(selection2->cursor->getBufferPosition() == Point(2, 3));
           }
         }
       }
@@ -483,9 +605,10 @@ TEST_CASE("TextEditor") {
             );
 
             const auto cursors = editor->getCursors();
-            REQUIRE(cursors.size() == 2);
-            REQUIRE(cursors[0]->getBufferPosition() == Point(4, 0));
-            REQUIRE(cursors[1]->getBufferPosition() == Point(5, 0));
+            REQUIRE(cursors.size() >= 2);
+            Cursor *cursor1 = cursors[0], *cursor2 = cursors[1];
+            REQUIRE(cursor1->getBufferPosition() == Point(4, 0));
+            REQUIRE(cursor2->getBufferPosition() == Point(5, 0));
           }
         }
 
@@ -512,9 +635,10 @@ TEST_CASE("TextEditor") {
             REQUIRE(editor->lineTextForBufferRow(9) == u"    }");
 
             const auto cursors = editor->getCursors();
-            REQUIRE(cursors.size() == 2);
-            REQUIRE(cursors[0]->getBufferPosition() == Point(4, 0));
-            REQUIRE(cursors[1]->getBufferPosition() == Point(8, 0));
+            REQUIRE(cursors.size() >= 2);
+            Cursor *cursor1 = cursors[0], *cursor2 = cursors[1];
+            REQUIRE(cursor1->getBufferPosition() == Point(4, 0));
+            REQUIRE(cursor2->getBufferPosition() == Point(8, 0));
           }
         }
       }
@@ -544,7 +668,7 @@ TEST_CASE("TextEditor") {
         editor->setCursorScreenPosition({0, 1});
         editor->upperCase();
         REQUIRE(editor->lineTextForBufferRow(0) == u"ABC");
-        REQUIRE(editor->getSelectedBufferRange() == Range(Point(0, 0), Point(0, 3)));
+        REQUIRE(editor->getSelectedBufferRange() == Range({0, 0}, {0, 3}));
       }
     }
 
@@ -554,7 +678,7 @@ TEST_CASE("TextEditor") {
         editor->setSelectedBufferRange({{0, 0}, {0, 2}});
         editor->upperCase();
         REQUIRE(editor->lineTextForBufferRow(0) == u"ABc");
-        REQUIRE(editor->getSelectedBufferRange() == Range(Point(0, 0), Point(0, 2)));
+        REQUIRE(editor->getSelectedBufferRange() == Range({0, 0}, {0, 2}));
       }
     }
   }
@@ -566,7 +690,7 @@ TEST_CASE("TextEditor") {
         editor->setCursorScreenPosition({0, 1});
         editor->lowerCase();
         REQUIRE(editor->lineTextForBufferRow(0) == u"abc");
-        REQUIRE(editor->getSelectedBufferRange() == Range(Point(0, 0), Point(0, 3)));
+        REQUIRE(editor->getSelectedBufferRange() == Range({0, 0}, {0, 3}));
       }
     }
 
@@ -576,7 +700,7 @@ TEST_CASE("TextEditor") {
         editor->setSelectedBufferRange({{0, 0}, {0, 2}});
         editor->lowerCase();
         REQUIRE(editor->lineTextForBufferRow(0) == u"abC");
-        REQUIRE(editor->getSelectedBufferRange() == Range(Point(0, 0), Point(0, 2)));
+        REQUIRE(editor->getSelectedBufferRange() == Range({0, 0}, {0, 2}));
       }
     }
   }

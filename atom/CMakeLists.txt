@@ -27,3 +27,13 @@ target_sources(atom PRIVATE
 target_include_directories(atom INTERFACE
   src
 )
+
+add_executable(atom-tests)
+target_sources(atom-tests PRIVATE
+  test/tests.cc
+  test/text-editor-spec.cc
+)
+target_link_libraries(atom-tests catch atom)
+target_compile_definitions(atom-tests PRIVATE
+  FIXTURES="${CMAKE_CURRENT_LIST_DIR}/test/fixtures"
+)

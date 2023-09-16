@@ -1,14 +1,18 @@
 name: build
 on: push
 jobs:
-  build:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    env:
+      CFLAGS: -g -fno-omit-frame-pointer -fsanitize=address -fsanitize=undefined --coverage
+      CXXFLAGS: -g -fno-omit-frame-pointer -fsanitize=address -fsanitize=undefined --coverage
+      LDFLAGS: -fsanitize=address -fsanitize=undefined
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
       - run: cmake .
-      - run: cmake --build . --parallel 2
+      - run: cmake --build .
+      - run: atom/atom-tests
+      - run: geninfo . -o coverage.info
+      - run: genhtml coverage.info coverage-html

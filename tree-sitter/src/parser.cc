@@ -79,7 +79,8 @@ void Parser::setLanguage(const TSLanguage *language) {
   ts_parser_set_language(parser, language);
 }
 
-Tree Parser::parseTextBufferSync(NativeTextBuffer *text_buffer, const Tree &old_tree) {
+Tree Parser::parseTextBufferSync(NativeTextBuffer *text_buffer, const Tree &old_tree, const std::vector<TSRange> &included_ranges) {
+  ts_parser_set_included_ranges(parser, included_ranges.data(), included_ranges.size());
   NativeTextBuffer::Snapshot *snapshot = text_buffer->create_snapshot();
   auto slices = snapshot->primitive_chunks();
   TextBufferInput input(&slices);

@@ -7,6 +7,9 @@ struct Point {
   double row;
   double column;
 
+  static Point min(const Point &, const Point &);
+  static Point max(const Point &, const Point &);
+
   Point(double row = 0.0, double column = 0.0);
   Point(const NativePoint &);
 

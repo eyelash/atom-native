@@ -7,7 +7,7 @@ struct NullGrammar final : Grammar {
   NullGrammar();
   ~NullGrammar();
 
-  LanguageMode *getLanguageMode(TextBuffer *) override;
+  LanguageMode *getLanguageMode(TextBuffer *, GrammarRegistry *) override;
 };
 
 #endif // NULL_GRAMMAR_H_

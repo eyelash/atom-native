@@ -3,6 +3,7 @@
 #include "text-editor.h"
 #include "selection.h"
 #include "tree-sitter-language-mode.h"
+#include <tree-sitter.h>
 #include <display-marker.h>
 #include <cstring>
 
@@ -99,27 +100,6 @@ optional<Point> BracketMatcherView::findMatchingStartBracket(Point endBracketPos
   }
 }
 
-static Point PointToJS(TSPoint point) {
-  return Point(point.row, point.column / 2);
-}
-static Point startPosition(TSNode node) {
-  return PointToJS(ts_node_start_point(node));
-}
-static Point endPosition(TSNode node) {
-  return PointToJS(ts_node_end_point(node));
-}
-static std::vector<TSNode> children(TSNode node) {
-  static TSTreeCursor scratch_cursor = {nullptr, nullptr, {0, 0}};
-  std::vector<TSNode> result;
-  ts_tree_cursor_reset(&scratch_cursor, node);
-  if (ts_tree_cursor_goto_first_child(&scratch_cursor)) {
-    do {
-      TSNode child = ts_tree_cursor_current_node(&scratch_cursor);
-      result.push_back(child);
-    } while (ts_tree_cursor_goto_next_sibling(&scratch_cursor));
-  }
-  return result;
-}
 static TSNode ts_node_first_child(TSNode node) {
   return ts_node_child(node, 0);
 }
@@ -142,7 +122,7 @@ optional<Point> BracketMatcherView::findMatchingEndBracketWithSyntaxTree(Point b
         auto matchNode = std::find_if(children.begin(), children.end(), [&](TSNode child) {
           return bracketEndPosition.isLessThanOrEqual(startPosition(child)) && ts_node_type(child)[0] == endBracket;
         });
-        if (matchNode != children.end()) result = startPosition(*matchNode);
+        if (matchNode != children.end()) result = Point(startPosition(*matchNode));
         return true;
       }
       return false;
@@ -162,7 +142,7 @@ optional<Point> BracketMatcherView::findMatchingStartBracketWithSyntaxTree(Point
         auto matchNode = std::find_if(children.begin(), children.end(), [&](TSNode child) {
           return bracketPosition.isGreaterThanOrEqual(endPosition(child)) && ts_node_type(child)[0] == startBracket;
         });
-        if (matchNode != children.end()) result = startPosition(*matchNode);
+        if (matchNode != children.end()) result = Point(startPosition(*matchNode));
         return true;
       }
       return false;

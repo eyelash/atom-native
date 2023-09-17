@@ -50,7 +50,7 @@ void GrammarRegistry::autoAssignLanguageMode(TextBuffer *buffer) {
 }
 
 LanguageMode *GrammarRegistry::languageModeForGrammarAndBuffer(Grammar *grammar, TextBuffer *buffer) {
-  return grammar->getLanguageMode(buffer);
+  return grammar->getLanguageMode(buffer, this);
 }
 
 /*selectGrammar(filePath, fileContents) {
@@ -197,6 +197,25 @@ std::vector<Grammar *> GrammarRegistry::getGrammars() {
     }
   }
   return grammars;
+}
+
+TreeSitterGrammar *GrammarRegistry::treeSitterGrammarForLanguageString(const std::u16string &languageString) {
+  double longestMatchLength = 0;
+  TreeSitterGrammar *grammarWithLongestMatch = nullptr;
+  for (const auto &entry : this->treeSitterGrammarsById) {
+    TreeSitterGrammar *grammar = entry.second;
+    if (grammar->injectionRegex) {
+      const auto match = grammar->injectionRegex.match(languageString);
+      if (match) {
+        const double length = match.end_offset - match.start_offset;
+        if (length > longestMatchLength) {
+          grammarWithLongestMatch = grammar;
+          longestMatchLength = length;
+        }
+      }
+    }
+  }
+  return grammarWithLongestMatch;
 }
 
 static std::u16string getGrammarSelectionContent(TextBuffer *buffer) {

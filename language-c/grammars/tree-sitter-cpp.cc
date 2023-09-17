@@ -4,12 +4,18 @@ extern "C" const TSLanguage *tree_sitter_cpp();
 
 using namespace TreeSitterGrammarDSL;
 
+static TSNode ts_node_last_named_child(TSNode node) {
+  return ts_node_named_child(node, ts_node_named_child_count(node) - 1);
+}
+
 extern "C" TreeSitterGrammar *atom_language_cpp() {
   TreeSitterGrammar *grammar = new TreeSitterGrammar(
     "C++",
     "source.cpp",
     tree_sitter_cpp()
   );
+
+  grammar->setInjectionRegex(u"(c|C)(\\+\\+|pp|PP)");
 
   grammar->setFileTypes(
     "cc",
@@ -30,6 +36,14 @@ extern "C" TreeSitterGrammar *atom_language_cpp() {
     "tcc",
     "tpp"
   );
+
+  for (const char *nodeType : {"preproc_def", "preproc_function_def"}) {
+    grammar->addInjectionPoint({
+      nodeType,
+      [](TSNode) -> std::u16string { return u"cpp"; },
+      [](TSNode node) -> std::vector<TSNode> { return {ts_node_last_named_child(node)}; }
+    });
+  }
 
   grammar->setIncreaseIndentPattern(uR"""((?x)
      ^ .* \{ [^}"']* $

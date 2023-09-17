@@ -35,8 +35,8 @@ struct MarkerLayer {
   size_t getMarkerCount();
   using FindParam = std::function<flat_set<unsigned>(MarkerIndex *)>;
   std::vector<Marker *> findMarkers(Slice<FindParam>);
-  unsigned markRange(const Range &);
-  unsigned markPosition(Point);
+  Marker *markRange(const Range &);
+  Marker *markPosition(Point);
   void onDidUpdate(std::function<void()>);
   void onDidCreateMarker(std::function<void(Marker *)>);
   void splice(const Point &, const Point &, const Point &);
@@ -52,7 +52,7 @@ struct MarkerLayer {
   int compareMarkers(unsigned, unsigned);
   void setMarkerRange(unsigned, const Range &);
   void setMarkerIsExclusive(unsigned, bool);
-  unsigned createMarker(const Range &, const Marker::Params & = {}, bool = false);
+  Marker *createMarker(const Range &, const Marker::Params & = {}, bool = false);
   Marker *addMarker(unsigned, const Range &, const Marker::Params &);
   void emitUpdateEvent();
 };

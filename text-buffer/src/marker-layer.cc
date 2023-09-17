@@ -162,11 +162,11 @@ std::vector<Marker *> MarkerLayer::findMarkers(Slice<FindParam> params) {
 Section: Marker creation
 */
 
-unsigned MarkerLayer::markRange(const Range &range) {
+Marker *MarkerLayer::markRange(const Range &range) {
   return this->createMarker(this->delegate->clipRange(range));
 }
 
-unsigned MarkerLayer::markPosition(Point position) {
+Marker *MarkerLayer::markPosition(Point position) {
   position = this->delegate->clipPosition(position);
   return this->createMarker(Range(position, position));
 }
@@ -191,14 +191,6 @@ Section: Private - TextBuffer interface
 void MarkerLayer::splice(const Point &start, const Point &oldExtent, const Point &newExtent) {
   auto invalidated = this->index->splice(start, oldExtent, newExtent);
   // TODO: destroy invalidated markers
-}
-
-template <typename K, typename V> static std::vector<K> keys(const std::unordered_map<K, V> &map) {
-  std::vector<K> result;
-  for (const auto &entry : map) {
-    result.push_back(entry.first);
-  }
-  return result;
 }
 
 void MarkerLayer::restoreFromSnapshot(const Snapshot &snapshots, bool alwaysCreate) {
@@ -309,7 +301,7 @@ void MarkerLayer::setMarkerIsExclusive(unsigned id, bool exclusive) {
   this->index->set_exclusive(id, exclusive);
 }
 
-unsigned MarkerLayer::createMarker(const Range &range, const Marker::Params &params, bool suppressMarkerLayerUpdateEvents) {
+Marker *MarkerLayer::createMarker(const Range &range, const Marker::Params &params, bool suppressMarkerLayerUpdateEvents) {
   unsigned id = this->delegate->getNextMarkerId();
   Marker *marker = this->addMarker(id, range, params);
   this->delegate->markerCreated(this, marker);
@@ -321,7 +313,7 @@ unsigned MarkerLayer::createMarker(const Range &range, const Marker::Params &par
     this->didCreateMarkerEmitter.emit(marker);
   //}
   //marker.trackDestruction = false;
-  return id;
+  return this->getMarker(id);
 }
 
 /*

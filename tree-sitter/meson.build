@@ -4,6 +4,7 @@ tree_sitter = declare_dependency(
     files(
       'src/parser.cc',
       'src/tree-cursor.cc',
+      'src/tree-sitter.cc',
       'src/tree.cc',
     ),
     include_directories: include_directories(

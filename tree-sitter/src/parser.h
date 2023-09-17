@@ -15,7 +15,7 @@ public:
   ~Parser();
 
   void setLanguage(const TSLanguage *);
-  Tree parseTextBufferSync(NativeTextBuffer *, const Tree &);
+  Tree parseTextBufferSync(NativeTextBuffer *, const Tree &, const std::vector<TSRange> &);
 };
 
 #endif // PARSER_H_

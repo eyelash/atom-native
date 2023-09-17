@@ -15,6 +15,8 @@ extern "C" TreeSitterGrammar *atom_language_css() {
     "css"
   );
 
+  grammar->setInjectionRegex(u"(css|CSS)");
+
   grammar->setScopes(
     scope("stylesheet", "source.css"),
     scope("comment", "comment"),

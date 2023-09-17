@@ -14,6 +14,10 @@ TreeSitterGrammar::~TreeSitterGrammar() {
   delete this->scopeMap;
 }
 
+void TreeSitterGrammar::setInjectionRegex(const char16_t *pattern) {
+  this->injectionRegex = Regex(pattern);
+}
+
 void TreeSitterGrammar::setIncreaseIndentPattern(const char16_t *pattern) {
   this->increaseIndentRegex = Regex(pattern);
 }
@@ -105,6 +109,11 @@ std::string TreeSitterGrammar::classNameForScopeId(int32_t id) {
   return this->classNamesById[id];
 }
 
-LanguageMode *TreeSitterGrammar::getLanguageMode(TextBuffer *buffer) {
-  return new TreeSitterLanguageMode(buffer, this);
+void TreeSitterGrammar::addInjectionPoint(const InjectionPoint &injectionPoint) {
+  std::vector<InjectionPoint> &injectionPoints = this->injectionPointsByType[injectionPoint.type];
+  injectionPoints.push_back(injectionPoint);
+}
+
+LanguageMode *TreeSitterGrammar::getLanguageMode(TextBuffer *buffer, GrammarRegistry *grammars) {
+  return new TreeSitterLanguageMode(buffer, this, grammars);
 }

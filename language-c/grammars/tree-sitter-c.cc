@@ -4,6 +4,10 @@ extern "C" const TSLanguage *tree_sitter_c();
 
 using namespace TreeSitterGrammarDSL;
 
+static TSNode ts_node_last_named_child(TSNode node) {
+  return ts_node_named_child(node, ts_node_named_child_count(node) - 1);
+}
+
 extern "C" TreeSitterGrammar *atom_language_c() {
   TreeSitterGrammar *grammar = new TreeSitterGrammar(
     "C",
@@ -11,11 +15,21 @@ extern "C" TreeSitterGrammar *atom_language_c() {
     tree_sitter_c()
   );
 
+  grammar->setInjectionRegex(u"c|C");
+
   grammar->setFileTypes(
     "h",
     "c",
     "h.in"
   );
+
+  for (const char *nodeType : {"preproc_def", "preproc_function_def"}) {
+    grammar->addInjectionPoint({
+      nodeType,
+      [](TSNode) -> std::u16string { return u"c"; },
+      [](TSNode node) -> std::vector<TSNode> { return {ts_node_last_named_child(node)}; }
+    });
+  }
 
   grammar->setIncreaseIndentPattern(uR"""((?x)
      ^ .* \{ [^}"']* $

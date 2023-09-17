@@ -45,20 +45,24 @@ Section: Marker creation
 
 DisplayMarker *DisplayMarkerLayer::markScreenRange(const Range &screenRange) {
   Range bufferRange = this->displayLayer->translateScreenRange(screenRange);
-  return this->getMarker(this->bufferMarkerLayer->markRange(bufferRange));
+  Marker *marker = this->bufferMarkerLayer->markRange(bufferRange);
+  return marker ? this->getMarker(marker->id) : nullptr;
 }
 
 DisplayMarker *DisplayMarkerLayer::markScreenPosition(const Point &screenPosition) {
   Point bufferPosition = this->displayLayer->translateScreenPosition(screenPosition);
-  return this->getMarker(this->bufferMarkerLayer->markPosition(bufferPosition));
+  Marker *marker = this->bufferMarkerLayer->markPosition(bufferPosition);
+  return marker ? this->getMarker(marker->id) : nullptr;
 }
 
 DisplayMarker *DisplayMarkerLayer::markBufferRange(const Range &bufferRange) {
-  return this->getMarker(this->bufferMarkerLayer->markRange(bufferRange));
-}
+  Marker *marker = this->bufferMarkerLayer->markRange(bufferRange);
+  return marker ? this->getMarker(marker->id) : nullptr;
+  }
 
 DisplayMarker *DisplayMarkerLayer::markBufferPosition(const Point &bufferPosition) {
-  return this->getMarker(this->bufferMarkerLayer->markPosition(bufferPosition));
+  Marker *marker = this->bufferMarkerLayer->markPosition(bufferPosition);
+  return marker ? this->getMarker(marker->id) : nullptr;
 }
 
 /*

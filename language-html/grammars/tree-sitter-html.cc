@@ -15,6 +15,19 @@ extern "C" TreeSitterGrammar *atom_language_html() {
     "html"
   );
 
+  grammar->setInjectionRegex(u"(HTML|html|Html)$");
+
+  grammar->addInjectionPoint({
+    "script_element",
+    [](TSNode) -> std::u16string { return u"javascript"; },
+    [](TSNode node) -> std::vector<TSNode> { return {ts_node_child(node, 1)}; }
+  });
+  grammar->addInjectionPoint({
+    "style_element",
+    [](TSNode) -> std::u16string { return u"css"; },
+    [](TSNode node) -> std::vector<TSNode> { return {ts_node_child(node, 1)}; }
+  });
+
   grammar->setIncreaseIndentPattern(uR"""((?x)
     <(?!\?|(?:area|base|br|col|frame|hr|html|img|input|link|meta|param)\b|[^>]*/>)
     ([-_\.A-Za-z0-9]+)(?=\s|>)\b[^>]*>(?!.*</\1>)

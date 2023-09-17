@@ -16,6 +16,8 @@ extern "C" TreeSitterGrammar *atom_language_javascript() {
     "jsx"
   );
 
+  grammar->setInjectionRegex(u"^js$|^JS$|javascript|JavaScript");
+
   grammar->setIncreaseIndentPattern(uR"""((?x)
       \{ [^}"']*(//.*)? $
     | \[ [^\]"']*(//.*)? $

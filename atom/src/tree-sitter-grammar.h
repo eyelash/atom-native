@@ -5,6 +5,7 @@
 #include "grammar.h"
 #include <regex.h>
 #include <optional.h>
+#include <tree_sitter/api.h>
 #include <unordered_map>
 
 struct SyntaxScopeMap;
@@ -53,6 +54,13 @@ template <typename T> constexpr Match<T> match(const char16_t *match, T scopes) 
 }
 
 struct TreeSitterGrammar final : Grammar {
+  struct InjectionPoint {
+    std::string type;
+    std::u16string (*language)(TSNode);
+    std::vector<TSNode> (*content)(TSNode);
+  };
+
+  Regex injectionRegex;
   SyntaxScopeMap *scopeMap;
   const TSLanguage *languageModule;
   std::unordered_map<int32_t, std::string> classNamesById;
@@ -62,10 +70,12 @@ struct TreeSitterGrammar final : Grammar {
   Regex increaseIndentRegex;
   Regex decreaseIndentRegex;
   Regex decreaseNextIndentRegex;
+  std::unordered_map<std::string, std::vector<InjectionPoint>> injectionPointsByType;
 
   TreeSitterGrammar(const char *, const char *, const TSLanguage *);
   ~TreeSitterGrammar();
 
+  void setInjectionRegex(const char16_t *);
   void setIncreaseIndentPattern(const char16_t *);
   void setDecreaseIndentPattern(const char16_t *);
   void setDecreaseNextIndentPattern(const char16_t *);
@@ -114,7 +124,8 @@ struct TreeSitterGrammar final : Grammar {
   }
   optional<int32_t> idForScope(const optional<std::string> &);
   std::string classNameForScopeId(int32_t);
-  LanguageMode *getLanguageMode(TextBuffer *) override;
+  void addInjectionPoint(const InjectionPoint &);
+  LanguageMode *getLanguageMode(TextBuffer *, GrammarRegistry *) override;
 };
 
 #endif // TREE_SITTER_GRAMMAR_H_

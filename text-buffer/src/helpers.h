@@ -4,6 +4,7 @@
 #include "point.h"
 #include <sstream>
 #include <vector>
+#include <unordered_map>
 #include <algorithm>
 #include <iterator>
 
@@ -119,6 +120,14 @@ template <typename T> T pop(std::vector<T> &v) {
 template <typename T> T shift(std::vector<T> &v) {
   T result = std::move(v.front());
   v.erase(v.begin());
+  return result;
+}
+
+template <typename K, typename V> std::vector<K> keys(const std::unordered_map<K, V> &map) {
+  std::vector<K> result;
+  for (const auto &entry : map) {
+    result.push_back(entry.first);
+  }
   return result;
 }
 

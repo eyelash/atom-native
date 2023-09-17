@@ -26,6 +26,7 @@ struct GrammarRegistry {
   double getGrammarPathScore(Grammar *, const optional<std::string> &);
   void addGrammar(TreeSitterGrammar *);
   std::vector<Grammar *> getGrammars();
+  TreeSitterGrammar *treeSitterGrammarForLanguageString(const std::u16string &);
 };
 
 #endif // GRAMMAR_REGISTRY_H_

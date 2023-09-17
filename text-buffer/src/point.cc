@@ -9,6 +9,22 @@ static uint32_t number_from_js(double number) {
   }
 }
 
+Point Point::min(const Point &point1, const Point &point2) {
+  if (point1.isLessThanOrEqual(point2)) {
+    return point1;
+  } else {
+    return point2;
+  }
+}
+
+Point Point::max(const Point &point1, const Point &point2) {
+  if (point1.compare(point2) >= 0) {
+    return point1;
+  } else {
+    return point2;
+  }
+}
+
 Point::Point(double row, double column): row(row), column(column) {}
 Point::Point(const NativePoint &point): row(point.row), column(point.column) {}
 

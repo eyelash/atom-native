@@ -6,6 +6,7 @@
 
 struct LanguageMode;
 struct TextBuffer;
+struct GrammarRegistry;
 
 struct Grammar {
   const char *name;
@@ -23,7 +24,7 @@ struct Grammar {
   template <typename... T> void setFileTypes(T&&... t) {
     addFileTypes(std::forward<T>(t)...);
   }
-  virtual LanguageMode *getLanguageMode(TextBuffer *) = 0;
+  virtual LanguageMode *getLanguageMode(TextBuffer *, GrammarRegistry *) = 0;
 };
 
 #endif // GRAMMAR_H_

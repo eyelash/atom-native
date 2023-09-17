@@ -89,8 +89,8 @@ struct TextBuffer {
   MarkerLayer *addMarkerLayer(bool = false);
   MarkerLayer *getMarkerLayer(unsigned);
   MarkerLayer *getDefaultMarkerLayer();
-  unsigned markRange(const Range &);
-  unsigned markPosition(Point);
+  Marker *markRange(const Range &);
+  Marker *markPosition(Point);
   std::vector<Marker *> getMarkers();
   Marker *getMarker(unsigned);
   size_t getMarkerCount();

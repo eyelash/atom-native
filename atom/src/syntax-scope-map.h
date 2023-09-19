@@ -7,12 +7,13 @@
 #include <unordered_map>
 #include <memory>
 
+struct TextBuffer;
 struct TreeCursor;
 
 struct SyntaxScopeMap {
   struct Result {
     virtual ~Result();
-    virtual optional<std::string> applyLeafRules(const TreeCursor &) = 0;
+    virtual optional<std::string> applyLeafRules(TextBuffer *, const TreeCursor &) = 0;
   };
   struct Table {
     std::unordered_map<double, std::unique_ptr<Table>> indices;

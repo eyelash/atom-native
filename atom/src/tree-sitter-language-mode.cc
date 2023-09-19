@@ -951,7 +951,9 @@ optional<int32_t> TreeSitterLanguageMode::LayerHighlightIterator::currentScopeId
     this->containingNodeChildIndices,
     this->treeCursor.nodeIsNamed()
   );
-  const auto scopeName = value ? value->applyLeafRules(this->treeCursor) : optional<std::string>();
+  TextBuffer *buffer = this->languageLayer->languageMode->buffer;
+
+  const auto scopeName = value ? value->applyLeafRules(buffer, this->treeCursor) : optional<std::string>();
   const TSNode node = this->treeCursor.currentNode();
   if (!ts_node_child_count(node)) {
     return this->languageLayer->languageMode->grammar->idForScope(scopeName);

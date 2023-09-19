@@ -3,13 +3,10 @@
 
 #include "tree-cursor.h"
 
-class NativeTextBuffer;
-
 class Tree {
   TSTree *tree;
-  NativeTextBuffer *input;
 
-  Tree(TSTree *, NativeTextBuffer *);
+  Tree(TSTree *);
 public:
   Tree();
   Tree(const Tree &);
@@ -21,7 +18,6 @@ public:
   TSNode rootNode() const;
   std::vector<TSRange> getChangedRanges(const Tree &);
   TreeCursor walk();
-  std::u16string getText(const TreeCursor &);
 
   friend class Parser;
 };

@@ -3,6 +3,7 @@
 #include "tree-sitter-language-mode.h"
 #include <regex.h>
 #include <tree-cursor.h>
+#include <text-buffer.h>
 
 TreeSitterGrammar::TreeSitterGrammar(const char *name, const char *scopeName, const TSLanguage *languageModule) : Grammar(name, scopeName) {
   this->scopeMap = new SyntaxScopeMap();
@@ -34,7 +35,7 @@ std::shared_ptr<SyntaxScopeMap::Result> TreeSitterGrammar::preprocessScopes(cons
   struct StringResult final : SyntaxScopeMap::Result {
     std::string rules;
     StringResult(const char *value) : rules(value) {}
-    optional<std::string> applyLeafRules(const TreeCursor &) override {
+    optional<std::string> applyLeafRules(TextBuffer *, const TreeCursor &) override {
       return rules;
     }
   };
@@ -46,9 +47,10 @@ std::shared_ptr<SyntaxScopeMap::Result> TreeSitterGrammar::preprocessScopesExact
     std::u16string exact;
     std::shared_ptr<SyntaxScopeMap::Result> scopes;
     ExactResult(const char16_t *exact, std::shared_ptr<SyntaxScopeMap::Result> &&scopes) : exact(exact), scopes(std::move(scopes)) {}
-    optional<std::string> applyLeafRules(const TreeCursor &cursor) override {
-      return cursor.nodeText() == exact
-        ? scopes->applyLeafRules(cursor)
+    optional<std::string> applyLeafRules(TextBuffer *buffer, const TreeCursor &cursor) override {
+      const std::u16string nodeText = buffer->buffer->text_in_range({cursor.startPosition(), cursor.endPosition()});
+      return nodeText == exact
+        ? scopes->applyLeafRules(buffer, cursor)
         : optional<std::string>();
     }
   };
@@ -60,9 +62,10 @@ std::shared_ptr<SyntaxScopeMap::Result> TreeSitterGrammar::preprocessScopesMatch
     Regex match;
     std::shared_ptr<SyntaxScopeMap::Result> scopes;
     MatchResult(const char16_t *match, std::shared_ptr<SyntaxScopeMap::Result> &&scopes) : match(match), scopes(std::move(scopes)) {}
-    optional<std::string> applyLeafRules(const TreeCursor &cursor) override {
-      return match.match(cursor.nodeText())
-        ? scopes->applyLeafRules(cursor)
+    optional<std::string> applyLeafRules(TextBuffer *buffer, const TreeCursor &cursor) override {
+      const std::u16string nodeText = buffer->buffer->text_in_range({cursor.startPosition(), cursor.endPosition()});
+      return match.match(nodeText)
+        ? scopes->applyLeafRules(buffer, cursor)
         : optional<std::string>();
     }
   };
@@ -73,9 +76,9 @@ std::shared_ptr<SyntaxScopeMap::Result> TreeSitterGrammar::preprocessScopes(std:
   struct ArrayResult final : SyntaxScopeMap::Result {
     std::vector<std::shared_ptr<SyntaxScopeMap::Result>> rules;
     ArrayResult(std::vector<std::shared_ptr<SyntaxScopeMap::Result>> &&value) : rules(std::move(value)) {}
-    optional<std::string> applyLeafRules(const TreeCursor &cursor) override {
+    optional<std::string> applyLeafRules(TextBuffer *buffer, const TreeCursor &cursor) override {
       for (size_t i = 0, length = rules.size(); i != length; ++i) {
-        const auto result = rules[i]->applyLeafRules(cursor);
+        const auto result = rules[i]->applyLeafRules(buffer, cursor);
         if (result) return result;
       }
       return optional<std::string>();

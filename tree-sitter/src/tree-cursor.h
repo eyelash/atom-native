@@ -5,13 +5,10 @@
 #include <optional.h>
 #include <native-point.h>
 
-class Tree;
-
 class TreeCursor {
   TSTreeCursor tree_cursor;
-  Tree *tree;
 public:
-  TreeCursor(TSNode, Tree *);
+  TreeCursor(TSNode);
   TreeCursor(const TreeCursor &);
   ~TreeCursor();
   TreeCursor &operator=(const TreeCursor &);
@@ -26,7 +23,6 @@ public:
   NativePoint endPosition() const;
   const char *nodeType() const;
   bool nodeIsNamed() const;
-  std::u16string nodeText() const;
 };
 
 #endif // TREE_CURSOR_H_

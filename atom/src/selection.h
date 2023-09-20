@@ -31,9 +31,9 @@ struct Selection {
   void onDidChangeRange(std::function<void()>);
   void onDidDestroy(std::function<void()>);
   Range getScreenRange();
-  void setScreenRange(Range, optional<bool> = {});
+  void setScreenRange(const Range &, optional<bool> = {});
   Range getBufferRange();
-  void setBufferRange(Range, optional<bool> = {}, optional<bool> = {});
+  void setBufferRange(const Range &, optional<bool> = {}, optional<bool> = {});
   std::pair<double, double> getBufferRowRange();
   Point getTailScreenPosition();
   Point getTailBufferPosition();
@@ -43,13 +43,13 @@ struct Selection {
   bool isReversed();
   bool isSingleScreenLine();
   std::u16string getText();
-  bool intersectsBufferRange(Range);
+  bool intersectsBufferRange(const Range &);
   bool intersectsScreenRowRange(double, double);
   bool intersectsScreenRow(double);
   bool intersectsWith(Selection *, bool);
   void clear(optional<bool> = {});
-  void selectToScreenPosition(Point position);
-  void selectToBufferPosition(Point);
+  void selectToScreenPosition(const Point &);
+  void selectToBufferPosition(const Point &);
   void selectRight(double = 1);
   void selectLeft(double = 1);
   void selectUp(double = 1);
@@ -98,7 +98,7 @@ struct Selection {
   void addSelectionAbove();
   void merge(Selection *);
   int compare(Selection *);
-  void setGoalScreenRange(Range);
+  void setGoalScreenRange(const Range &);
   Range getGoalScreenRange();
   void markerDidChange();
   void markerDidDestroy();

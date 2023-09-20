@@ -21,10 +21,10 @@ struct Cursor {
   ~Cursor();
   void destroy();
 
-  void setScreenPosition(Point, optional<bool> = {}, DisplayLayer::ClipDirection = DisplayLayer::ClipDirection::closest);
-  void setScreenPosition(Point, DisplayLayer::ClipDirection);
+  void setScreenPosition(const Point &, optional<bool> = {}, DisplayLayer::ClipDirection = DisplayLayer::ClipDirection::closest);
+  void setScreenPosition(const Point &, DisplayLayer::ClipDirection);
   Point getScreenPosition();
-  void setBufferPosition(Point, optional<bool> = {});
+  void setBufferPosition(const Point &, optional<bool> = {});
   Point getBufferPosition();
   double getScreenRow();
   double getScreenColumn();

@@ -20,13 +20,13 @@ void Cursor::destroy() {
   this->marker->destroy();
 }
 
-void Cursor::setScreenPosition(Point screenPosition, optional<bool> options_autoscroll, DisplayLayer::ClipDirection clipDirection) {
+void Cursor::setScreenPosition(const Point &screenPosition, optional<bool> options_autoscroll, DisplayLayer::ClipDirection clipDirection) {
   this->changePosition(options_autoscroll, [&]() {
     this->marker->setHeadScreenPosition(screenPosition, clipDirection);
   });
 }
 
-void Cursor::setScreenPosition(Point screenPosition, DisplayLayer::ClipDirection clipDirection) {
+void Cursor::setScreenPosition(const Point &screenPosition, DisplayLayer::ClipDirection clipDirection) {
   this->setScreenPosition(screenPosition, optional<bool>(), clipDirection);
 }
 
@@ -34,7 +34,7 @@ Point Cursor::getScreenPosition() {
   return this->marker->getHeadScreenPosition();
 }
 
-void Cursor::setBufferPosition(Point bufferPosition, optional<bool> options_autoscroll) {
+void Cursor::setBufferPosition(const Point &bufferPosition, optional<bool> options_autoscroll) {
   this->changePosition(options_autoscroll, [&]() {
     this->marker->setHeadBufferPosition(bufferPosition);
   });

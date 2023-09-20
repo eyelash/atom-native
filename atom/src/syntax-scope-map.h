@@ -30,7 +30,7 @@ struct SyntaxScopeMap {
   ~SyntaxScopeMap();
 
   void addSelector(const std::string &, std::shared_ptr<Result>);
-  std::shared_ptr<Result> get(const std::vector<std::string> &, const std::vector<double> &, bool = true);
+  Result *get(const std::vector<std::string> &, const std::vector<double> &, bool = true);
 };
 
 #endif // SYNTAX_SCOPE_MAP_H_

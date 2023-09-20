@@ -80,7 +80,7 @@ void BracketMatcherView::updateMatch() {
   this->tagHighlighted = highlightTag;
 }
 
-optional<Point> BracketMatcherView::findMatchingEndBracket(Point startBracketPosition, char16_t startBracket, char16_t endBracket) {
+optional<Point> BracketMatcherView::findMatchingEndBracket(const Point &startBracketPosition, char16_t startBracket, char16_t endBracket) {
   if (startBracket == endBracket) return optional<Point>();
 
   if (TreeSitterLanguageMode *languageMode = this->hasSyntaxTree()) {
@@ -90,7 +90,7 @@ optional<Point> BracketMatcherView::findMatchingEndBracket(Point startBracketPos
   }
 }
 
-optional<Point> BracketMatcherView::findMatchingStartBracket(Point endBracketPosition, char16_t startBracket, char16_t endBracket) {
+optional<Point> BracketMatcherView::findMatchingStartBracket(const Point &endBracketPosition, char16_t startBracket, char16_t endBracket) {
   if (startBracket == endBracket) return optional<Point>();
 
   if (TreeSitterLanguageMode *languageMode = this->hasSyntaxTree()) {
@@ -111,7 +111,7 @@ template <typename T> static Range rangeForNode(T node) {
   return Range(startPosition(node), endPosition(node));
 }
 
-optional<Point> BracketMatcherView::findMatchingEndBracketWithSyntaxTree(Point bracketPosition, char16_t startBracket, char16_t endBracket, TreeSitterLanguageMode *languageMode) {
+optional<Point> BracketMatcherView::findMatchingEndBracketWithSyntaxTree(const Point &bracketPosition, char16_t startBracket, char16_t endBracket, TreeSitterLanguageMode *languageMode) {
   optional<Point> result;
   const Point bracketEndPosition = bracketPosition.traverse({0, 1});
   languageMode->getSyntaxNodeContainingRange(
@@ -131,7 +131,7 @@ optional<Point> BracketMatcherView::findMatchingEndBracketWithSyntaxTree(Point b
   return result;
 }
 
-optional<Point> BracketMatcherView::findMatchingStartBracketWithSyntaxTree(Point bracketPosition, char16_t startBracket, char16_t endBracket, TreeSitterLanguageMode *languageMode) {
+optional<Point> BracketMatcherView::findMatchingStartBracketWithSyntaxTree(const Point &bracketPosition, char16_t startBracket, char16_t endBracket, TreeSitterLanguageMode *languageMode) {
   optional<Point> result;
   const Point bracketEndPosition = bracketPosition.traverse({0, 1});
   languageMode->getSyntaxNodeContainingRange(
@@ -206,7 +206,7 @@ std::pair<optional<TSNode>, optional<TSNode>> BracketMatcherView::findContaining
   return {startTag, endTag};
 }
 
-DisplayMarker *BracketMatcherView::createMarker(Range bufferRange) {
+DisplayMarker *BracketMatcherView::createMarker(const Range &bufferRange) {
   DisplayMarker *marker = this->editor->markBufferRange(bufferRange);
   this->editor->decorateMarker(marker, {Decoration::Type::highlight, "bracket-matcher"});
   return marker;

@@ -102,16 +102,13 @@ struct TreeSitterGrammar final : Grammar {
   void addScope(const char *selector, std::shared_ptr<SyntaxScopeMap::Result> result) {
     scopeMap->addSelector(selector, result);
   }
-  template <typename R> void addScope(const char *selector, const R &result) {
-    addScope(selector, preprocessScopes(result));
-  }
-  template <typename R> void addScope(const TreeSitterGrammarDSL::Array<> &selector, const R &result) {}
-  template <typename... S, typename R> void addScope(const TreeSitterGrammarDSL::Array<const char *, S...> &selector, const R &result) {
+  void addScope(const TreeSitterGrammarDSL::Array<> &selector, std::shared_ptr<SyntaxScopeMap::Result> result) {}
+  template <typename T0, typename... T> void addScope(const TreeSitterGrammarDSL::Array<T0, T...> &selector, std::shared_ptr<SyntaxScopeMap::Result> result) {
     addScope(selector.t0, result);
     addScope(selector.t, result);
   }
   template <typename S, typename R> void addScope(const TreeSitterGrammarDSL::Scope<S, R> &scope) {
-    addScope(scope.selectors, scope.result);
+    addScope(scope.selectors, preprocessScopes(scope.result));
   }
   void addScopes() {}
   template <typename T0, typename... T> void addScopes(const T0& scope, const T&... scopes) {

@@ -55,7 +55,7 @@ Range Selection::getScreenRange() {
   return this->marker->getScreenRange();
 }
 
-void Selection::setScreenRange(Range screenRange, optional<bool> reversed) {
+void Selection::setScreenRange(const Range &screenRange, optional<bool> reversed) {
   return this->setBufferRange(
     this->editor->bufferRangeForScreenRange(screenRange),
     optional<bool>(),
@@ -67,7 +67,7 @@ Range Selection::getBufferRange() {
   return this->marker->getBufferRange();
 }
 
-void Selection::setBufferRange(Range bufferRange, optional<bool> options_autoscroll, optional<bool> reversed) {
+void Selection::setBufferRange(const Range &bufferRange, optional<bool> options_autoscroll, optional<bool> reversed) {
   //if (options.reversed == null) options.reversed = this.isReversed();
   /*if (!options.preserveFolds)
     this.editor.destroyFoldsContainingBufferPositions(
@@ -132,7 +132,7 @@ std::u16string Selection::getText() {
   return this->editor->buffer->getTextInRange(this->getBufferRange());
 }
 
-bool Selection::intersectsBufferRange(Range bufferRange) {
+bool Selection::intersectsBufferRange(const Range &bufferRange) {
   return this->getBufferRange().intersectsWith(bufferRange);
 }
 
@@ -166,7 +166,7 @@ void Selection::clear(optional<bool> options_autoscroll) {
   this->finalize();
 }
 
-void Selection::selectToScreenPosition(Point position) {
+void Selection::selectToScreenPosition(const Point &position) {
   this->modifySelection([&]() {
     if (this->initialScreenRange) {
       if (position.isLessThan(this->initialScreenRange->start)) {
@@ -191,7 +191,7 @@ void Selection::selectToScreenPosition(Point position) {
   });
 }
 
-void Selection::selectToBufferPosition(Point position) {
+void Selection::selectToBufferPosition(const Point &position) {
   this->modifySelection([&]() { this->cursor->setBufferPosition(position); });
 }
 
@@ -740,7 +740,7 @@ int Selection::compare(Selection *otherSelection) {
 Section: Private Utilities
 */
 
-void Selection::setGoalScreenRange(Range range) {
+void Selection::setGoalScreenRange(const Range &range) {
   this->goalScreenRange = range;
 }
 

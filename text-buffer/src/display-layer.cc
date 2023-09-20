@@ -59,7 +59,7 @@ void DisplayLayer::clearSpatialIndex() {
 void DisplayLayer::bufferDidChangeLanguageMode() {
   this->cachedScreenLines.resize(0);
   //if (this.languageModeDisposable) this.languageModeDisposable.dispose()
-  this->buffer->languageMode->onDidChangeHighlighting([this](Range bufferRange) {
+  this->buffer->languageMode->onDidChangeHighlighting([this](const Range &bufferRange) {
     this->populateSpatialIndexIfNeeded(bufferRange.end.row + 1, INFINITY);
     const double startBufferRow = this->findBoundaryPrecedingBufferRow(bufferRange.start.row);
     const double endBufferRow = this->findBoundaryFollowingBufferRow(bufferRange.end.row + 1);
@@ -470,7 +470,7 @@ std::vector<double> DisplayLayer::bufferRowsForScreenRows(double startRow, doubl
   double lastBufferRow = this->translateScreenPositionWithSpatialIndex(startPosition).row;
   auto hunks = this->spatialIndex->grab_changes_in_new_range(startPosition, Point(endRow, 0));
   for (unsigned i = 0; i < hunks.size(); i++) {
-    const auto& hunk = hunks[i];
+    const auto &hunk = hunks[i];
     while (lastScreenRow <= hunk.new_start.row) {
       bufferRows.push_back(lastBufferRow);
       lastScreenRow++;
@@ -946,8 +946,8 @@ std::unordered_map<double, std::unordered_map<double, Point>> DisplayLayer::comp
   // row range to account for these extra folds ahead of time.
   if (endBufferRow >= this->indexedBufferRowCount) {
     for (double i = 0; i < foldMarkers.size(); i++) {
-      const auto& marker = foldMarkers[i];
-      const auto& nextMarker = foldMarkers[i + 1];
+      const auto &marker = foldMarkers[i];
+      const auto &nextMarker = foldMarkers[i + 1];
       if (marker->getEndPosition().row >= endBufferRow &&
           (!(i + 1 < foldMarkers.size()) || nextMarker->getEndPosition().row < marker->getEndPosition().row)) {
         const auto intersectingMarkers = this->foldsMarkerLayer->findMarkers({
@@ -966,7 +966,7 @@ std::unordered_map<double, std::unordered_map<double, Point>> DisplayLayer::comp
 
     // Merge overlapping folds
     while (i < foldMarkers.size() - 1) {
-      const auto& nextFoldMarker = foldMarkers[i + 1];
+      const auto &nextFoldMarker = foldMarkers[i + 1];
       if (compare(nextFoldMarker->getStartPosition(), foldEnd) < 0) {
         if (compare(foldEnd, nextFoldMarker->getEndPosition()) < 0) {
           foldEnd = nextFoldMarker->getEndPosition();

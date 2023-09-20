@@ -16,9 +16,9 @@ struct SelectNext {
   void findAndSelectNext();
   void selectWord();
   void selectNextOccurrence();
-  optional<Range> findNextOccurrence(Range);
-  void addSelection(Range);
-  void scanForNextOccurrence(Range, TextBuffer::ScanIterator);
+  optional<Range> findNextOccurrence(const Range &);
+  void addSelection(const Range &);
+  void scanForNextOccurrence(const Range &, TextBuffer::ScanIterator);
   bool isNonWordCharacter(const std::u16string &);
   bool isNonWordCharacterToTheLeft(Selection *);
   bool isNonWordCharacterToTheRight(Selection *);

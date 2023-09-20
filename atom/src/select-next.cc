@@ -43,7 +43,7 @@ void SelectNext::selectNextOccurrence(/* options = {} */) {
   }
 }
 
-optional<Range> SelectNext::findNextOccurrence(Range scanRange) {
+optional<Range> SelectNext::findNextOccurrence(const Range &scanRange) {
   optional<Range> foundRange;
   this->scanForNextOccurrence(scanRange, [&](TextBuffer::SearchCallbackArgument &argument) {
     foundRange = argument.range;
@@ -52,13 +52,13 @@ optional<Range> SelectNext::findNextOccurrence(Range scanRange) {
   return foundRange;
 }
 
-void SelectNext::addSelection(Range range) {
+void SelectNext::addSelection(const Range &range) {
   const bool reversed = this->editor->getLastSelection()->isReversed();
   Selection *selection = this->editor->addSelectionForBufferRange(range /* , {reversed} */);
   //return this->updateSavedSelections(selection);
 }
 
-void SelectNext::scanForNextOccurrence(Range range, TextBuffer::ScanIterator callback) {
+void SelectNext::scanForNextOccurrence(const Range &range, TextBuffer::ScanIterator callback) {
   Selection *selection = this->editor->getLastSelection();
   std::u16string text = escapeRegExp(selection->getText());
   if (this->wordSelected) {

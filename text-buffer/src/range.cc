@@ -1,16 +1,16 @@
 #include "range.h"
 
 Range Range::fromPointWithDelta(const Point &startPoint, double rowDelta, double columnDelta) {
-	const Point endPoint = Point(startPoint.row + rowDelta, startPoint.column + columnDelta);
-	return Range(startPoint, endPoint);
+  const Point endPoint = Point(startPoint.row + rowDelta, startPoint.column + columnDelta);
+  return Range(startPoint, endPoint);
 }
 
 Range Range::fromPointWithTraversalExtent(const Point &startPoint, const Point &extent) {
-	return Range(startPoint, startPoint.traverse(extent));
+  return Range(startPoint, startPoint.traverse(extent));
 }
 
 Range::Range(const Point &pointA, const Point &pointB) {
-	if (pointA.isLessThanOrEqual(pointB)) {
+  if (pointA.isLessThanOrEqual(pointB)) {
     this->start = pointA;
     this->end = pointB;
   } else {

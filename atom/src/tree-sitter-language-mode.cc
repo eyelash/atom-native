@@ -102,7 +102,7 @@ std::unique_ptr<LanguageMode::HighlightIterator> TreeSitterLanguageMode::buildHi
   return std::unique_ptr<LanguageMode::HighlightIterator>(new HighlightIterator(this));
 }
 
-void TreeSitterLanguageMode::onDidChangeHighlighting(std::function<void(Range)> callback) {
+void TreeSitterLanguageMode::onDidChangeHighlighting(std::function<void(const Range &)> callback) {
   return this->didChangeHighlightingEmitter.on(callback);
 }
 
@@ -321,7 +321,7 @@ TreeSitterGrammar *TreeSitterLanguageMode::grammarForLanguageString(const std::u
   );
 }
 
-void TreeSitterLanguageMode::emitRangeUpdate(Range range) {
+void TreeSitterLanguageMode::emitRangeUpdate(const Range &range) {
   const double startRow = range.start.row;
   const double endRow = range.end.row;
   for (double row = startRow; row < endRow; row++) {
@@ -604,7 +604,7 @@ void TreeSitterLanguageMode::LanguageLayer::populateInjections_(Range range, Nod
   }
 }
 
-TreeSitterLanguageMode::TreeEdit TreeSitterLanguageMode::LanguageLayer::treeEditForBufferChange_(Point start, Point oldEnd, Point newEnd, const std::u16string &oldText, const std::u16string &newText) {
+TreeSitterLanguageMode::TreeEdit TreeSitterLanguageMode::LanguageLayer::treeEditForBufferChange_(const Point &start, const Point &oldEnd, const Point &newEnd, const std::u16string &oldText, const std::u16string &newText) {
   const double startIndex = this->languageMode->buffer->characterIndexForPosition(
     start
   );
@@ -946,13 +946,12 @@ bool TreeSitterLanguageMode::LayerHighlightIterator::moveRight_() {
 }
 
 optional<int32_t> TreeSitterLanguageMode::LayerHighlightIterator::currentScopeId_() {
-  std::shared_ptr<SyntaxScopeMap::Result> value = this->languageLayer->grammar->scopeMap->get(
+  SyntaxScopeMap::Result *value = this->languageLayer->grammar->scopeMap->get(
     this->containingNodeTypes,
     this->containingNodeChildIndices,
     this->treeCursor.nodeIsNamed()
   );
   TextBuffer *buffer = this->languageLayer->languageMode->buffer;
-
   const auto scopeName = value ? value->applyLeafRules(buffer, this->treeCursor) : optional<std::string>();
   const TSNode node = this->treeCursor.currentNode();
   if (!ts_node_child_count(node)) {
@@ -1052,19 +1051,19 @@ void TreeSitterLanguageMode::NodeRangeSet::pushRange_(TextBuffer *buffer, const 
 
 // For injection points with `newlinesBetween` enabled, ensure that a
 // newline is included between each disjoint range.
-void TreeSitterLanguageMode::NodeRangeSet::ensureNewline_(TextBuffer *buffer, std::vector<TSRange> &newRanges, double startIndex, Point startPosition) {
-  /*const lastRange = newRanges[newRanges.length - 1];
-  if (lastRange && lastRange.endPosition.row < startPosition.row) {
-    newRanges.push({
-      startPosition: new Point(
+void TreeSitterLanguageMode::NodeRangeSet::ensureNewline_(TextBuffer *buffer, std::vector<TSRange> &newRanges, double startIndex, const Point &startPosition) {
+  optional<TSRange> lastRange = newRanges.size() >= 1 ? newRanges[newRanges.size() - 1] : optional<TSRange>();
+  if (lastRange && endPosition(*lastRange).row < startPosition.row) {
+    newRanges.push_back(RangeFromJS(
+      startIndex - startPosition.column - 1,
+      startIndex - startPosition.column,
+      Point(
         startPosition.row - 1,
-        buffer.lineLengthForRow(startPosition.row - 1)
+        buffer->lineLengthForRow(startPosition.row - 1)
       ),
-      endPosition: new Point(startPosition.row, 0),
-      startIndex: startIndex - startPosition.column - 1,
-      endIndex: startIndex - startPosition.column
-    });
-  }*/
+      Point(startPosition.row, 0)
+    ));
+  }
 }
 
 static void insertContainingTag(int32_t tag, double index, std::vector<int32_t> &tags, std::vector<double> &indices) {

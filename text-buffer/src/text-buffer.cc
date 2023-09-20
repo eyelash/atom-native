@@ -187,11 +187,11 @@ optional<double> TextBuffer::nextNonBlankRow(double startRow) {
 Section: Mutating Text
 */
 
-Range TextBuffer::setText(std::u16string text) {
-  return this->setTextInRange(this->getRange(), std::move(text));
+Range TextBuffer::setText(const std::u16string &text) {
+  return this->setTextInRange(this->getRange(), text);
 }
 
-Range TextBuffer::setTextInRange(const Range &range, std::u16string newText) {
+Range TextBuffer::setTextInRange(const Range &range, const std::u16string &newText) {
   if (this->transactCallDepth == 0) {
     //const Range newRange = this->transact([&]() { this->setTextInRange(range, newText /* , {normalizeLineEndings} */); });
     //if (undo === 'skip') this.groupLastChanges()
@@ -199,7 +199,7 @@ Range TextBuffer::setTextInRange(const Range &range, std::u16string newText) {
   }
 
   const Range oldRange = this->clipRange(range);
-  std::u16string oldText = this->getTextInRange(oldRange);
+  const std::u16string oldText = this->getTextInRange(oldRange);
 
   const Range newRange = this->applyChange(
     oldRange.start,
@@ -213,12 +213,12 @@ Range TextBuffer::setTextInRange(const Range &range, std::u16string newText) {
   return newRange;
 }
 
-Range TextBuffer::insert(const Point &position, std::u16string text) {
-  return this->setTextInRange(Range(position, position), std::move(text));
+Range TextBuffer::insert(const Point &position, const std::u16string &text) {
+  return this->setTextInRange(Range(position, position), text);
 }
 
-Range TextBuffer::append(std::u16string text) {
-  return this->insert(this->getEndPosition(), std::move(text));
+Range TextBuffer::append(const std::u16string &text) {
+  return this->insert(this->getEndPosition(), text);
 }
 
 Range TextBuffer::applyChange(const Point &oldStart, const Point &oldEnd, const Point &newStart, const Point &newEnd, const std::u16string &oldText, const std::u16string &newText, bool pushToHistory) {

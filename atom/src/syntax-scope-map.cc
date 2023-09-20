@@ -183,8 +183,8 @@ void SyntaxScopeMap::addSelector(const std::string &selector, std::shared_ptr<Re
   }, selector);
 }
 
-std::shared_ptr<SyntaxScopeMap::Result> SyntaxScopeMap::get(const std::vector<std::string> &nodeTypes, const std::vector<double> &childIndices, bool leafIsNamed) {
-  std::shared_ptr<Result> result;
+SyntaxScopeMap::Result *SyntaxScopeMap::get(const std::vector<std::string> &nodeTypes, const std::vector<double> &childIndices, bool leafIsNamed) {
+  Result *result = nullptr;
   size_t i = nodeTypes.size() - 1;
   Table *currentTable = leafIsNamed
     ? this->namedScopeTable[nodeTypes[i]].get()
@@ -198,7 +198,7 @@ std::shared_ptr<SyntaxScopeMap::Result> SyntaxScopeMap::get(const std::vector<st
     }
 
     if (currentTable->result) {
-      result = currentTable->result;
+      result = currentTable->result.get();
     }
 
     if (i == 0) break;

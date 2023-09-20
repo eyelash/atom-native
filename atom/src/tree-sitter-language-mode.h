@@ -32,7 +32,7 @@ struct TreeSitterLanguageMode final : LanguageMode {
     NodeRangeSet(NodeRangeSet *, const std::vector<TSNode> &, bool, bool);
     std::vector<TSRange> getRanges(TextBuffer *);
     void pushRange_(TextBuffer *, const std::vector<TSRange> &, std::vector<TSRange> &, TSRange);
-    void ensureNewline_(TextBuffer *, std::vector<TSRange> &, double, Point);
+    void ensureNewline_(TextBuffer *, std::vector<TSRange> &, double, const Point &);
   };
 
   struct LayerHighlightIterator;
@@ -51,7 +51,7 @@ struct TreeSitterLanguageMode final : LanguageMode {
     void update(NodeRangeSet *);
     void performUpdate_(NodeRangeSet *);
     void populateInjections_(Range, NodeRangeSet *);
-    TreeEdit treeEditForBufferChange_(Point, Point, Point, const std::u16string &, const std::u16string &);
+    TreeEdit treeEditForBufferChange_(const Point &, const Point &, const Point &, const std::u16string &, const std::u16string &);
   };
 
   struct LayerHighlightIterator {
@@ -101,7 +101,7 @@ struct TreeSitterLanguageMode final : LanguageMode {
   MarkerLayer *injectionsMarkerLayer;
   std::unordered_map<Marker *, LanguageLayer *> languageLayersByMarker;
   std::unordered_map<Marker *, LanguageLayer *> parentLanguageLayersByMarker;
-  Emitter<Range> didChangeHighlightingEmitter;
+  Emitter<const Range &> didChangeHighlightingEmitter;
 
   TreeSitterLanguageMode(TextBuffer *, TreeSitterGrammar *, GrammarRegistry *);
   ~TreeSitterLanguageMode();
@@ -110,7 +110,7 @@ struct TreeSitterLanguageMode final : LanguageMode {
   void bufferDidFinishTransaction() override;
   Tree parse(const TSLanguage *, const Tree &, const std::vector<TSRange> &);
   std::unique_ptr<LanguageMode::HighlightIterator> buildHighlightIterator() override;
-  void onDidChangeHighlighting(std::function<void(Range)>) override;
+  void onDidChangeHighlighting(std::function<void(const Range &)>) override;
   std::string classNameForScopeId(int32_t) override;
   bool isRowCommented(double) override;
   double suggestedIndentForLineAtBufferRow(double, const std::u16string &, double) override;
@@ -126,7 +126,7 @@ struct TreeSitterLanguageMode final : LanguageMode {
   Grammar *getGrammar() override;
   optional<NativeRange> firstNonWhitespaceRange(double);
   TreeSitterGrammar *grammarForLanguageString(const std::u16string &);
-  void emitRangeUpdate(Range);
+  void emitRangeUpdate(const Range &);
 };
 
 #endif // TREE_SITTER_LANGUAGE_MODE_H_

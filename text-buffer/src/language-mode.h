@@ -21,7 +21,7 @@ struct LanguageMode {
   virtual void bufferDidChange(Range, Range, const std::u16string &, const std::u16string &);
   virtual void bufferDidFinishTransaction();
   virtual std::unique_ptr<HighlightIterator> buildHighlightIterator();
-  virtual void onDidChangeHighlighting(std::function<void(Range)>);
+  virtual void onDidChangeHighlighting(std::function<void(const Range &)>);
   virtual std::string classNameForScopeId(int32_t);
   virtual bool isRowCommented(double);
   virtual std::u16string getLanguageId();

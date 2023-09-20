@@ -131,7 +131,7 @@ void TextEditor::onDidRemoveCursor(std::function<void()> callback) {
   return this->didRemoveCursorEmitter.on(callback);
 }
 
-void TextEditor::onDidRequestAutoscroll(std::function<void(Range)> callback) {
+void TextEditor::onDidRequestAutoscroll(std::function<void(const Range &)> callback) {
   return this->didRequestAutoscrollEmitter.on(callback);
 }
 
@@ -294,12 +294,12 @@ Point TextEditor::getEofBufferPosition() {
 Section: Mutating Text
 */
 
-void TextEditor::setText(std::u16string &&text) {
-  this->buffer->setText(std::move(text));
+void TextEditor::setText(const std::u16string &text) {
+  this->buffer->setText(text);
 }
 
-Range TextEditor::setTextInBufferRange(Range range, std::u16string &&text) {
-  return this->getBuffer()->setTextInRange(range, std::move(text));
+Range TextEditor::setTextInBufferRange(const Range &range, const std::u16string &text) {
+  return this->getBuffer()->setTextInRange(range, text);
 }
 
 void TextEditor::insertText(const std::u16string &text, bool groupUndo) {
@@ -396,7 +396,7 @@ void TextEditor::moveLineUp(/* options = {} */) {
         lines += this->buffer->lineEndingForRow(linesRange.end.row - 2);
       }
       this->buffer->delete_(linesRange);
-      this->buffer->insert({precedingRow, 0}, std::move(lines));
+      this->buffer->insert({precedingRow, 0}, lines);
 
       // Restore folds that existed before the lines were moved
       /*for (let rangeToRefold of rangesToRefold) {
@@ -480,7 +480,7 @@ void TextEditor::moveLineDown(/* options = {} */) {
         lines = u"\n" + lines;
       }
 
-      this->buffer->insert({followingRow, 0}, std::move(lines));
+      this->buffer->insert({followingRow, 0}, lines);
       this->buffer->delete_(linesRange);
 
       // Restore folds that existed before the lines were moved
@@ -542,7 +542,7 @@ void TextEditor::duplicateLines(/* options = {} */) {
       });
       if (endRow > this->getLastBufferRow())
         textToDuplicate = u"\n" + textToDuplicate;
-      this->buffer->insert({endRow, 0}, std::move(textToDuplicate));
+      this->buffer->insert({endRow, 0}, textToDuplicate);
 
       const double insertedRowCount = endRow - startRow;
 
@@ -738,15 +738,15 @@ void TextEditor::transact(std::function<void()> fn) {
 Section: TextEditor Coordinates
 */
 
-Point TextEditor::screenPositionForBufferPosition(Point bufferPosition) {
+Point TextEditor::screenPositionForBufferPosition(const Point &bufferPosition) {
   return this->displayLayer->translateBufferPosition(bufferPosition);
 }
 
-Point TextEditor::bufferPositionForScreenPosition(Point screenPosition) {
+Point TextEditor::bufferPositionForScreenPosition(const Point &screenPosition) {
   return this->displayLayer->translateScreenPosition(screenPosition);
 }
 
-Range TextEditor::screenRangeForBufferRange(Range bufferRange) {
+Range TextEditor::screenRangeForBufferRange(const Range &bufferRange) {
   const Point start = this->screenPositionForBufferPosition(
     bufferRange.start
   );
@@ -754,7 +754,7 @@ Range TextEditor::screenRangeForBufferRange(Range bufferRange) {
   return Range(start, end);
 }
 
-Range TextEditor::bufferRangeForScreenRange(Range screenRange) {
+Range TextEditor::bufferRangeForScreenRange(const Range &screenRange) {
   const Point start = this->bufferPositionForScreenPosition(screenRange.start);
   const Point end = this->bufferPositionForScreenPosition(screenRange.end);
   return Range(start, end);
@@ -768,11 +768,11 @@ Range TextEditor::clipBufferRange(const Range &range) {
   return this->buffer->clipRange(range);
 }
 
-Point TextEditor::clipScreenPosition(Point screenPosition) {
+Point TextEditor::clipScreenPosition(const Point &screenPosition) {
   return this->displayLayer->clipScreenPosition(screenPosition);
 }
 
-Range TextEditor::clipScreenRange(Range screenRange) {
+Range TextEditor::clipScreenRange(const Range &screenRange) {
   const Point start = this->displayLayer->clipScreenPosition(
     screenRange.start
   );
@@ -848,13 +848,13 @@ Point TextEditor::getCursorBufferPosition() {
   return this->getLastCursor()->getBufferPosition();
 }
 
-void TextEditor::setCursorBufferPosition(Point position) {
+void TextEditor::setCursorBufferPosition(const Point &position) {
   return this->moveCursors([&](Cursor *cursor) {
     cursor->setBufferPosition(position);
   });
 }
 
-Cursor *TextEditor::getCursorAtScreenPosition(Point position) {
+Cursor *TextEditor::getCursorAtScreenPosition(const Point &position) {
   Selection *selection = this->getSelectionAtScreenPosition(position);
   if (selection && selection->getHeadScreenPosition().isEqual(position)) {
     return selection->cursor;
@@ -866,13 +866,13 @@ Point TextEditor::getCursorScreenPosition() {
   return this->getLastCursor()->getScreenPosition();
 }
 
-void TextEditor::setCursorScreenPosition(Point position) {
+void TextEditor::setCursorScreenPosition(const Point &position) {
   this->moveCursors([&](Cursor *cursor) {
     cursor->setScreenPosition(position);
   });
 }
 
-Cursor *TextEditor::addCursorAtBufferPosition(Point bufferPosition, bool autoscroll) {
+Cursor *TextEditor::addCursorAtBufferPosition(const Point &bufferPosition, bool autoscroll) {
   this->selectionsMarkerLayer->markBufferPosition(bufferPosition /* , {
     invalidate: 'never'
   } */ );
@@ -881,7 +881,7 @@ Cursor *TextEditor::addCursorAtBufferPosition(Point bufferPosition, bool autoscr
   return this->getLastSelection()->cursor;
 }
 
-Cursor *TextEditor::addCursorAtScreenPosition(Point screenPosition, bool autoscroll) {
+Cursor *TextEditor::addCursorAtScreenPosition(const Point &screenPosition, bool autoscroll) {
   this->selectionsMarkerLayer->markScreenPosition(screenPosition /* , {
     invalidate: 'never'
   } */ );
@@ -1050,7 +1050,7 @@ std::vector<Range> TextEditor::getSelectedBufferRanges() {
   return ranges;
 }
 
-void TextEditor::setSelectedBufferRange(Range bufferRange, bool autoscroll) {
+void TextEditor::setSelectedBufferRange(const Range &bufferRange, bool autoscroll) {
   return this->setSelectedBufferRanges({bufferRange}, autoscroll);
 }
 
@@ -1079,7 +1079,7 @@ Range TextEditor::getSelectedScreenRange() {
   return this->getLastSelection()->getScreenRange();
 }
 
-Selection *TextEditor::addSelectionForBufferRange(Range bufferRange, bool autoscroll) {
+Selection *TextEditor::addSelectionForBufferRange(const Range &bufferRange, bool autoscroll) {
   this->selectionsMarkerLayer->markBufferRange(bufferRange /* , {
     invalidate: 'never',
     reversed: options.reversed != null ? options.reversed : false
@@ -1088,14 +1088,14 @@ Selection *TextEditor::addSelectionForBufferRange(Range bufferRange, bool autosc
   return this->getLastSelection();
 }
 
-Selection *TextEditor::addSelectionForScreenRange(Range screenRange, bool autoscroll) {
+Selection *TextEditor::addSelectionForScreenRange(const Range &screenRange, bool autoscroll) {
   return this->addSelectionForBufferRange(
     this->bufferRangeForScreenRange(screenRange),
     autoscroll
   );
 }
 
-void TextEditor::selectToBufferPosition(Point position) {
+void TextEditor::selectToBufferPosition(const Point &position) {
   Selection *lastSelection = this->getLastSelection();
   lastSelection->selectToBufferPosition(position);
   return this->mergeIntersectingSelections(/*{
@@ -1103,7 +1103,7 @@ void TextEditor::selectToBufferPosition(Point position) {
   }*/);
 }
 
-void TextEditor::selectToScreenPosition(Point position, bool suppressSelectionMerge /* , options */) {
+void TextEditor::selectToScreenPosition(const Point &position, bool suppressSelectionMerge /* , options */) {
   Selection *lastSelection = this->getLastSelection();
   lastSelection->selectToScreenPosition(position /* , options */);
   if (!suppressSelectionMerge) {
@@ -1267,7 +1267,7 @@ Selection *TextEditor::getLastSelection() {
   return this->selections.back();
 }
 
-Selection *TextEditor::getSelectionAtScreenPosition(Point position) {
+Selection *TextEditor::getSelectionAtScreenPosition(const Point &position) {
   const auto markers = this->selectionsMarkerLayer->findMarkers({
     containsScreenPosition(position)
   });
@@ -1496,10 +1496,10 @@ Range TextEditor::setIndentationForBufferRow(
   } else {
     endColumn = Regex(u"^\\s*").match(this->lineTextForBufferRow(bufferRow)).end_offset;
   }
-  std::u16string newIndentString = this->buildIndentString(newLevel);
+  const std::u16string newIndentString = this->buildIndentString(newLevel);
   return this->buffer->setTextInRange(
     {{bufferRow, 0}, {bufferRow, endColumn}},
-    std::move(newIndentString)
+    newIndentString
   );
 }
 
@@ -1694,13 +1694,13 @@ void TextEditor::scrollToCursorPosition() {
   }*/);
 }
 
-void TextEditor::scrollToBufferPosition(Point bufferPosition) {
+void TextEditor::scrollToBufferPosition(const Point &bufferPosition) {
   return this->scrollToScreenPosition(
     this->screenPositionForBufferPosition(bufferPosition)
   );
 }
 
-void TextEditor::scrollToScreenPosition(Point screenPosition) {
+void TextEditor::scrollToScreenPosition(const Point &screenPosition) {
   this->scrollToScreenRange(
     Range(screenPosition, screenPosition)
   );
@@ -1726,7 +1726,7 @@ double TextEditor::getUndoGroupingInterval() {
   return this->undoGroupingInterval;
 }
 
-std::u16string TextEditor::getNonWordCharacters(Point position) {
+std::u16string TextEditor::getNonWordCharacters(const Point &position) {
   //const languageMode = this->buffer->getLanguageMode();
   return (
     //(languageMode.getNonWordCharacters &&

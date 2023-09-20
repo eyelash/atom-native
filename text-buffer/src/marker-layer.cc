@@ -148,7 +148,7 @@ std::vector<Marker *> MarkerLayer::findMarkers(Slice<FindParam> params) {
       result.push_back(marker);
     }
   } else {
-    for (auto& marker : this->markersById) {
+    for (auto &marker : this->markersById) {
       result.push_back(marker.second);
     }
   }

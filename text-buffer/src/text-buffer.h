@@ -36,7 +36,7 @@ struct TextBuffer {
   bool previousModifiedStatus;
 
   TextBuffer();
-  TextBuffer(const std::u16string &text);
+  TextBuffer(const std::u16string &);
   static TextBuffer *loadSync(const std::string &);
   ~TextBuffer();
 
@@ -77,10 +77,10 @@ struct TextBuffer {
   bool isRowBlank(double);
   optional<double> previousNonBlankRow(double);
   optional<double> nextNonBlankRow(double);
-  Range setText(std::u16string);
-  Range setTextInRange(const Range &, std::u16string);
-  Range insert(const Point &, std::u16string);
-  Range append(std::u16string);
+  Range setText(const std::u16string &);
+  Range setTextInRange(const Range &, const std::u16string &);
+  Range insert(const Point &, const std::u16string &);
+  Range append(const std::u16string &);
   Range applyChange(const Point &, const Point &, const Point &, const Point &, const std::u16string &, const std::u16string &, bool = false);
   Range delete_(const Range &);
   Range deleteRow(double);

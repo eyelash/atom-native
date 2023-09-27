@@ -25,6 +25,7 @@ DisplayLayer::DisplayLayer(unsigned id, TextBuffer *buffer) {
   this->ratioForCharacter = unitRatio;
   this->isWrapBoundary = isWordStart;
   this->foldCharacter = u'\u22EF';
+  this->atomicSoftTabs = true;
   this->eolInvisibles[u"\r"] = this->invisibles.cr;
   this->eolInvisibles[u"\n"] = this->invisibles.eol;
   //this->eolInvisibles[u"\r\n"] = this->invisibles.cr + this->invisibles.eol;
@@ -45,6 +46,14 @@ DisplayLayer::~DisplayLayer() {
     delete displayMarkerLayer.second;
   }
   delete this->spatialIndex;
+}
+
+void DisplayLayer::reset(const Params &params) {
+  if (this->setParams(params)) {
+    this->clearSpatialIndex();
+    //this->emitter.emit('did-reset');
+    //this->notifyObserversIfMarkerScreenPositionsChanged();
+  }
 }
 
 void DisplayLayer::clearSpatialIndex() {
@@ -376,7 +385,7 @@ double DisplayLayer::getClipColumnDelta(const Point &bufferPosition, ClipDirecti
 
   // Clip atomic soft tabs...
 
-  //if (!this->atomicSoftTabs) return 0;
+  if (!this->atomicSoftTabs) return 0;
 
   if (column * this->ratioForCharacter(' ') > this->softWrapColumn) {
     return 0;
@@ -985,6 +994,57 @@ std::unordered_map<double, std::unordered_map<double, Point>> DisplayLayer::comp
   }
 
   return folds;
+}
+
+bool DisplayLayer::setParams(const Params &params) {
+  bool paramsChanged = false;
+  if (params.tabLength && *params.tabLength != this->tabLength) {
+    paramsChanged = true;
+    this->tabLength = *params.tabLength;
+  }
+  /*if (params.hasOwnProperty('invisibles') && !invisiblesEqual(params.invisibles, this.invisibles)) {
+    paramsChanged = true;
+    this->invisibles = params.invisibles;
+    this.eolInvisibles = {
+      '\r': this.invisibles.cr,
+      '\n': this.invisibles.eol,
+      '\r\n': this.invisibles.cr + this.invisibles.eol
+    }
+  }*/
+  /*if (params.hasOwnProperty('showIndentGuides') && params.showIndentGuides !== this.showIndentGuides) {
+    paramsChanged = true;
+    this->showIndentGuides = params.showIndentGuides;
+  }*/
+  /*if (params.hasOwnProperty('softWrapColumn')) {
+    let softWrapColumn = params.softWrapColumn != null
+      ? Math.max(1, params.softWrapColumn)
+      : Infinity
+    if (softWrapColumn !== this->softWrapColumn) {
+      paramsChanged = true;
+      this->softWrapColumn = softWrapColumn
+    }
+  }*/
+  /*if (params.hasOwnProperty('softWrapHangingIndent') && params.softWrapHangingIndent !== this->softWrapHangingIndent) {
+    paramsChanged = true;
+    this->softWrapHangingIndent = params.softWrapHangingIndent;
+  }*/
+  /*if (params.hasOwnProperty('ratioForCharacter') && params.ratioForCharacter !== this->ratioForCharacter) {
+    paramsChanged = true;
+    this->ratioForCharacter = params.ratioForCharacter;
+  }*/
+  /*if (params.hasOwnProperty('isWrapBoundary') && params.isWrapBoundary !== this->isWrapBoundary) {
+    paramsChanged = true;
+    this->isWrapBoundary = params.isWrapBoundary;
+  }*/
+  /*if (params.hasOwnProperty('foldCharacter') && params.foldCharacter !== this->foldCharacter) {
+    paramsChanged = true;
+    this->foldCharacter = params.foldCharacter;
+  }*/
+  if (params.atomicSoftTabs && *params.atomicSoftTabs != this->atomicSoftTabs) {
+    paramsChanged = true;
+    this->atomicSoftTabs = *params.atomicSoftTabs;
+  }
+  return paramsChanged;
 }
 
 bool DisplayLayer::isSoftWrapHunk(const Patch::Change &hunk) {

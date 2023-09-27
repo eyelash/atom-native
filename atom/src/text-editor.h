@@ -45,6 +45,12 @@ struct TextEditor {
   ~TextEditor();
 
   void decorateCursorLine();
+  void finishUpdate(const DisplayLayer::Params & = {});
+  void updateSoftTabs(bool, bool);
+  void updateAtomicSoftTabs(bool, bool, DisplayLayer::Params &);
+  void updateAtomicSoftTabs(bool, bool);
+  void updateTabLength(double, bool, DisplayLayer::Params &);
+  void updateTabLength(double, bool);
   void subscribeToBuffer();
   void subscribeToDisplayLayer();
   void onDidChangeTitle(std::function<void()>);
@@ -228,7 +234,11 @@ struct TextEditor {
   void scanInBufferRange(const Regex &, const Range &, TextBuffer::ScanIterator);
   void backwardsScanInBufferRange(const Regex &, const Range &, TextBuffer::ScanIterator);
   bool getSoftTabs();
+  void setSoftTabs(bool);
+  bool hasAtomicSoftTabs();
+  void toggleSoftTabs();
   double getTabLength();
+  void setTabLength(double);
   optional<bool> usesSoftTabs();
   std::u16string getTabText();
   double indentationForBufferRow(double bufferRow);

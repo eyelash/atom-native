@@ -71,6 +71,41 @@ void TextEditor::decorateCursorLine() {
   //];
 }
 
+void TextEditor::finishUpdate(const DisplayLayer::Params &displayLayerParams) {
+  this->displayLayer->reset(displayLayerParams);
+}
+
+void TextEditor::updateSoftTabs(bool value, bool finish) {
+  if (value != this->softTabs) {
+    this->softTabs = value;
+  }
+  if (finish) this->finishUpdate();
+}
+
+void TextEditor::updateAtomicSoftTabs(bool value, bool finish, DisplayLayer::Params &displayLayerParams) {
+  if (value != this->displayLayer->atomicSoftTabs) {
+    displayLayerParams.atomicSoftTabs = value;
+  }
+  if (finish) this->finishUpdate(displayLayerParams);
+}
+
+void TextEditor::updateAtomicSoftTabs(bool value, bool finish) {
+  DisplayLayer::Params displayLayerParams;
+  this->updateAtomicSoftTabs(value, finish, displayLayerParams);
+}
+
+void TextEditor::updateTabLength(double value, bool finish, DisplayLayer::Params &displayLayerParams) {
+  if (value > 0 && value != this->displayLayer->tabLength) {
+    displayLayerParams.tabLength = value;
+  }
+  if (finish) this->finishUpdate(displayLayerParams);
+}
+
+void TextEditor::updateTabLength(double value, bool finish) {
+  DisplayLayer::Params displayLayerParams;
+  this->updateTabLength(value, finish, displayLayerParams);
+}
+
 void TextEditor::subscribeToBuffer() {
   //this->buffer->retain();
   //this.disposables.add(
@@ -1450,8 +1485,25 @@ bool TextEditor::getSoftTabs() {
   return this->softTabs;
 }
 
+void TextEditor::setSoftTabs(bool softTabs) {
+  this->softTabs = softTabs;
+  this->updateSoftTabs(this->softTabs, true);
+}
+
+bool TextEditor::hasAtomicSoftTabs() {
+  return this->displayLayer->atomicSoftTabs;
+}
+
+void TextEditor::toggleSoftTabs() {
+  this->setSoftTabs(!this->getSoftTabs());
+}
+
 double TextEditor::getTabLength() {
   return this->displayLayer->tabLength;
+}
+
+void TextEditor::setTabLength(double tabLength) {
+  this->updateTabLength(tabLength, true);
 }
 
 optional<bool> TextEditor::usesSoftTabs() {

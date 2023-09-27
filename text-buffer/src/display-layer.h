@@ -35,6 +35,10 @@ struct DisplayLayer {
     Point oldExtent;
     Point newExtent;
   };
+  struct Params {
+    optional<double> tabLength;
+    optional<bool> atomicSoftTabs;
+  };
 
   unsigned id;
   TextBuffer *buffer;
@@ -54,6 +58,7 @@ struct DisplayLayer {
   double (*ratioForCharacter)(char16_t);
   bool (*isWrapBoundary)(char16_t, char16_t);
   char16_t foldCharacter;
+  bool atomicSoftTabs;
   std::unordered_map<std::u16string, const char16_t *> eolInvisibles;
   MarkerLayer *foldsMarkerLayer;
   Patch *spatialIndex;
@@ -65,6 +70,7 @@ struct DisplayLayer {
   DisplayLayer(unsigned, TextBuffer *);
   ~DisplayLayer();
 
+  void reset(const Params &);
   void clearSpatialIndex();
   void bufferDidChangeLanguageMode();
   DisplayMarkerLayer *addMarkerLayer(bool = false);
@@ -114,6 +120,7 @@ struct DisplayLayer {
   double findBoundaryFollowingBufferRow(double);
   std::pair<double, double> findBoundaryFollowingScreenRow(double);
   std::unordered_map<double, std::unordered_map<double, Point>> computeFoldsInBufferRowRange(double, double);
+  bool setParams(const Params &);
   static bool isSoftWrapHunk(const Patch::Change &);
 };
 

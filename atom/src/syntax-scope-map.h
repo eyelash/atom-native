@@ -2,18 +2,18 @@
 #define SYNTAX_SCOPE_MAP_H_
 
 #include <optional.h>
+#include <tree_sitter/api.h>
 #include <vector>
 #include <string>
 #include <unordered_map>
 #include <memory>
 
 struct TextBuffer;
-struct TreeCursor;
 
 struct SyntaxScopeMap {
   struct Result {
     virtual ~Result();
-    virtual optional<std::string> applyLeafRules(TextBuffer *, const TreeCursor &) = 0;
+    virtual optional<std::string> applyLeafRules(TextBuffer *, TSTreeCursor *) = 0;
   };
   struct Table {
     std::unordered_map<double, std::unique_ptr<Table>> indices;

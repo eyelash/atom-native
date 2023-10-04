@@ -17,10 +17,7 @@ target_include_directories(tree-sitter-lib INTERFACE
 add_library(tree-sitter STATIC)
 target_link_libraries(tree-sitter tree-sitter-lib superstring)
 target_sources(tree-sitter PRIVATE
-  src/parser.cc
-  src/tree-cursor.cc
   src/tree-sitter.cc
-  src/tree.cc
 )
 target_include_directories(tree-sitter INTERFACE
   src

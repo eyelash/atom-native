@@ -2,10 +2,7 @@ tree_sitter = declare_dependency(
   link_with: static_library(
     'tree-sitter',
     files(
-      'src/parser.cc',
-      'src/tree-cursor.cc',
       'src/tree-sitter.cc',
-      'src/tree.cc',
     ),
     include_directories: include_directories(
       'vendor/tree-sitter/lib/include',

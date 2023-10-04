@@ -2,13 +2,13 @@
 #include "tree-sitter-grammar.h"
 #include "grammar-registry.h"
 #include <tree-sitter.h>
-#include <parser.h>
 #include <text-buffer.h>
 
 static void insertContainingTag(int32_t, double, std::vector<int32_t> &, std::vector<double> &);
 template <typename T> static Range rangeForNode(T);
 static bool nodeContainsIndices(TSNode, double, double);
 static bool nodeIsSmaller(TSNode, TSNode);
+static optional<double> gotoFirstChildForIndex(TSTreeCursor *, double);
 template <typename T> static T *last(const std::vector<std::unique_ptr<T>> &);
 template <typename T> static const T &last(const std::vector<T> &);
 
@@ -72,10 +72,10 @@ void TreeSitterLanguageMode::bufferDidFinishTransaction() {
   this->rootLanguageLayer->update(nullptr);
 }
 
-Tree TreeSitterLanguageMode::parse(const TSLanguage *language, const Tree &oldTree, const std::vector<TSRange> &ranges) {
-  Parser *parser = /* PARSER_POOL.pop() || */ new Parser();
-  parser->setLanguage(language);
-  const Tree result = parser->parseTextBufferSync(this->buffer->buffer, oldTree,
+TSTree *TreeSitterLanguageMode::parse(const TSLanguage *language, TSTree *oldTree, const std::vector<TSRange> &ranges) {
+  TSParser *parser = /* PARSER_POOL.pop() || */ ts_parser_new();
+  ts_parser_set_language(parser, language);
+  TSTree *result = parseTextBufferSync(parser, this->buffer->buffer, oldTree,
     //syncTimeoutMicros: this.syncTimeoutMicros,
     ranges
   );
@@ -89,7 +89,7 @@ Tree TreeSitterLanguageMode::parse(const TSLanguage *language, const Tree &oldTr
     PARSER_POOL.push(parser);
     return result;
   }*/
-  delete parser;
+  ts_parser_delete(parser);
   return result;
 }
 
@@ -236,7 +236,7 @@ double TreeSitterLanguageMode::indentLevelForLine(const std::u16string &line, do
 Section - Folding
 */
 
-void TreeSitterLanguageMode::forEachTreeWithRange_(Range range, std::function<void(const Tree &, TreeSitterGrammar *)> callback) {
+void TreeSitterLanguageMode::forEachTreeWithRange_(Range range, std::function<void(TSTree *, TreeSitterGrammar *)> callback) {
   if (this->rootLanguageLayer->tree) {
     callback(this->rootLanguageLayer->tree, this->rootLanguageLayer->grammar);
   }
@@ -247,7 +247,7 @@ void TreeSitterLanguageMode::forEachTreeWithRange_(Range range, std::function<vo
 
   for (Marker *injectionMarker : injectionMarkers) {
     LanguageLayer *languageLayer = this->languageLayersByMarker[injectionMarker];
-    const Tree &tree = languageLayer->tree;
+    TSTree *tree = languageLayer->tree;
     TreeSitterGrammar *grammar = languageLayer->grammar;
     if (tree) callback(tree, grammar);
   }
@@ -268,8 +268,8 @@ std::pair<TSNode, TreeSitterGrammar *> TreeSitterLanguageMode::getSyntaxNodeAndG
 
   TSNode smallestNode = {};
   TreeSitterGrammar *smallestNodeGrammar = this->grammar;
-  this->forEachTreeWithRange_(range, [&](const Tree &tree, TreeSitterGrammar *grammar) {
-    TSNode node = ts_node_descendant_for_byte_range(tree.rootNode(), startIndex * 2, searchEndIndex * 2);
+  this->forEachTreeWithRange_(range, [&](TSTree *tree, TreeSitterGrammar *grammar) {
+    TSNode node = ts_node_descendant_for_byte_range(ts_tree_root_node(tree), startIndex * 2, searchEndIndex * 2);
     while (!ts_node_is_null(node)) {
       if (
         nodeContainsIndices(node, startIndex, endIndex) &&
@@ -338,20 +338,27 @@ TreeSitterLanguageMode::LanguageLayer::LanguageLayer(Marker *marker, TreeSitterL
   this->marker = marker;
   this->languageMode = languageMode;
   this->grammar = grammar;
+  this->tree = nullptr;
   this->depth = depth;
 }
 
-TreeSitterLanguageMode::LanguageLayer::~LanguageLayer() {}
+TreeSitterLanguageMode::LanguageLayer::~LanguageLayer() {
+  ts_tree_delete(this->tree);
+}
 
 std::unique_ptr<TreeSitterLanguageMode::LayerHighlightIterator> TreeSitterLanguageMode::LanguageLayer::buildHighlightIterator() {
-  return std::unique_ptr<TreeSitterLanguageMode::LayerHighlightIterator>(new LayerHighlightIterator(this, this->tree.walk()));
+  return std::unique_ptr<TreeSitterLanguageMode::LayerHighlightIterator>(new LayerHighlightIterator(this, ts_tree_cursor_new(ts_tree_root_node(this->tree))));
+}
+
+static void edit(TSTree *tree, const TSInputEdit &edit) {
+  ts_tree_edit(tree, &edit);
 }
 
 void TreeSitterLanguageMode::LanguageLayer::handleTextChange(const TreeEdit &edit, const std::u16string &oldText, const std::u16string &newText) {
   const Point startPosition = edit.startPosition, oldEndPosition = edit.oldEndPosition, newEndPosition = edit.newEndPosition;
 
   if (this->tree) {
-    this->tree.edit(edit);
+    ::edit(this->tree, edit);
     if (this->editedRange) {
       if (startPosition.isLessThan(this->editedRange->start)) {
         this->editedRange->start = startPosition;
@@ -380,7 +387,8 @@ void TreeSitterLanguageMode::LanguageLayer::handleTextChange(const TreeEdit &edi
 }
 
 void TreeSitterLanguageMode::LanguageLayer::destroy() {
-  this->tree = Tree();
+  ts_tree_delete(this->tree);
+  this->tree = nullptr;
   this->marker->destroy();
   for (Marker *marker : this->languageMode->injectionsMarkerLayer->getMarkers()) {
     if (this->languageMode->parentLanguageLayersByMarker[marker] == this) {
@@ -421,7 +429,7 @@ void TreeSitterLanguageMode::LanguageLayer::performUpdate_(NodeRangeSet *nodeRan
   this->editedRange = optional<Range>();
 
   //this.patchSinceCurrentParseStarted = new Patch();
-  auto tree = this->languageMode->parse(
+  TSTree *tree = this->languageMode->parse(
     this->grammar->languageModule,
     this->tree,
     includedRanges
@@ -454,17 +462,20 @@ void TreeSitterLanguageMode::LanguageLayer::performUpdate_(NodeRangeSet *nodeRan
   }*/
 
   if (this->tree) {
-    const auto rangesWithSyntaxChanges = this->tree.getChangedRanges(tree);
+    uint32_t length;
+    TSRange *rangesWithSyntaxChanges = ts_tree_get_changed_ranges(this->tree, tree, &length);
+    ts_tree_delete(this->tree);
     this->tree = tree;
 
-    if (rangesWithSyntaxChanges.size() > 0) {
-      for (const auto range : rangesWithSyntaxChanges) {
+    if (length > 0) {
+      for (uint32_t i = 0; i < length; i++) {
+        const TSRange range = rangesWithSyntaxChanges[i];
         this->languageMode->emitRangeUpdate(rangeForNode(range));
       }
 
       const Range combinedRangeWithSyntaxChange = Range(
         startPosition(rangesWithSyntaxChanges[0]),
-        endPosition(last(rangesWithSyntaxChanges))
+        endPosition(rangesWithSyntaxChanges[length - 1])
       );
 
       if (affectedRange) {
@@ -474,9 +485,10 @@ void TreeSitterLanguageMode::LanguageLayer::performUpdate_(NodeRangeSet *nodeRan
         affectedRange = combinedRangeWithSyntaxChange;
       }
     }
+    free(rangesWithSyntaxChanges);
   } else {
     this->tree = tree;
-    this->languageMode->emitRangeUpdate(rangeForNode(tree.rootNode()));
+    this->languageMode->emitRangeUpdate(rangeForNode(ts_tree_root_node(tree)));
     if (includedRanges.size()) {
       affectedRange = Range(
         startPosition(includedRanges[0]),
@@ -516,7 +528,7 @@ void TreeSitterLanguageMode::LanguageLayer::populateInjections_(Range range, Nod
   }
 
   std::unordered_map<Marker *, NodeRangeSet *> markersToUpdate;
-  const auto nodes = descendantsOfType(this->tree.rootNode(),
+  const auto nodes = descendantsOfType(ts_tree_root_node(this->tree),
     keys(this->grammar->injectionPointsByType),
     range.start,
     range.end
@@ -737,14 +749,14 @@ std::vector<int32_t> TreeSitterLanguageMode::HighlightIterator::getOpenScopeIds(
 LayerHighlightIterator
 */
 
-TreeSitterLanguageMode::LayerHighlightIterator::LayerHighlightIterator(LanguageLayer *languageLayer, TreeCursor treeCursor): treeCursor{treeCursor} {
+TreeSitterLanguageMode::LayerHighlightIterator::LayerHighlightIterator(LanguageLayer *languageLayer, TSTreeCursor treeCursor) {
   this->languageLayer = languageLayer;
   this->depth = this->languageLayer->depth;
 
   // The iterator is always positioned at either the start or the end of some node
   // in the syntax tree.
   this->atEnd = false;
-  //this->treeCursor = treeCursor;
+  this->treeCursor = treeCursor;
   this->offset = 0;
 
   // In order to determine which selectors match its current node, the iterator maintains
@@ -761,10 +773,12 @@ TreeSitterLanguageMode::LayerHighlightIterator::LayerHighlightIterator(LanguageL
   //this->openTags = {};
 }
 
-TreeSitterLanguageMode::LayerHighlightIterator::~LayerHighlightIterator() {}
+TreeSitterLanguageMode::LayerHighlightIterator::~LayerHighlightIterator() {
+  ts_tree_cursor_delete(&this->treeCursor);
+}
 
 bool TreeSitterLanguageMode::LayerHighlightIterator::seek(double targetIndex, std::vector<int32_t> &containingTags, std::vector<double> &containingTagStartIndices) {
-  while (this->treeCursor.gotoParent()) {}
+  while (ts_tree_cursor_goto_parent(&this->treeCursor)) {}
 
   this->atEnd = true;
   this->closeTags.clear();
@@ -775,26 +789,26 @@ bool TreeSitterLanguageMode::LayerHighlightIterator::seek(double targetIndex, st
 
   std::vector<double> containingTagEndIndices;
 
-  if (targetIndex >= this->treeCursor.endIndex()) {
+  if (targetIndex >= endIndex(&this->treeCursor)) {
     return false;
   }
 
   optional<double> childIndex = -1;
   for (;;) {
-    this->containingNodeTypes.push_back(this->treeCursor.nodeType());
+    this->containingNodeTypes.push_back(ts_node_type(ts_tree_cursor_current_node(&this->treeCursor)));
     this->containingNodeChildIndices.push_back(*childIndex);
-    this->containingNodeEndIndices.push_back(this->treeCursor.endIndex());
+    this->containingNodeEndIndices.push_back(endIndex(&this->treeCursor));
 
     const auto scopeId = this->currentScopeId_();
     if (scopeId) {
-      if (this->treeCursor.startIndex() < targetIndex) {
+      if (startIndex(&this->treeCursor) < targetIndex) {
         insertContainingTag(
           *scopeId,
-          this->treeCursor.startIndex(),
+          startIndex(&this->treeCursor),
           containingTags,
           containingTagStartIndices
         );
-        containingTagEndIndices.push_back(this->treeCursor.endIndex());
+        containingTagEndIndices.push_back(endIndex(&this->treeCursor));
       } else {
         this->atEnd = false;
         this->openTags.push_back(*scopeId);
@@ -803,20 +817,20 @@ bool TreeSitterLanguageMode::LayerHighlightIterator::seek(double targetIndex, st
       }
     }
 
-    childIndex = this->treeCursor.gotoFirstChildForIndex(targetIndex);
+    childIndex = gotoFirstChildForIndex(&this->treeCursor, targetIndex);
     if (!childIndex) break;
-    if (this->treeCursor.startIndex() >= targetIndex) this->atEnd = false;
+    if (startIndex(&this->treeCursor) >= targetIndex) this->atEnd = false;
   }
 
   if (this->atEnd) {
-    this->offset = this->treeCursor.endIndex();
+    this->offset = endIndex(&this->treeCursor);
     for (size_t i = 0, length = containingTags.size(); i < length; i++) {
       if (i < containingTagEndIndices.size() && containingTagEndIndices[i] == this->offset) {
         this->closeTags.push_back(containingTags[i]);
       }
     }
   } else {
-    this->offset = this->treeCursor.startIndex();
+    this->offset = startIndex(&this->treeCursor);
   }
 
   return true;
@@ -847,9 +861,9 @@ bool TreeSitterLanguageMode::LayerHighlightIterator::moveToSuccessor() {
   }
 
   if (this->atEnd) {
-    this->offset = this->treeCursor.endIndex();
+    this->offset = endIndex(&this->treeCursor);
   } else {
-    this->offset = this->treeCursor.startIndex();
+    this->offset = startIndex(&this->treeCursor);
   }
 
   return true;
@@ -857,9 +871,9 @@ bool TreeSitterLanguageMode::LayerHighlightIterator::moveToSuccessor() {
 
 Point TreeSitterLanguageMode::LayerHighlightIterator::getPosition() {
   if (this->atEnd) {
-    return this->treeCursor.endPosition();
+    return endPosition(&this->treeCursor);
   } else {
-    return this->treeCursor.startPosition();
+    return startPosition(&this->treeCursor);
   }
 }
 
@@ -885,7 +899,7 @@ bool TreeSitterLanguageMode::LayerHighlightIterator::isAtInjectionBoundary() {
 
 bool TreeSitterLanguageMode::LayerHighlightIterator::moveUp_(bool atLastChild) {
   bool result = false;
-  const double endIndex = this->treeCursor.endIndex();
+  const double endIndex = ::endIndex(&this->treeCursor);
   size_t depth = this->containingNodeEndIndices.size();
 
   // The iterator should not move up until it has visited all of the children of this node.
@@ -895,7 +909,7 @@ bool TreeSitterLanguageMode::LayerHighlightIterator::moveUp_(bool atLastChild) {
   ) {
     atLastChild = false;
     result = true;
-    this->treeCursor.gotoParent();
+    ts_tree_cursor_goto_parent(&this->treeCursor);
     this->containingNodeTypes.pop_back();
     this->containingNodeChildIndices.pop_back();
     this->containingNodeEndIndices.pop_back();
@@ -908,24 +922,24 @@ bool TreeSitterLanguageMode::LayerHighlightIterator::moveUp_(bool atLastChild) {
 
 bool TreeSitterLanguageMode::LayerHighlightIterator::moveDown_() {
   bool result = false;
-  const double startIndex = this->treeCursor.startIndex();
+  const double startIndex = ::startIndex(&this->treeCursor);
 
   // Once the iterator has found a scope boundary, it needs to stay at the same
   // position, so it should not move down if the first child node starts later than the
   // current node.
-  while (this->treeCursor.gotoFirstChild()) {
+  while (ts_tree_cursor_goto_first_child(&this->treeCursor)) {
     if (
       (this->closeTags.size() || this->openTags.size()) &&
-      this->treeCursor.startIndex() > startIndex
+      ::startIndex(&this->treeCursor) > startIndex
     ) {
-      this->treeCursor.gotoParent();
+      ts_tree_cursor_goto_parent(&this->treeCursor);
       break;
     }
 
     result = true;
-    this->containingNodeTypes.push_back(this->treeCursor.nodeType());
+    this->containingNodeTypes.push_back(ts_node_type(ts_tree_cursor_current_node(&this->treeCursor)));
     this->containingNodeChildIndices.push_back(0);
-    this->containingNodeEndIndices.push_back(this->treeCursor.endIndex());
+    this->containingNodeEndIndices.push_back(endIndex(&this->treeCursor));
 
     const auto scopeId = this->currentScopeId_();
     if (scopeId) this->openTags.push_back(*scopeId);
@@ -935,11 +949,11 @@ bool TreeSitterLanguageMode::LayerHighlightIterator::moveDown_() {
 }
 
 bool TreeSitterLanguageMode::LayerHighlightIterator::moveRight_() {
-  if (this->treeCursor.gotoNextSibling()) {
+  if (ts_tree_cursor_goto_next_sibling(&this->treeCursor)) {
     const size_t depth = this->containingNodeTypes.size();
-    this->containingNodeTypes[depth - 1] = this->treeCursor.nodeType();
+    this->containingNodeTypes[depth - 1] = ts_node_type(ts_tree_cursor_current_node(&this->treeCursor));
     this->containingNodeChildIndices[depth - 1]++;
-    this->containingNodeEndIndices[depth - 1] = this->treeCursor.endIndex();
+    this->containingNodeEndIndices[depth - 1] = endIndex(&this->treeCursor);
     return true;
   }
   return false;
@@ -949,11 +963,11 @@ optional<int32_t> TreeSitterLanguageMode::LayerHighlightIterator::currentScopeId
   SyntaxScopeMap::Result *value = this->languageLayer->grammar->scopeMap->get(
     this->containingNodeTypes,
     this->containingNodeChildIndices,
-    this->treeCursor.nodeIsNamed()
+    ts_node_is_named(ts_tree_cursor_current_node(&this->treeCursor))
   );
   TextBuffer *buffer = this->languageLayer->languageMode->buffer;
-  const auto scopeName = value ? value->applyLeafRules(buffer, this->treeCursor) : optional<std::string>();
-  const TSNode node = this->treeCursor.currentNode();
+  const auto scopeName = value ? value->applyLeafRules(buffer, &this->treeCursor) : optional<std::string>();
+  const TSNode node = ts_tree_cursor_current_node(&this->treeCursor);
   if (!ts_node_child_count(node)) {
     return this->languageLayer->languageMode->grammar->idForScope(scopeName);
   } else if (scopeName) {
@@ -1091,6 +1105,15 @@ static bool nodeIsSmaller(TSNode left, TSNode right) {
   if (ts_node_is_null(left)) return false;
   if (ts_node_is_null(right)) return true;
   return endIndex(left) - startIndex(left) < endIndex(right) - startIndex(right);
+}
+
+static optional<double> gotoFirstChildForIndex(TSTreeCursor *treeCursor, double index) {
+  const int64_t child_index = ts_tree_cursor_goto_first_child_for_byte(treeCursor, index * 2);
+  if (child_index < 0) {
+    return optional<double>();
+  } else {
+    return optional<double>(child_index);
+  }
 }
 
 template <typename T> static T *last(const std::vector<std::unique_ptr<T>> &array) {

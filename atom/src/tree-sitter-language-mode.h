@@ -2,8 +2,7 @@
 #define TREE_SITTER_LANGUAGE_MODE_H_
 
 #include <language-mode.h>
-#include <tree.h>
-#include <tree-cursor.h>
+#include <tree_sitter/api.h>
 #include <event-kit.h>
 #include <unordered_map>
 
@@ -40,7 +39,7 @@ struct TreeSitterLanguageMode final : LanguageMode {
     Marker *marker;
     TreeSitterLanguageMode *languageMode;
     TreeSitterGrammar *grammar;
-    Tree tree;
+    TSTree *tree;
     double depth;
     optional<Range> editedRange;
     LanguageLayer(Marker *, TreeSitterLanguageMode *, TreeSitterGrammar *, double);
@@ -58,14 +57,14 @@ struct TreeSitterLanguageMode final : LanguageMode {
     LanguageLayer *languageLayer;
     double depth;
     bool atEnd;
-    TreeCursor treeCursor;
+    TSTreeCursor treeCursor;
     double offset;
     std::vector<std::string> containingNodeTypes;
     std::vector<double> containingNodeChildIndices;
     std::vector<double> containingNodeEndIndices;
     std::vector<int32_t> closeTags;
     std::vector<int32_t> openTags;
-    LayerHighlightIterator(LanguageLayer *, TreeCursor);
+    LayerHighlightIterator(LanguageLayer *, TSTreeCursor);
     ~LayerHighlightIterator();
     bool seek(double, std::vector<int32_t> &, std::vector<double> &);
     bool moveToSuccessor();
@@ -108,7 +107,7 @@ struct TreeSitterLanguageMode final : LanguageMode {
 
   void bufferDidChange(Range, Range, const std::u16string &, const std::u16string &) override;
   void bufferDidFinishTransaction() override;
-  Tree parse(const TSLanguage *, const Tree &, const std::vector<TSRange> &);
+  TSTree *parse(const TSLanguage *, TSTree *, const std::vector<TSRange> &);
   std::unique_ptr<LanguageMode::HighlightIterator> buildHighlightIterator() override;
   void onDidChangeHighlighting(std::function<void(const Range &)>) override;
   std::string classNameForScopeId(int32_t) override;
@@ -118,7 +117,7 @@ struct TreeSitterLanguageMode final : LanguageMode {
   optional<double> suggestedIndentForEditedBufferRow(double, double) override;
   double suggestedIndentForLineWithScopeAtBufferRow_(double, const std::u16string &, double, bool = true);
   double indentLevelForLine(const std::u16string &, double);
-  void forEachTreeWithRange_(Range, std::function<void(const Tree &, TreeSitterGrammar *)>);
+  void forEachTreeWithRange_(Range, std::function<void(TSTree *, TreeSitterGrammar *)>);
   TSNode getSyntaxNodeContainingRange(Range, std::function<bool(TSNode, TreeSitterGrammar *)> = [](TSNode, TreeSitterGrammar *) { return true; });
   std::pair<TSNode, TreeSitterGrammar *> getSyntaxNodeAndGrammarContainingRange(Range, std::function<bool(TSNode, TreeSitterGrammar *)> = [](TSNode, TreeSitterGrammar *) { return true; });
   optional<Range> getRangeForSyntaxNodeContainingRange(Range) override;

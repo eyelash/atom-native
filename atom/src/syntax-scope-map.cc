@@ -16,53 +16,59 @@ struct Node {
   double indexValue;
 };
 
-static bool isNameChar(char c) {
+bool isNameChar(char c) {
   return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '-';
 }
 
-template <typename F> static void process(F f, const std::string &selector) {
+template <typename F> void process(F f, const std::string &selector) {
   std::vector<Node> nodes;
-  for (size_t i = 0; i < selector.size();) {
+  const size_t length = selector.size();
+  for (size_t i = 0; i < length;) {
     const char c = selector[i];
-    if (isNameChar(selector[i])) {
+    if (isNameChar(c)) {
       const size_t start = i;
       while (i < selector.size() && isNameChar(selector[i])) {
         i++;
       }
       nodes.push_back({NodeType::tag, selector.substr(start, i - start)});
-    } else if (selector[i] == '"') {
+    } else if (c == '"' || c == '\'') {
+      const char quote = c;
       const size_t start = i;
       i++;
-      while (i < selector.size() && selector[i] != '"') {
-        i++;
+      while (i < length && selector[i] != quote) {
+        if (selector[i] == '\\' && i + 1 < length) {
+          i += 2;
+        } else {
+          i++;
+        }
       }
-      if (i < selector.size() && selector[i] == '"') {
+      if (i < length && selector[i] == quote) {
         i++;
       }
       nodes.push_back({NodeType::string, selector.substr(start, i - start)});
-    } else if (selector[i] == '*') {
+    } else if (c == '*') {
       const size_t start = i;
       i++;
       nodes.push_back({NodeType::universal, selector.substr(start, i - start)});
-    } else if (selector[i] == '>') {
+    } else if (c == '>') {
       const size_t start = i;
       i++;
       nodes.push_back({NodeType::combinator, selector.substr(start, i - start)});
-    } else if (selector[i] == ':') {
+    } else if (c == ':') {
       const size_t start = i;
       i++;
-      while (i < selector.size() && isNameChar(selector[i])) {
+      while (i < length && isNameChar(selector[i])) {
         i++;
       }
       const size_t end = i;
       double index = 0;
-      if (i < selector.size() && selector[i] == '(') {
+      if (i < length && selector[i] == '(') {
         i++;
-        while (i < selector.size() && selector[i] >= '0' && selector[i] <= '9') {
+        while (i < length && selector[i] >= '0' && selector[i] <= '9') {
           index = index * 10 + (selector[i] - '0');
           i++;
         }
-        if (i < selector.size() && selector[i] == ')') {
+        if (i < length && selector[i] == ')') {
           i++;
         }
       }
@@ -72,6 +78,21 @@ template <typename F> static void process(F f, const std::string &selector) {
     }
   }
   f(nodes);
+}
+
+std::string unescape(const std::string &s) {
+  std::string result;
+  const size_t length = s.size();
+  for (size_t i = 0; i < length;) {
+    if (s[i] == '\\' && i + 1 < length) {
+      result.push_back(s[i + 1]);
+      i += 2;
+    } else {
+      result.push_back(s[i]);
+      i++;
+    }
+  }
+  return result;
 }
 
 }
@@ -123,7 +144,7 @@ void SyntaxScopeMap::addSelector(const std::string &selector, std::shared_ptr<Re
         case NodeType::string:
           {
             if (!currentMap) currentMap = &this->anonymousScopeTable;
-            const std::string value = termNode.value.substr(1, termNode.value.size() - 2); //.replace(/\\"/g, '"');
+            const std::string value = unescape(termNode.value.substr(1, termNode.value.size() - 2));
             if (!(*currentMap)[value]) (*currentMap)[value] = std::unique_ptr<Table>(new Table());
             currentTable = (*currentMap)[value].get();
           }

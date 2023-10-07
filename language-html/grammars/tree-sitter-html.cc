@@ -69,9 +69,9 @@ extern "C" TreeSitterGrammar *atom_language_html() {
     // Target the first and last.
     // Single quotes and double quotes are targeted in separate selectors because
     // of quote-escaping difficulties.
-    scope("quoted_attribute_value > \"\"\":nth-child(0)", "punctuation.definition.string.begin"),
+    scope("quoted_attribute_value > '\"':nth-child(0)", "punctuation.definition.string.begin"),
     scope("quoted_attribute_value > \"'\":nth-child(0)", "punctuation.definition.string.begin"),
-    scope("quoted_attribute_value > \"\"\":nth-child(2)", "punctuation.definition.string.end"),
+    scope("quoted_attribute_value > '\"':nth-child(2)", "punctuation.definition.string.end"),
     scope("quoted_attribute_value > \"'\":nth-child(2)", "punctuation.definition.string.end")
   );
 

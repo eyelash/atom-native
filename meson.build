@@ -9,6 +9,7 @@ subdir('language-css')
 subdir('language-go')
 subdir('language-html')
 subdir('language-javascript')
+subdir('language-json')
 subdir('language-python')
 subdir('language-rust')
 
@@ -20,6 +21,7 @@ atom_dep = declare_dependency(
     language_go,
     language_html,
     language_javascript,
+    language_json,
     language_python,
     language_rust,
   ]

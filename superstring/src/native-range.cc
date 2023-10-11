@@ -7,3 +7,7 @@ NativeRange NativeRange::all_inclusive() {
 NativePoint NativeRange::extent() const {
   return end.traversal(start);
 }
+
+std::ostream &operator<<(std::ostream &stream, const NativeRange &range) {
+  return stream << "(" << range.start << ", " << range.end << ")";
+}

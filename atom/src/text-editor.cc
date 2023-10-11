@@ -3,6 +3,7 @@
 #include "selection.h"
 #include "decoration-manager.h"
 #include "clipboard.h"
+#include "tree-sitter-language-mode.h"
 #include <text-buffer.h>
 #include <display-marker-layer.h>
 #include <display-marker.h>
@@ -571,7 +572,7 @@ void TextEditor::duplicateLines(/* options = {} */) {
       /*const intersectingFolds = this.displayLayer.foldsIntersectingBufferRange(
         [[startRow, 0], [endRow, 0]]
       );*/
-      auto textToDuplicate = this->getTextInBufferRange({
+      std::u16string textToDuplicate = this->getTextInBufferRange({
         {startRow, 0},
         {endRow, 0}
       });
@@ -1271,7 +1272,8 @@ void TextEditor::selectToBeginningOfPreviousParagraph() {
 }
 
 void TextEditor::selectLargerSyntaxNode() {
-  LanguageMode *languageMode = this->buffer->getLanguageMode();
+  TreeSitterLanguageMode *languageMode = dynamic_cast<TreeSitterLanguageMode *>(this->buffer->getLanguageMode());
+  if (!languageMode) return;
 
   this->expandSelectionsForward([&](Selection *selection) {
     const Range currentRange = selection->getBufferRange();

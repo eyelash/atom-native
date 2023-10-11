@@ -57,19 +57,19 @@ struct MarkerLayer {
   void emitUpdateEvent();
 };
 
-MarkerLayer::FindParam startPosition(Point);
-MarkerLayer::FindParam endPosition(Point);
-MarkerLayer::FindParam startsInRange(Range);
-MarkerLayer::FindParam endsInRange(Range);
-MarkerLayer::FindParam containsPoint(Point);
-MarkerLayer::FindParam containsPosition(Point);
-MarkerLayer::FindParam containsRange(Range);
-MarkerLayer::FindParam intersectsRange(Range);
+MarkerLayer::FindParam startPosition(const Point &);
+MarkerLayer::FindParam endPosition(const Point &);
+MarkerLayer::FindParam startsInRange(const Range &);
+MarkerLayer::FindParam endsInRange(const Range &);
+MarkerLayer::FindParam containsPoint(const Point &);
+MarkerLayer::FindParam containsPosition(const Point &);
+MarkerLayer::FindParam containsRange(const Range &);
+MarkerLayer::FindParam intersectsRange(const Range &);
 MarkerLayer::FindParam startRow(double);
 MarkerLayer::FindParam endRow(double);
 MarkerLayer::FindParam intersectsRow(double);
 MarkerLayer::FindParam intersectsRowRange(std::pair<double, double>);
 MarkerLayer::FindParam intersectsRowRange(double, double);
-MarkerLayer::FindParam containedInRange(Range);
+MarkerLayer::FindParam containedInRange(const Range &);
 
 #endif // MARKER_LAYER_H_

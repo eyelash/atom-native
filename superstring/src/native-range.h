@@ -17,8 +17,6 @@ struct NativeRange {
   }
 };
 
-inline std::ostream &operator<<(std::ostream &stream, const NativeRange &range) {
-  return stream << "(" << range.start << ", " << range.end << ")";
-}
+std::ostream &operator<<(std::ostream &, const NativeRange &);
 
 #endif // NATIVE_RANGE_H_

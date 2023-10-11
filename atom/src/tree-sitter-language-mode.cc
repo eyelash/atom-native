@@ -45,7 +45,7 @@ TreeSitterLanguageMode::~TreeSitterLanguageMode() {
   }
 }
 
-void TreeSitterLanguageMode::bufferDidChange(Range oldRange, Range newRange, const std::u16string &oldText, const std::u16string &newText) {
+void TreeSitterLanguageMode::bufferDidChange(const Range &oldRange, const Range &newRange, const std::u16string &oldText, const std::u16string &newText) {
   const auto edit = this->rootLanguageLayer->treeEditForBufferChange_(
     oldRange.start,
     oldRange.end,
@@ -236,7 +236,7 @@ double TreeSitterLanguageMode::indentLevelForLine(const std::u16string &line, do
 Section - Folding
 */
 
-void TreeSitterLanguageMode::forEachTreeWithRange_(Range range, std::function<void(TSTree *, TreeSitterGrammar *)> callback) {
+void TreeSitterLanguageMode::forEachTreeWithRange_(const Range &range, std::function<void(TSTree *, TreeSitterGrammar *)> callback) {
   if (this->rootLanguageLayer->tree) {
     callback(this->rootLanguageLayer->tree, this->rootLanguageLayer->grammar);
   }
@@ -257,11 +257,11 @@ void TreeSitterLanguageMode::forEachTreeWithRange_(Range range, std::function<vo
 Section - Syntax Tree APIs
 */
 
-TSNode TreeSitterLanguageMode::getSyntaxNodeContainingRange(Range range, std::function<bool(TSNode, TreeSitterGrammar *)> where) {
+TSNode TreeSitterLanguageMode::getSyntaxNodeContainingRange(const Range &range, std::function<bool(TSNode, TreeSitterGrammar *)> where) {
   return this->getSyntaxNodeAndGrammarContainingRange(range, where).first;
 }
 
-std::pair<TSNode, TreeSitterGrammar *> TreeSitterLanguageMode::getSyntaxNodeAndGrammarContainingRange(Range range, std::function<bool(TSNode, TreeSitterGrammar *)> where) {
+std::pair<TSNode, TreeSitterGrammar *> TreeSitterLanguageMode::getSyntaxNodeAndGrammarContainingRange(const Range &range, std::function<bool(TSNode, TreeSitterGrammar *)> where) {
   const double startIndex = this->buffer->characterIndexForPosition(range.start);
   const double endIndex = this->buffer->characterIndexForPosition(range.end);
   const double searchEndIndex = std::max(0.0, endIndex - 1);
@@ -288,12 +288,12 @@ std::pair<TSNode, TreeSitterGrammar *> TreeSitterLanguageMode::getSyntaxNodeAndG
   return { smallestNode, smallestNodeGrammar };
 }
 
-optional<Range> TreeSitterLanguageMode::getRangeForSyntaxNodeContainingRange(Range range) {
+optional<Range> TreeSitterLanguageMode::getRangeForSyntaxNodeContainingRange(const Range &range) {
   TSNode node = this->getSyntaxNodeContainingRange(range);
   return !ts_node_is_null(node) ? rangeForNode(node) : optional<Range>();
 }
 
-TSNode TreeSitterLanguageMode::getSyntaxNodeAtPosition(Point position, std::function<bool(TSNode, TreeSitterGrammar *)> where) {
+TSNode TreeSitterLanguageMode::getSyntaxNodeAtPosition(const Point &position, std::function<bool(TSNode, TreeSitterGrammar *)> where) {
   return this->getSyntaxNodeContainingRange(
     Range(position, position),
     where
@@ -389,6 +389,8 @@ void TreeSitterLanguageMode::LanguageLayer::handleTextChange(const TreeEdit &edi
 void TreeSitterLanguageMode::LanguageLayer::destroy() {
   ts_tree_delete(this->tree);
   this->tree = nullptr;
+  this->languageMode->languageLayersByMarker.erase(this->marker);
+  this->languageMode->parentLanguageLayersByMarker.erase(this->marker);
   this->marker->destroy();
   for (Marker *marker : this->languageMode->injectionsMarkerLayer->getMarkers()) {
     if (this->languageMode->parentLanguageLayersByMarker[marker] == this) {
@@ -641,7 +643,7 @@ TreeSitterLanguageMode::HighlightIterator::HighlightIterator(TreeSitterLanguageM
 
 TreeSitterLanguageMode::HighlightIterator::~HighlightIterator() {}
 
-std::vector<int32_t> TreeSitterLanguageMode::HighlightIterator::seek(Point targetPosition, double endRow) {
+std::vector<int32_t> TreeSitterLanguageMode::HighlightIterator::seek(const Point &targetPosition, double endRow) {
   const auto injectionMarkers = this->languageMode->injectionsMarkerLayer->findMarkers(
     {
       intersectsRange(Range(targetPosition, Point(endRow + 1, 0)))
@@ -655,7 +657,7 @@ std::vector<int32_t> TreeSitterLanguageMode::HighlightIterator::seek(Point targe
   );
 
   this->iterators.clear();
-  std::unique_ptr<LayerHighlightIterator> iterator = this->languageMode->rootLanguageLayer->buildHighlightIterator();
+  auto iterator = this->languageMode->rootLanguageLayer->buildHighlightIterator();
   if (iterator->seek(targetIndex, containingTags, containingTagStartIndices)) {
     this->iterators.push_back(std::move(iterator));
   }

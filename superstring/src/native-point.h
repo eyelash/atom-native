@@ -30,8 +30,6 @@ struct NativePoint {
   bool operator>=(const NativePoint &other) const;
 };
 
-inline std::ostream &operator<<(std::ostream &stream, const NativePoint &point) {
-  return stream << "(" << point.row << ", " << point.column << ")";
-}
+std::ostream &operator<<(std::ostream &, const NativePoint &);
 
 #endif // NATIVE_POINT_H_

@@ -18,11 +18,11 @@ template <typename T> void spliceArray(std::vector<T> &array, double start, doub
   if (lengthDelta > 0) {
     array.resize(newLength);
     for (double i = newLength - 1, end = start + insertedCount; i >= end; i--) {
-      array[i] = array[i - lengthDelta];
+      array[i] = std::move(array[i - lengthDelta]);
     }
   } else if (lengthDelta < 0) {
     for (double i = start + insertedCount, end = newLength; i < end; i++) {
-      array[i] = array[i - lengthDelta];
+      array[i] = std::move(array[i - lengthDelta]);
     }
     array.resize(newLength);
   }

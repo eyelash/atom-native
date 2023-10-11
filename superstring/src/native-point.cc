@@ -85,3 +85,7 @@ bool NativePoint::operator>(const NativePoint &other) const {
 bool NativePoint::operator>=(const NativePoint &other) const {
   return compare(other) >= 0;
 }
+
+std::ostream &operator<<(std::ostream &stream, const NativePoint &point) {
+  return stream << "(" << point.row << ", " << point.column << ")";
+}

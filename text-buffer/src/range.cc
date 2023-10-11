@@ -72,7 +72,7 @@ bool Range::isEqual(const Range &other) const {
 }
 
 bool Range::operator==(const Range &other) const {
-  return other.start.isEqual(this->start) && other.end.isEqual(this->end);
+  return this->isEqual(other);
 }
 
 bool Range::coversSameRows(const Range &other) const {

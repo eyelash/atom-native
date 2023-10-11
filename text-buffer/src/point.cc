@@ -111,7 +111,7 @@ bool Point::isGreaterThanOrEqual(const Point &other) const {
 }
 
 bool Point::operator==(const Point &other) const {
-  return this->row == other.row && this->column == other.column;
+  return this->isEqual(other);
 }
 
 bool Point::operator<(const Point &other) const {

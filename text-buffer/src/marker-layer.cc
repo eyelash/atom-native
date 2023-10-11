@@ -50,47 +50,47 @@ size_t MarkerLayer::getMarkerCount() {
   return this->markersById.size();
 }
 
-MarkerLayer::FindParam startPosition(Point position) {
+MarkerLayer::FindParam startPosition(const Point &position) {
   return [position](MarkerIndex *index) {
     return index->find_starting_at(position);
   };
 }
 
-MarkerLayer::FindParam endPosition(Point position) {
+MarkerLayer::FindParam endPosition(const Point &position) {
   return [position](MarkerIndex *index) {
     return index->find_ending_at(position);
   };
 }
 
-MarkerLayer::FindParam startsInRange(Range range) {
+MarkerLayer::FindParam startsInRange(const Range &range) {
   return [range](MarkerIndex *index) {
     return index->find_starting_in(range.start, range.end);
   };
 }
 
-MarkerLayer::FindParam endsInRange(Range range) {
+MarkerLayer::FindParam endsInRange(const Range &range) {
   return [range](MarkerIndex *index) {
     return index->find_ending_in(range.start, range.end);
   };
 }
 
-MarkerLayer::FindParam containsPoint(Point position) {
+MarkerLayer::FindParam containsPoint(const Point &position) {
   return containsPosition(position);
 }
 
-MarkerLayer::FindParam containsPosition(Point position) {
+MarkerLayer::FindParam containsPosition(const Point &position) {
   return [position](MarkerIndex *index) {
     return index->find_containing(position, position);
   };
 }
 
-MarkerLayer::FindParam containsRange(Range range) {
+MarkerLayer::FindParam containsRange(const Range &range) {
   return [range](MarkerIndex *index) {
     return index->find_containing(range.start, range.end);
   };
 }
 
-MarkerLayer::FindParam intersectsRange(Range range) {
+MarkerLayer::FindParam intersectsRange(const Range &range) {
   return [range](MarkerIndex *index) {
     return index->find_intersecting(range.start, range.end);
   };
@@ -127,7 +127,7 @@ MarkerLayer::FindParam intersectsRowRange(double row0, double row1) {
   };
 }
 
-MarkerLayer::FindParam containedInRange(Range range) {
+MarkerLayer::FindParam containedInRange(const Range &range) {
   return [range](MarkerIndex *index) {
     return index->find_contained_in(range.start, range.end);
   };
@@ -203,7 +203,7 @@ void MarkerLayer::restoreFromSnapshot(const Snapshot &snapshots, bool alwaysCrea
     }*/
     auto iter = this->markersById.find(id);
     if (iter != this->markersById.end()) {
-      Marker *marker = iter != this->markersById.end() ? iter->second : nullptr;
+      Marker *marker = iter->second;
       marker->update(marker->getRange(), {snapshot.second.range, snapshot.second.reversed, snapshot.second.tailed}, true, true);
     } else {
       //Marker *marker = snapshot.marker;

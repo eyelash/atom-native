@@ -53,8 +53,8 @@ extern "C" TreeSitterGrammar *atom_language_json() {
     scope("string", "string.quoted.double"),
 
     scope("string_content", array(
-      match(u"^http:\\/\\/", "markup.underline.link.http.hyperlink"),
-      match(u"^https:\\/\\/","markup.underline.link.https.hyperlink")
+      match(u"^http://", "markup.underline.link.http.hyperlink"),
+      match(u"^https://", "markup.underline.link.https.hyperlink")
     )),
 
     scope("pair > string:nth-child(0)", "string.quoted.double.dictionary.key.json"),

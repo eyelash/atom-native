@@ -1,5 +1,5 @@
-#ifndef FLAT_TEXT_SLICE_H_
-#define FLAT_TEXT_SLICE_H_
+#ifndef SUPERSTRING_TEXT_SLICE_H_
+#define SUPERSTRING_TEXT_SLICE_H_
 
 #include <vector>
 #include "native-point.h"
@@ -38,4 +38,4 @@ class TextSlice {
   Text::const_iterator end() const;
 };
 
-#endif // FLAT_TEXT_SLICE_H_
+#endif // SUPERSTRING_TEXT_SLICE_H_

@@ -40,27 +40,27 @@ struct DisplayMarkerLayer {
   void didDestroyMarker(DisplayMarker *);
 };
 
-DisplayMarkerLayer::FindParam startBufferPosition(Point);
-DisplayMarkerLayer::FindParam endBufferPosition(Point);
-DisplayMarkerLayer::FindParam startScreenPosition(Point);
-DisplayMarkerLayer::FindParam endScreenPosition(Point);
-DisplayMarkerLayer::FindParam startsInBufferRange(Range);
-DisplayMarkerLayer::FindParam endsInBufferRange(Range);
-DisplayMarkerLayer::FindParam startsInScreenRange(Range);
-DisplayMarkerLayer::FindParam endsInScreenRange(Range);
+DisplayMarkerLayer::FindParam startBufferPosition(const Point &);
+DisplayMarkerLayer::FindParam endBufferPosition(const Point &);
+DisplayMarkerLayer::FindParam startScreenPosition(const Point &);
+DisplayMarkerLayer::FindParam endScreenPosition(const Point &);
+DisplayMarkerLayer::FindParam startsInBufferRange(const Range &);
+DisplayMarkerLayer::FindParam endsInBufferRange(const Range &);
+DisplayMarkerLayer::FindParam startsInScreenRange(const Range &);
+DisplayMarkerLayer::FindParam endsInScreenRange(const Range &);
 DisplayMarkerLayer::FindParam startBufferRow(double);
 DisplayMarkerLayer::FindParam endBufferRow(double);
 DisplayMarkerLayer::FindParam startScreenRow(double);
 DisplayMarkerLayer::FindParam endScreenRow(double);
 DisplayMarkerLayer::FindParam intersectsBufferRowRange(std::pair<double, double>);
 DisplayMarkerLayer::FindParam intersectsScreenRowRange(std::pair<double, double>);
-DisplayMarkerLayer::FindParam containsBufferRange(Range);
-DisplayMarkerLayer::FindParam containsScreenRange(Range);
-DisplayMarkerLayer::FindParam containsBufferPosition(Point);
-DisplayMarkerLayer::FindParam containsScreenPosition(Point);
-DisplayMarkerLayer::FindParam containedInBufferRange(Range);
-DisplayMarkerLayer::FindParam containedInScreenRange(Range);
-DisplayMarkerLayer::FindParam intersectsBufferRange(Range);
-DisplayMarkerLayer::FindParam intersectsScreenRange(Range);
+DisplayMarkerLayer::FindParam containsBufferRange(const Range &);
+DisplayMarkerLayer::FindParam containsScreenRange(const Range &);
+DisplayMarkerLayer::FindParam containsBufferPosition(const Point &);
+DisplayMarkerLayer::FindParam containsScreenPosition(const Point &);
+DisplayMarkerLayer::FindParam containedInBufferRange(const Range &);
+DisplayMarkerLayer::FindParam containedInScreenRange(const Range &);
+DisplayMarkerLayer::FindParam intersectsBufferRange(const Range &);
+DisplayMarkerLayer::FindParam intersectsScreenRange(const Range &);
 
 #endif // DISPLAY_MARKER_LAYER_H_

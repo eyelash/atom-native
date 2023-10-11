@@ -88,49 +88,49 @@ size_t DisplayMarkerLayer::getMarkerCount() {
   return this->bufferMarkerLayer->getMarkerCount();
 }
 
-DisplayMarkerLayer::FindParam startBufferPosition(Point position) {
+DisplayMarkerLayer::FindParam startBufferPosition(const Point &position) {
   return [position](DisplayLayer *displayLayer) {
     return startPosition(position);
   };
 }
 
-DisplayMarkerLayer::FindParam endBufferPosition(Point position) {
+DisplayMarkerLayer::FindParam endBufferPosition(const Point &position) {
   return [position](DisplayLayer *displayLayer) {
     return endPosition(position);
   };
 }
 
-DisplayMarkerLayer::FindParam startScreenPosition(Point position) {
+DisplayMarkerLayer::FindParam startScreenPosition(const Point &position) {
   return [position](DisplayLayer *displayLayer) {
     return startPosition(displayLayer->translateScreenPosition(position));
   };
 }
 
-DisplayMarkerLayer::FindParam endScreenPosition(Point position) {
+DisplayMarkerLayer::FindParam endScreenPosition(const Point &position) {
   return [position](DisplayLayer *displayLayer) {
     return endPosition(displayLayer->translateScreenPosition(position));
   };
 }
 
-DisplayMarkerLayer::FindParam startsInBufferRange(Range range) {
+DisplayMarkerLayer::FindParam startsInBufferRange(const Range &range) {
   return [range](DisplayLayer *displayLayer) {
     return startsInRange(range);
   };
 }
 
-DisplayMarkerLayer::FindParam endsInBufferRange(Range range) {
+DisplayMarkerLayer::FindParam endsInBufferRange(const Range &range) {
   return [range](DisplayLayer *displayLayer) {
     return endsInRange(range);
   };
 }
 
-DisplayMarkerLayer::FindParam startsInScreenRange(Range range) {
+DisplayMarkerLayer::FindParam startsInScreenRange(const Range &range) {
   return [range](DisplayLayer *displayLayer) {
     return startsInRange(displayLayer->translateScreenRange(range));
   };
 }
 
-DisplayMarkerLayer::FindParam endsInScreenRange(Range range) {
+DisplayMarkerLayer::FindParam endsInScreenRange(const Range &range) {
   return [range](DisplayLayer *displayLayer) {
     return endsInRange(displayLayer->translateScreenRange(range));
   };
@@ -180,49 +180,49 @@ DisplayMarkerLayer::FindParam intersectsScreenRowRange(std::pair<double, double>
   };
 }
 
-DisplayMarkerLayer::FindParam containsBufferRange(Range range) {
+DisplayMarkerLayer::FindParam containsBufferRange(const Range &range) {
   return [range](DisplayLayer *displayLayer) {
     return containsRange(range);
   };
 }
 
-DisplayMarkerLayer::FindParam containsScreenRange(Range range) {
+DisplayMarkerLayer::FindParam containsScreenRange(const Range &range) {
   return [range](DisplayLayer *displayLayer) {
     return containsRange(displayLayer->translateScreenRange(range));
   };
 }
 
-DisplayMarkerLayer::FindParam containsBufferPosition(Point position) {
+DisplayMarkerLayer::FindParam containsBufferPosition(const Point &position) {
   return [position](DisplayLayer *displayLayer) {
     return containsPosition(position);
   };
 }
 
-DisplayMarkerLayer::FindParam containsScreenPosition(Point position) {
+DisplayMarkerLayer::FindParam containsScreenPosition(const Point &position) {
   return [position](DisplayLayer *displayLayer) {
     return containsPosition(displayLayer->translateScreenPosition(position));
   };
 }
 
-DisplayMarkerLayer::FindParam containedInBufferRange(Range range) {
+DisplayMarkerLayer::FindParam containedInBufferRange(const Range &range) {
   return [range](DisplayLayer *displayLayer) {
     return containedInRange(range);
   };
 }
 
-DisplayMarkerLayer::FindParam containedInScreenRange(Range range) {
+DisplayMarkerLayer::FindParam containedInScreenRange(const Range &range) {
   return [range](DisplayLayer *displayLayer) {
     return containedInRange(displayLayer->translateScreenRange(range));
   };
 }
 
-DisplayMarkerLayer::FindParam intersectsBufferRange(Range range) {
+DisplayMarkerLayer::FindParam intersectsBufferRange(const Range &range) {
   return [range](DisplayLayer *displayLayer) {
     return intersectsRange(range);
   };
 }
 
-DisplayMarkerLayer::FindParam intersectsScreenRange(Range range) {
+DisplayMarkerLayer::FindParam intersectsScreenRange(const Range &range) {
   return [range](DisplayLayer *displayLayer) {
     return intersectsRange(displayLayer->translateScreenRange(range));
   };

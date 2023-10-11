@@ -4,7 +4,7 @@ static const std::vector<int32_t> EMPTY;
 
 LanguageMode::HighlightIterator::~HighlightIterator() {}
 
-std::vector<int32_t> LanguageMode::HighlightIterator::seek(Point position, double endRow) {
+std::vector<int32_t> LanguageMode::HighlightIterator::seek(const Point &position, double) {
   return EMPTY;
 }
 
@@ -24,7 +24,7 @@ std::vector<int32_t> LanguageMode::HighlightIterator::getOpenScopeIds() {
 
 LanguageMode::~LanguageMode() {}
 
-void LanguageMode::bufferDidChange(Range, Range, const std::u16string &, const std::u16string &) {}
+void LanguageMode::bufferDidChange(const Range &, const Range &, const std::u16string &, const std::u16string &) {}
 
 void LanguageMode::bufferDidFinishTransaction() {}
 
@@ -34,7 +34,7 @@ std::unique_ptr<LanguageMode::HighlightIterator> LanguageMode::buildHighlightIte
 
 void LanguageMode::onDidChangeHighlighting(std::function<void(const Range &)>) {}
 
-std::string LanguageMode::classNameForScopeId(int32_t scopeId) {
+std::string LanguageMode::classNameForScopeId(int32_t) {
   return std::string();
 }
 
@@ -56,10 +56,6 @@ double LanguageMode::suggestedIndentForBufferRow(double, double, bool) {
 
 optional<double> LanguageMode::suggestedIndentForEditedBufferRow(double, double) {
   return optional<double>();
-}
-
-optional<Range> LanguageMode::getRangeForSyntaxNodeContainingRange(Range) {
-  return optional<Range>();
 }
 
 Grammar *LanguageMode::getGrammar() {

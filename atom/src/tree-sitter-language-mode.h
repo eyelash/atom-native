@@ -85,7 +85,7 @@ struct TreeSitterLanguageMode final : LanguageMode {
     bool currentScopeIsCovered;
     HighlightIterator(TreeSitterLanguageMode *);
     ~HighlightIterator();
-    std::vector<int32_t> seek(Point, double) override;
+    std::vector<int32_t> seek(const Point &, double) override;
     void moveToSuccessor() override;
     void detectCoveredScope();
     Point getPosition() override;
@@ -105,7 +105,7 @@ struct TreeSitterLanguageMode final : LanguageMode {
   TreeSitterLanguageMode(TextBuffer *, TreeSitterGrammar *, GrammarRegistry *);
   ~TreeSitterLanguageMode();
 
-  void bufferDidChange(Range, Range, const std::u16string &, const std::u16string &) override;
+  void bufferDidChange(const Range &, const Range &, const std::u16string &, const std::u16string &) override;
   void bufferDidFinishTransaction() override;
   TSTree *parse(const TSLanguage *, TSTree *, const std::vector<TSRange> &);
   std::unique_ptr<LanguageMode::HighlightIterator> buildHighlightIterator() override;
@@ -117,11 +117,11 @@ struct TreeSitterLanguageMode final : LanguageMode {
   optional<double> suggestedIndentForEditedBufferRow(double, double) override;
   double suggestedIndentForLineWithScopeAtBufferRow_(double, const std::u16string &, double, bool = true);
   double indentLevelForLine(const std::u16string &, double);
-  void forEachTreeWithRange_(Range, std::function<void(TSTree *, TreeSitterGrammar *)>);
-  TSNode getSyntaxNodeContainingRange(Range, std::function<bool(TSNode, TreeSitterGrammar *)> = [](TSNode, TreeSitterGrammar *) { return true; });
-  std::pair<TSNode, TreeSitterGrammar *> getSyntaxNodeAndGrammarContainingRange(Range, std::function<bool(TSNode, TreeSitterGrammar *)> = [](TSNode, TreeSitterGrammar *) { return true; });
-  optional<Range> getRangeForSyntaxNodeContainingRange(Range) override;
-  TSNode getSyntaxNodeAtPosition(Point, std::function<bool(TSNode, TreeSitterGrammar *)>);
+  void forEachTreeWithRange_(const Range &, std::function<void(TSTree *, TreeSitterGrammar *)>);
+  TSNode getSyntaxNodeContainingRange(const Range &, std::function<bool(TSNode, TreeSitterGrammar *)> = [](TSNode, TreeSitterGrammar *) { return true; });
+  std::pair<TSNode, TreeSitterGrammar *> getSyntaxNodeAndGrammarContainingRange(const Range &, std::function<bool(TSNode, TreeSitterGrammar *)> = [](TSNode, TreeSitterGrammar *) { return true; });
+  optional<Range> getRangeForSyntaxNodeContainingRange(const Range &);
+  TSNode getSyntaxNodeAtPosition(const Point &, std::function<bool(TSNode, TreeSitterGrammar *)>);
   Grammar *getGrammar() override;
   optional<NativeRange> firstNonWhitespaceRange(double);
   TreeSitterGrammar *grammarForLanguageString(const std::u16string &);

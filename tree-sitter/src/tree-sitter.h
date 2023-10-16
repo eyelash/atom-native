@@ -6,12 +6,12 @@
 
 struct NativeTextBuffer;
 
-unsigned startIndex(TSNode);
-unsigned endIndex(TSNode);
-unsigned startIndex(TSRange);
-unsigned endIndex(TSRange);
-unsigned startIndex(TSTreeCursor *);
-unsigned endIndex(TSTreeCursor *);
+uint32_t startIndex(TSNode);
+uint32_t endIndex(TSNode);
+uint32_t startIndex(TSRange);
+uint32_t endIndex(TSRange);
+uint32_t startIndex(TSTreeCursor *);
+uint32_t endIndex(TSTreeCursor *);
 NativePoint startPosition(TSNode);
 NativePoint endPosition(TSNode);
 NativePoint startPosition(TSRange);

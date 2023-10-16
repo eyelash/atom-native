@@ -37,7 +37,7 @@ std::u16string toLowerCase(std::u16string string) {
 std::u16string escapeRegExp(const std::u16string &string) {
   std::u16string result;
   for (char16_t c : string) {
-    if (includes(std::u16string(u"-/\\^$*+?.()|[]{}"), c)) {
+    if (std::u16string(u"-/\\^$*+?.()|[]{}").find(c) != std::u16string::npos) {
       result.push_back(u'\\');
     }
     result.push_back(c);

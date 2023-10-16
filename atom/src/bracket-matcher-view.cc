@@ -156,19 +156,19 @@ std::pair<optional<Range>, optional<Range>> BracketMatcherView::findMatchingTagN
   const auto tags = this->findContainingTagsWithSyntaxTree(position, languageMode);
   const auto &startTag = std::get<0>(tags);
   const auto &endTag = std::get<1>(tags);
-  if (startTag && (rangeForNode(*startTag).containsPoint(position) || rangeForNode(*endTag).containsPoint(position))) {
-    if (ts_node_eq(*startTag, *endTag)) {
-      const Range range = rangeForNode(ts_node_child(*startTag, 1));
+  if (!ts_node_is_null(startTag) && (rangeForNode(startTag).containsPoint(position) || rangeForNode(endTag).containsPoint(position))) {
+    if (ts_node_eq(startTag, endTag)) {
+      const Range range = rangeForNode(ts_node_child(startTag, 1));
       return {range, range};
-    } else if (strcmp(ts_node_type(ts_node_first_child(*endTag)), "</") == 0) {
+    } else if (strcmp(ts_node_type(ts_node_first_child(endTag)), "</") == 0) {
       return {
-        rangeForNode(ts_node_child(*startTag, 1)),
-        rangeForNode(ts_node_child(*endTag, 1))
+        rangeForNode(ts_node_child(startTag, 1)),
+        rangeForNode(ts_node_child(endTag, 1))
       };
     } else {
       return {
-        rangeForNode(ts_node_child(*startTag, 1)),
-        rangeForNode(ts_node_child(*endTag, 2))
+        rangeForNode(ts_node_child(startTag, 1)),
+        rangeForNode(ts_node_child(endTag, 2))
       };
     }
   } else {
@@ -176,8 +176,8 @@ std::pair<optional<Range>, optional<Range>> BracketMatcherView::findMatchingTagN
   }
 }
 
-std::pair<optional<TSNode>, optional<TSNode>> BracketMatcherView::findContainingTagsWithSyntaxTree(Point position, TreeSitterLanguageMode *languageMode) {
-  optional<TSNode> startTag, endTag;
+std::pair<TSNode, TSNode> BracketMatcherView::findContainingTagsWithSyntaxTree(Point position, TreeSitterLanguageMode *languageMode) {
+  TSNode startTag = {}, endTag = {};
   if (position.column == this->editor->buffer->lineLengthForRow(position.row)) position.column--;
   languageMode->getSyntaxNodeAtPosition(position, [&](TSNode node, TreeSitterGrammar *) {
     if (strstr(ts_node_type(node), "element") && ts_node_child_count(node) > 0) {

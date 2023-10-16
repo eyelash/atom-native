@@ -5,15 +5,15 @@
 #include "serializer.h"
 
 struct NativePoint {
-  unsigned row;
-  unsigned column;
+  uint32_t row;
+  uint32_t column;
 
   static NativePoint min(const NativePoint &left, const NativePoint &right);
   static NativePoint max(const NativePoint &left, const NativePoint &right);
   static NativePoint max();
 
   NativePoint();
-  NativePoint(unsigned row, unsigned column);
+  NativePoint(uint32_t row, uint32_t column);
   NativePoint(Deserializer &input);
 
   int compare(const NativePoint &other) const;

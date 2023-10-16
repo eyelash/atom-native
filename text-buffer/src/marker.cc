@@ -204,7 +204,7 @@ bool Marker::update(const Range &oldRange, const Params &params, bool textChange
   return updated;
 }
 
-Marker::Snapshot Marker::getSnapshot(Range range, bool includeMarker) {
+Marker::Snapshot Marker::getSnapshot(const Range &range, bool includeMarker) {
   Snapshot snapshot {range, this->reversed, this->tailed, this->invalidate, this->exclusive};
   if (includeMarker) {
     //snapshot.marker = this;
@@ -216,7 +216,7 @@ Marker::Snapshot Marker::getSnapshot(Range range, bool includeMarker) {
 Section: Private
 */
 
-void Marker::emitChangeEvent(Range currentRange, bool textChanged, bool propertiesChanged) {
+void Marker::emitChangeEvent(const Range &currentRange, bool textChanged, bool propertiesChanged) {
   if (!this->hasChangeObservers) {
     return;
   }

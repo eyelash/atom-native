@@ -2,7 +2,7 @@
 #include <native-point.h>
 #include <native-text-buffer.h>
 
-static const unsigned BYTES_PER_CHARACTER = 2;
+static const uint32_t BYTES_PER_CHARACTER = 2;
 static TSTreeCursor scratch_cursor = {nullptr, nullptr, {0, 0}};
 
 static inline bool operator<=(const TSPoint &left, const TSPoint &right) {
@@ -19,27 +19,27 @@ static TSPoint PointFromJS(const NativePoint &point) {
   return {point.row, point.column * BYTES_PER_CHARACTER};
 }
 
-unsigned startIndex(TSNode node) {
+uint32_t startIndex(TSNode node) {
   return ts_node_start_byte(node) / BYTES_PER_CHARACTER;
 }
 
-unsigned endIndex(TSNode node) {
+uint32_t endIndex(TSNode node) {
   return ts_node_end_byte(node) / BYTES_PER_CHARACTER;
 }
 
-unsigned startIndex(TSRange range) {
+uint32_t startIndex(TSRange range) {
   return range.start_byte / BYTES_PER_CHARACTER;
 }
 
-unsigned endIndex(TSRange range) {
+uint32_t endIndex(TSRange range) {
   return range.end_byte / BYTES_PER_CHARACTER;
 }
 
-unsigned startIndex(TSTreeCursor *tree_cursor) {
+uint32_t startIndex(TSTreeCursor *tree_cursor) {
   return startIndex(ts_tree_cursor_current_node(tree_cursor));
 }
 
-unsigned endIndex(TSTreeCursor *tree_cursor) {
+uint32_t endIndex(TSTreeCursor *tree_cursor) {
   return endIndex(ts_tree_cursor_current_node(tree_cursor));
 }
 

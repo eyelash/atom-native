@@ -58,7 +58,7 @@ DisplayMarker *DisplayMarkerLayer::markScreenPosition(const Point &screenPositio
 DisplayMarker *DisplayMarkerLayer::markBufferRange(const Range &bufferRange) {
   Marker *marker = this->bufferMarkerLayer->markRange(bufferRange);
   return marker ? this->getMarker(marker->id) : nullptr;
-  }
+}
 
 DisplayMarker *DisplayMarkerLayer::markBufferPosition(const Point &bufferPosition) {
   Marker *marker = this->bufferMarkerLayer->markPosition(bufferPosition);
@@ -70,8 +70,8 @@ Section: Querying
 */
 
 DisplayMarker *DisplayMarkerLayer::getMarker(unsigned id) {
-  if (this->markersById.count(id)) {
-    return this->markersById[id];
+  if (DisplayMarker *displayMarker = get(this->markersById, id)) {
+    return displayMarker;
   } else if (Marker *bufferMarker = this->bufferMarkerLayer->getMarker(id)) {
     return this->markersById[id] = new DisplayMarker(this, bufferMarker);
   }

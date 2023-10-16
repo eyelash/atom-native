@@ -62,8 +62,8 @@ struct Marker {
   void destroy(bool = false);
   int compare(Marker *);
   bool update(const Range &, const Params &, bool = false, bool = false);
-  Snapshot getSnapshot(Range, bool = true);
-  void emitChangeEvent(Range, bool, bool);
+  Snapshot getSnapshot(const Range &, bool = true);
+  void emitChangeEvent(const Range &, bool, bool);
 };
 
 #endif // MARKER_H_

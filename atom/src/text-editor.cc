@@ -1706,7 +1706,7 @@ void TextEditor::pasteText(/* options = {} */) {
 
     if (
       indentBasis &&
-      (includes(text, u'\n') ||
+      (text.find(u'\n') != std::u16string::npos ||
         !selection->cursor->hasPrecedingCharactersOnLine())
     ) {
       options_indentBasis = *indentBasis;

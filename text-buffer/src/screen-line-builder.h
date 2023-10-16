@@ -29,8 +29,8 @@ struct ScreenLineBuilder {
   ScreenLineBuilder(DisplayLayer *);
   ~ScreenLineBuilder();
 
-  std::vector<DisplayLayer::ScreenLine> buildScreenLines(double startScreenRow, double endScreenRow);
-  double getBuiltInScopeId(int32_t flags);
+  std::vector<DisplayLayer::ScreenLine> buildScreenLines(double, double);
+  double getBuiltInScopeId(int32_t);
   void beginLine();
   void updateCurrentTokenFlags(char16_t);
   void emitDecorationBoundaries(LanguageMode::HighlightIterator &);
@@ -40,7 +40,7 @@ struct ScreenLineBuilder {
   void emitNewline(double = -1);
   void emitIndentWhitespace(double);
   void emitHardTab();
-  void emitText(std::u16string, bool = true);
+  void emitText(const std::u16string &, bool = true);
   void emitTokenBoundary();
   void emitEmptyTokenIfNeeded();
   void emitCloseTag(int32_t);
@@ -48,7 +48,7 @@ struct ScreenLineBuilder {
   void closeContainingScopes();
   void reopenTags();
   void pushScreenLine(const DisplayLayer::ScreenLine &);
-  double compareBufferPosition(Point);
+  double compareBufferPosition(const Point &);
 };
 
 #endif // SCREEN_LINE_BUILDER_H_

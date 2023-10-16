@@ -46,7 +46,7 @@ struct TextBuffer {
     const Regex &regex;
     bool stopped;
     optional<std::u16string> replacementText;
-    SearchCallbackArgument(TextBuffer *, Range, const Regex &);
+    SearchCallbackArgument(TextBuffer *, const Range &, const Regex &);
     std::u16string getMatchText();
     Range replace(std::u16string);
     void stop();

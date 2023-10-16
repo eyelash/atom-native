@@ -28,7 +28,7 @@ struct BracketMatcherView {
   optional<Point> findMatchingEndBracketWithSyntaxTree(const Point &, char16_t, char16_t, TreeSitterLanguageMode *);
   optional<Point> findMatchingStartBracketWithSyntaxTree(const Point &, char16_t, char16_t, TreeSitterLanguageMode *);
   std::pair<optional<Range>, optional<Range>> findMatchingTagNameRangesWithSyntaxTree(TreeSitterLanguageMode *);
-  std::pair<optional<TSNode>, optional<TSNode>> findContainingTagsWithSyntaxTree(Point, TreeSitterLanguageMode *);
+  std::pair<TSNode, TSNode> findContainingTagsWithSyntaxTree(Point, TreeSitterLanguageMode *);
   DisplayMarker *createMarker(const Range &);
   std::tuple<optional<Point>, optional<Point>> findCurrentPair();
   TreeSitterLanguageMode *hasSyntaxTree();

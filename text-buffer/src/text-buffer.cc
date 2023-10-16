@@ -193,9 +193,10 @@ Range TextBuffer::setText(const std::u16string &text) {
 
 Range TextBuffer::setTextInRange(const Range &range, const std::u16string &newText) {
   if (this->transactCallDepth == 0) {
-    //const Range newRange = this->transact([&]() { this->setTextInRange(range, newText /* , {normalizeLineEndings} */); });
+    Range newRange;
+    this->transact([&]() { newRange = this->setTextInRange(range, newText /* , {normalizeLineEndings} */); });
     //if (undo === 'skip') this.groupLastChanges()
-    //return newRange;
+    return newRange;
   }
 
   const Range oldRange = this->clipRange(range);
@@ -313,7 +314,7 @@ MarkerLayer *TextBuffer::addMarkerLayer(bool maintainHistory) {
 }
 
 MarkerLayer *TextBuffer::getMarkerLayer(unsigned id) {
-  return this->markerLayers[id];
+  return get(this->markerLayers, id);
 }
 
 MarkerLayer *TextBuffer::getDefaultMarkerLayer() {
@@ -618,7 +619,7 @@ DisplayLayer *TextBuffer::addDisplayLayer() {
 }
 
 DisplayLayer *TextBuffer::getDisplayLayer(unsigned id) {
-  return this->displayLayers[id];
+  return get(this->displayLayers, id);
 }
 
 /*
@@ -793,7 +794,7 @@ void TextBuffer::markersUpdated(MarkerLayer *layer) {
 
 unsigned TextBuffer::getNextMarkerId() { return this->nextMarkerId++; }
 
-TextBuffer::SearchCallbackArgument::SearchCallbackArgument(TextBuffer *buffer, Range range, const Regex &regex) :
+TextBuffer::SearchCallbackArgument::SearchCallbackArgument(TextBuffer *buffer, const Range &range, const Regex &regex) :
   buffer{buffer},
   range{range},
   regex{regex},

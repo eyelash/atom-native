@@ -35,7 +35,7 @@ Section: Querying
 */
 
 Marker *MarkerLayer::getMarker(unsigned id) {
-  return this->markersById.count(id) ? this->markersById[id] : nullptr;
+  return get(this->markersById, id);
 }
 
 std::vector<Marker *> MarkerLayer::getMarkers() {
@@ -201,9 +201,7 @@ void MarkerLayer::restoreFromSnapshot(const Snapshot &snapshots, bool alwaysCrea
       this.createMarker(snapshot.range, snapshot, true);
       continue;
     }*/
-    auto iter = this->markersById.find(id);
-    if (iter != this->markersById.end()) {
-      Marker *marker = iter->second;
+    if (Marker *marker = get(this->markersById, id)) {
       marker->update(marker->getRange(), {snapshot.second.range, snapshot.second.reversed, snapshot.second.tailed}, true, true);
     } else {
       //Marker *marker = snapshot.marker;

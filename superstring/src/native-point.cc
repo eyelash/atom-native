@@ -16,7 +16,7 @@ NativePoint NativePoint::max() {
 
 NativePoint::NativePoint() : NativePoint(0, 0) {}
 
-NativePoint::NativePoint(unsigned row, unsigned column) : row{row}, column{column} {}
+NativePoint::NativePoint(uint32_t row, uint32_t column) : row{row}, column{column} {}
 
 NativePoint::NativePoint(Deserializer &input) :
   row{input.read<uint32_t>()},

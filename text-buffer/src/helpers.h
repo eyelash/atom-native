@@ -65,13 +65,6 @@ public:
   }
 };
 
-template <typename CharT> bool includes(const std::basic_string<CharT> &haystack, const CharT *needle, size_t needle_length, size_t position = 0) {
-  return haystack.find(needle, position, needle_length) != std::basic_string<CharT>::npos;
-}
-template <typename CharT> bool includes(const std::basic_string<CharT> &haystack, CharT needle, size_t position = 0) {
-  return includes(haystack, &needle, 1, position);
-}
-
 std::u16string toUpperCase(std::u16string);
 std::u16string toLowerCase(std::u16string);
 
@@ -110,6 +103,15 @@ template <typename CharT> std::vector<std::basic_string<CharT>> split(const std:
 }
 
 std::u16string escapeRegExp(const std::u16string &string);
+
+template <typename K, typename V> V *get(const std::unordered_map<K, V *> &m, const K &k) {
+  auto i = m.find(k);
+  if (i != m.end()) {
+    return i->second;
+  } else {
+    return nullptr;
+  }
+}
 
 template <typename T> T pop(std::vector<T> &v) {
   T result = std::move(v.back());

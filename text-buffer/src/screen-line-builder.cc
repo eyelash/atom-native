@@ -346,7 +346,7 @@ void ScreenLineBuilder::emitHardTab() {
   }
 }
 
-void ScreenLineBuilder::emitText(std::u16string text, bool reopenTags) {
+void ScreenLineBuilder::emitText(const std::u16string &text, bool reopenTags) {
   if (reopenTags) this->reopenTags();
   this->currentScreenLineText += text;
   const double length = text.size();
@@ -430,7 +430,7 @@ void ScreenLineBuilder::pushScreenLine(const DisplayLayer::ScreenLine &screenLin
   }
 }
 
-double ScreenLineBuilder::compareBufferPosition(Point position) {
+double ScreenLineBuilder::compareBufferPosition(const Point &position) {
   const double rowComparison = this->bufferPosition.row - position.row;
   return rowComparison == 0 ? (this->bufferPosition.column - position.column) : rowComparison;
 }

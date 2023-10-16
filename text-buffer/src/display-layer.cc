@@ -91,9 +91,8 @@ DisplayMarkerLayer *DisplayLayer::addMarkerLayer(bool maintainHistory) {
 }
 
 DisplayMarkerLayer *DisplayLayer::getMarkerLayer(unsigned id) {
-  auto iter = this->displayMarkerLayersById.find(id);
-  if (iter != this->displayMarkerLayersById.end()) {
-    return iter->second;
+  if (this->displayMarkerLayersById.count(id)) {
+    return this->displayMarkerLayersById[id];
   } else {
     MarkerLayer *bufferMarkerLayer = this->buffer->getMarkerLayer(id);
     if (bufferMarkerLayer) {
@@ -478,7 +477,7 @@ std::vector<double> DisplayLayer::bufferRowsForScreenRows(double startRow, doubl
   double lastScreenRow = startRow;
   double lastBufferRow = this->translateScreenPositionWithSpatialIndex(startPosition).row;
   auto hunks = this->spatialIndex->grab_changes_in_new_range(startPosition, Point(endRow, 0));
-  for (unsigned i = 0; i < hunks.size(); i++) {
+  for (size_t i = 0; i < hunks.size(); i++) {
     const auto &hunk = hunks[i];
     while (lastScreenRow <= hunk.new_start.row) {
       bufferRows.push_back(lastBufferRow);

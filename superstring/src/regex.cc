@@ -11,7 +11,7 @@ Regex::Regex() : code{nullptr} {}
 
 static u16string preprocess_pattern(const char16_t *pattern, uint32_t length) {
   u16string result;
-  for (unsigned i = 0; i < length;) {
+  for (uint32_t i = 0; i < length;) {
     char16_t c = pattern[i];
 
     // Replace escape sequences like '\u00cf' with their literal UTF16 value

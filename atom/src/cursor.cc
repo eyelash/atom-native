@@ -100,8 +100,8 @@ bool Cursor::isBetweenWordAndNonWord() {
 
   const std::u16string nonWordCharacters = this->getNonWordCharacters();
   return (
-    includes(nonWordCharacters, text[0]) !=
-    includes(nonWordCharacters, text[1])
+    (nonWordCharacters.find(text[0]) != std::u16string::npos) !=
+    (nonWordCharacters.find(text[1]) != std::u16string::npos)
   );
 }
 
